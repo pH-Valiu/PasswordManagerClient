@@ -21,6 +21,7 @@ public:
     QJsonObject toJsonObject();//done
     void decryptContent(const QByteArray& masterPW); //done
     void encryptContent(const QByteArray& masterPW); //done
+    QByteArray getContentPublic(){return encryptedContent;}
     QString getName()                                           {return name;}
     QByteArray getID()                                          {return id;}
     QDateTime getLastChanged()                                  {return lastChanged;}

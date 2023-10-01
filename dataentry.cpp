@@ -8,10 +8,10 @@ QJsonObject DataEntry::toJsonObject(){
     map.insert("id", QString::fromUtf8(getID()));
     map.insert("ivInner", QString::fromUtf8(getIvInner()));
     map.insert("ivMidKey", QString::fromUtf8(getIvMidKey()));
-    map.insert("midKey", QString::fromUtf8(getMidKey()));
+    map.insert("midKey", QString::fromUtf8(getMidKey().toBase64()));
     map.insert("lastChanged", getLastChanged());
     map.insert("website", getWebsite().value_or(QString("")));
-    map.insert("content", QString::fromUtf8(getContent()));
+    map.insert("content", QString::fromUtf8(getContent().toBase64()));
 
     return QJsonObject::fromVariantMap(map);
 }
@@ -20,7 +20,7 @@ void DataEntry::decryptContent(const QByteArray& masterPW){
     if(!this->encryptedContent.isEmpty()){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
-        QByteArray decryptedJson = QByteArray::fromBase64(crypter.removePadding(crypter.decode(this->encryptedContent, decryptedMidKey, this->ivInner)), QByteArray::Base64Encoding);
+        QByteArray decryptedJson = crypter.removePadding(crypter.decode(this->encryptedContent, decryptedMidKey, this->ivInner));
         QMap<QString, QVariant> map = QJsonDocument::fromJson(decryptedJson).object().toVariantMap();
 
         QString username = map.value("username").toString();
@@ -53,7 +53,7 @@ void DataEntry::encryptContent(const QByteArray& masterPW){
         map.insert("password", this->password.value_or(QString("")));
         map.insert("details", this->details.value_or(QString("")));
         QByteArray contentAsJson = QJsonDocument(QJsonObject::fromVariantMap(map)).toJson(QJsonDocument::Compact);
-        QByteArray encryptedContent = crypter.encode(contentAsJson, decryptedMidKey, this->ivInner).toBase64(QByteArray::Base64Encoding);
+        QByteArray encryptedContent = crypter.encode(contentAsJson, decryptedMidKey, this->ivInner);
         this->setContent(encryptedContent);
         this->clearConfidential();
         decryptedMidKey.clear();
@@ -61,17 +61,17 @@ void DataEntry::encryptContent(const QByteArray& masterPW){
 }
 
 
+
+
+
 DataEntryBuilder::DataEntryBuilder(const QString& name){
     dataEntry = QSharedPointer<DataEntry>(new DataEntry());
     dataEntry->setName(name);
     dataEntry->setID(QUuid::createUuid().toByteArray());
-    QByteArray iv;
-    SystemFunction036(iv.data(), 16);
-    dataEntry->setIvInner(iv);
-
-    iv.clear();
-    SystemFunction036(iv.data(), 16);
-    dataEntry->setIvMidKey(iv);
+    dataEntry->setIvInner(QString("1234567890123456").toUtf8());
+    dataEntry->setIvMidKey(QString("0987654321123456").toUtf8());
+    //dataEntry->setIvInner(QByteArray::number(QRandomGenerator64::global()->generate());
+    //dataEntry->setIvMidKey(QByteArray::number(QRandomGenerator64::global()->generate())));
 }
 DataEntryBuilder::~DataEntryBuilder(){
     this->dataEntry.clear();
@@ -82,7 +82,8 @@ QSharedPointer<DataEntry> DataEntryBuilder::build(const QByteArray& masterPW){
                                                                 QByteArray::number(QRandomGenerator::global()->generate64()),
                                                                 QString("some ineteresting salt").toUtf8(),
                                                                 10000,
-                                                                256);
+                                                                32);
+
     QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
     QByteArray encryptedMidKey = crypter.encode(plainMidKey, masterPW, dataEntry->getIvMidKey());
     dataEntry->setMidKey(encryptedMidKey);
@@ -93,7 +94,7 @@ QSharedPointer<DataEntry> DataEntryBuilder::build(const QByteArray& masterPW){
     map.insert("password", dataEntry->getPassword().value_or(QString("")));
     map.insert("details", dataEntry->getDetails().value_or(QString("")));
     QByteArray contentAsJson = QJsonDocument(QJsonObject::fromVariantMap(map)).toJson(QJsonDocument::Compact);
-    QByteArray encryptedContent = crypter.encode(contentAsJson, plainMidKey, dataEntry->getIvInner()).toBase64(QByteArray::Base64Encoding);
+    QByteArray encryptedContent = crypter.encode(contentAsJson, plainMidKey, dataEntry->getIvInner());
     dataEntry->setContent(encryptedContent);
 
 
@@ -113,8 +114,8 @@ QSharedPointer<DataEntry> DataEntryBuilder::fromJsonObject(const QJsonObject& js
     entry->setID(map.value("id").toString().toUtf8());
     entry->setIvInner(map.value("ivInner").toString().toUtf8());
     entry->setIvMidKey(map.value("ivMidKey").toString().toUtf8());
-    entry->setMidKey(map.value("midKey").toString().toUtf8());
-    entry->setContent(map.value("content").toString().toUtf8());
+    entry->setMidKey(QByteArray::fromBase64(map.value("midKey").toString().toUtf8()));
+    entry->setContent(QByteArray::fromBase64(map.value("content").toString().toUtf8()));
     entry->setLastChanged(map.value("lastChanged").toDateTime());
     if(map.value("website").toString().isEmpty()){
         entry->setWebsite(std::nullopt);
@@ -123,6 +124,9 @@ QSharedPointer<DataEntry> DataEntryBuilder::fromJsonObject(const QJsonObject& js
     }
     return entry;
 }
+
+
+
 
 void DataEntryBuilder::addWebsite(const QString& website){
     if(website.isEmpty()){
@@ -162,6 +166,8 @@ void DataEntryBuilder::addDetails(const QString& details){
 
 
 
+
+
 DataEntryModulator::DataEntryModulator(QSharedPointer<DataEntry> dataEntry, const QByteArray& masterPW){
     this->dataEntry = QSharedPointer<DataEntry>(dataEntry);
     dataEntry->decryptContent(masterPW);
@@ -172,6 +178,8 @@ DataEntryModulator::~DataEntryModulator(){
 }
 void DataEntryModulator::saveChanges(){
     this->dataEntry->encryptContent(this->masterPW);
+    dataEntry->setLastChanged(QDateTime::currentDateTime());
+
     this->dataEntry.clear();
     this->masterPW.clear();
 }
