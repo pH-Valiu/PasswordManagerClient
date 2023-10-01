@@ -18,11 +18,13 @@ LIBS += "-L$$PWD/libraries/QAES" -lqaesencryption
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    dataentry.cpp \
     main.cpp \
     passwordbroker.cpp \
     view.cpp
 
 HEADERS += \
+    dataentry.h \
     passwordbroker.h \
     view.h
 
