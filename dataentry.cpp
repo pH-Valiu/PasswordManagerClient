@@ -16,34 +16,35 @@ QJsonObject DataEntry::toJsonObject(){
     return QJsonObject::fromVariantMap(map);
 }
 
-void DataEntry::decryptContent(const QByteArray& masterPW){
-    if(!this->encryptedContent.isEmpty()){
+bool DataEntry::decryptContent(const QByteArray& masterPW){
+    if(!this->encryptedContent.isEmpty() && masterPW.size() == 32){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
         QByteArray decryptedJson = crypter.removePadding(crypter.decode(this->encryptedContent, decryptedMidKey, this->ivInner));
         QMap<QString, QVariant> map = QJsonDocument::fromJson(decryptedJson).object().toVariantMap();
 
-        QString username = map.value("username").toString();
+        QString username = map.value("username", "").toString();
         if(username.isEmpty()){this->username = std::nullopt;}else{this->username = username;}
 
-        QString email = map.value("email").toString();
+        QString email = map.value("email", "").toString();
         if(email.isEmpty()){this->email = std::nullopt;}else{this->email = email;}
 
-        QString password = map.value("password").toString();
+        QString password = map.value("password", "").toString();
         if(password.isEmpty()){this->password = std::nullopt;}else{this->password = password;}
 
-        QString details = map.value("details").toString();
+        QString details = map.value("details", "").toString();
         if(details.isEmpty()){this->details = std::nullopt;}else{this->details = details;}
 
         this->encryptedContent.clear();
         decryptedMidKey.clear();
-
+        return true;
+    }else{
+        return false;
     }
-
 }
 
-void DataEntry::encryptContent(const QByteArray& masterPW){
-    if(this->encryptedContent.isEmpty()){
+bool DataEntry::encryptContent(const QByteArray& masterPW){
+    if(this->encryptedContent.isEmpty() && masterPW.size() == 32){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
 
@@ -57,6 +58,9 @@ void DataEntry::encryptContent(const QByteArray& masterPW){
         this->setContent(encryptedContent);
         this->clearConfidential();
         decryptedMidKey.clear();
+        return true;
+    }else{
+        return false;
     }
 }
 
@@ -66,73 +70,85 @@ void DataEntry::encryptContent(const QByteArray& masterPW){
 
 DataEntryBuilder::DataEntryBuilder(const QString& name){
     dataEntry = QSharedPointer<DataEntry>(new DataEntry());
-    dataEntry->setName(name);
     dataEntry->setID(QUuid::createUuid().toByteArray());
     dataEntry->setIvInner(QString("1234567890123456").toUtf8());
     dataEntry->setIvMidKey(QString("0987654321123456").toUtf8());
+    if(regexNaming.match(name).hasMatch()){
+        dataEntry->setName(name);
+    }else{
+        dataEntry->setName(dataEntry->getID());
+    }
     //dataEntry->setIvInner(QByteArray::number(QRandomGenerator64::global()->generate());
     //dataEntry->setIvMidKey(QByteArray::number(QRandomGenerator64::global()->generate())));
 }
 DataEntryBuilder::~DataEntryBuilder(){
     this->dataEntry.clear();
 }
-
 QSharedPointer<DataEntry> DataEntryBuilder::build(const QByteArray& masterPW){
-    QByteArray plainMidKey = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
-                                                                QByteArray::number(QRandomGenerator::global()->generate64()),
-                                                                QString("some ineteresting salt").toUtf8(),
-                                                                10000,
-                                                                32);
+    if(masterPW.size() == 32){
+        QByteArray plainMidKey = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
+                                                                    QByteArray::number(QRandomGenerator::global()->generate64()),
+                                                                    QString("some ineteresting salt").toUtf8(),
+                                                                    10000,
+                                                                    32);
 
-    QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-    QByteArray encryptedMidKey = crypter.encode(plainMidKey, masterPW, dataEntry->getIvMidKey());
-    dataEntry->setMidKey(encryptedMidKey);
+        QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
+        QByteArray encryptedMidKey = crypter.encode(plainMidKey, masterPW, dataEntry->getIvMidKey());
+        dataEntry->setMidKey(encryptedMidKey);
 
-    QMap<QString, QVariant> map;
-    map.insert("username", dataEntry->getUsername().value_or(QString("")));
-    map.insert("email", dataEntry->getEMail().value_or(QString("")));
-    map.insert("password", dataEntry->getPassword().value_or(QString("")));
-    map.insert("details", dataEntry->getDetails().value_or(QString("")));
-    QByteArray contentAsJson = QJsonDocument(QJsonObject::fromVariantMap(map)).toJson(QJsonDocument::Compact);
-    QByteArray encryptedContent = crypter.encode(contentAsJson, plainMidKey, dataEntry->getIvInner());
-    dataEntry->setContent(encryptedContent);
+        QMap<QString, QVariant> map;
+        map.insert("username", dataEntry->getUsername().value_or(QString("")));
+        map.insert("email", dataEntry->getEMail().value_or(QString("")));
+        map.insert("password", dataEntry->getPassword().value_or(QString("")));
+        map.insert("details", dataEntry->getDetails().value_or(QString("")));
+        QByteArray contentAsJson = QJsonDocument(QJsonObject::fromVariantMap(map)).toJson(QJsonDocument::Compact);
+        QByteArray encryptedContent = crypter.encode(contentAsJson, plainMidKey, dataEntry->getIvInner());
+        dataEntry->setContent(encryptedContent);
 
 
-    contentAsJson.clear();
-    plainMidKey.clear();
-    dataEntry->clearConfidential();
+        contentAsJson.clear();
+        plainMidKey.clear();
+        dataEntry->clearConfidential();
 
-    dataEntry->setLastChanged(QDateTime::currentDateTime());
-    return dataEntry;
+        dataEntry->setLastChanged(QDateTime::currentDateTime());
+        return dataEntry;
+    }else{
+        return QSharedPointer<DataEntry>();
+    }
 }
-
 QSharedPointer<DataEntry> DataEntryBuilder::fromJsonObject(const QJsonObject& jsonObject){
     QMap<QString, QVariant> map = jsonObject.toVariantMap();
-
-    QSharedPointer<DataEntry> entry = QSharedPointer<DataEntry>(new DataEntry());
-    entry->setName(map.value("name").toString());
-    entry->setID(map.value("id").toString().toUtf8());
-    entry->setIvInner(map.value("ivInner").toString().toUtf8());
-    entry->setIvMidKey(map.value("ivMidKey").toString().toUtf8());
-    entry->setMidKey(QByteArray::fromBase64(map.value("midKey").toString().toUtf8()));
-    entry->setContent(QByteArray::fromBase64(map.value("content").toString().toUtf8()));
-    entry->setLastChanged(map.value("lastChanged").toDateTime());
-    if(map.value("website").toString().isEmpty()){
-        entry->setWebsite(std::nullopt);
+    if(map.contains("name") && map.contains("id") && map.contains("ivInner")
+            && map.contains("ivMidKey") && map.contains("midKey") && map.contains("content")
+            && map.contains("lastChanged") && map.contains("website"))
+    {
+        QSharedPointer<DataEntry> entry = QSharedPointer<DataEntry>(new DataEntry());
+        entry->setName(map.value("name", "").toString());
+        entry->setID(map.value("id", "").toString().toUtf8());
+        entry->setIvInner(map.value("ivInner", "").toString().toUtf8());
+        entry->setIvMidKey(map.value("ivMidKey", "").toString().toUtf8());
+        entry->setMidKey(QByteArray::fromBase64(map.value("midKey", "").toString().toUtf8()));
+        entry->setContent(QByteArray::fromBase64(map.value("content", "").toString().toUtf8()));
+        entry->setLastChanged(map.value("lastChanged", "").toDateTime());
+        if(map.value("website", "").toString().isEmpty()){
+            entry->setWebsite(std::nullopt);
+        }else{
+            entry->setWebsite(map.value("website", "").toString());
+        }
+        return entry;
     }else{
-        entry->setWebsite(map.value("website").toString());
+        //JSON object is incomplete
+        //one or more keys (attributes) are missing
+        return QSharedPointer<DataEntry>();
     }
-    return entry;
+
 }
 
-
-
-
 void DataEntryBuilder::addWebsite(const QString& website){
-    if(website.isEmpty()){
-        dataEntry->setWebsite(std::nullopt);
-    }else{
+    if(regexNaming.match(website).hasMatch()){
         dataEntry->setWebsite(website);
+    }else{
+        dataEntry->setWebsite(std::nullopt);
     }
 }
 void DataEntryBuilder::addEmail(const QString& email){
@@ -171,34 +187,55 @@ void DataEntryBuilder::addDetails(const QString& details){
 DataEntryModulator::DataEntryModulator(QSharedPointer<DataEntry> dataEntry, const QByteArray& masterPW){
     this->dataEntry = QSharedPointer<DataEntry>(dataEntry);
     dataEntry->decryptContent(masterPW);
+    this->modified = false;
     this->masterPW = masterPW;
 }
 DataEntryModulator::~DataEntryModulator(){
     saveChanges();
 }
 void DataEntryModulator::saveChanges(){
-    this->dataEntry->encryptContent(this->masterPW);
-    dataEntry->setLastChanged(QDateTime::currentDateTime());
+    bool encryptionWorked = this->dataEntry->encryptContent(this->masterPW);
+    if(encryptionWorked && modified) dataEntry->setLastChanged(QDateTime::currentDateTime());
 
+    this->modified = false;
     this->dataEntry.clear();
     this->masterPW.clear();
 }
 
 void DataEntryModulator::changeName(const QString& name){
     dataEntry->setName(name);
+    modified = true;
 }
 void DataEntryModulator::changeWebsite(const QString& website){
     dataEntry->setWebsite(website);
+    modified = true;
 }
 void DataEntryModulator::changeEmail(const QString& email){
     dataEntry->setEMail(email);
+    modified = true;
 }
 void DataEntryModulator::changeUsername(const QString& username){
     dataEntry->setUsername(username);
+    modified = true;
 }
 void DataEntryModulator::changePassword(const QString& password){
     dataEntry->setPassword(password);
+    modified = true;
 }
 void DataEntryModulator::changeDetails(const QString& details){
     dataEntry->setDetails(details);
+    modified = true;
+}
+bool DataEntryModulator::changeMasterPassword(const QByteArray& newMasterPW){
+    if(masterPW.size() == 32 && newMasterPW.size() == 32){
+        QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
+        QByteArray oldDecryptedMidKey = crypter.removePadding(crypter.decode(dataEntry->getMidKey(), masterPW, dataEntry->getIvMidKey()));
+        QByteArray newEncryptedMidKey = crypter.encode(oldDecryptedMidKey, newMasterPW, dataEntry->getIvMidKey());
+
+        dataEntry->setMidKey(newEncryptedMidKey);
+        masterPW = newMasterPW;
+        return true;
+    }else{
+        return false;
+    }
 }

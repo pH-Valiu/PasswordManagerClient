@@ -56,6 +56,13 @@ int main(int argc, char *argv[])
                  << "password: "<<entry.data()->getPassword().value_or(QString("no value"));
     }
 
+    QRegularExpression regexNaming = QRegularExpression(R"(^([a-z]|[A-Z]|[0-9]| |\$|\#|\-|\_|\.|\+|\!|\*|\'|\(|\)|\,|\/|\&|\?|\=|\:|\%)+$)");
+    QString test("https://amazon.com//Gd=450//_$-%+!*#()&?:%'");//
+    QString test2("");
+    QRegularExpressionMatch match = regexNaming.match(test2);
+    qDebug()<<"re is valid?: "<<regexNaming.isValid();
+    qDebug()<<"regex match?: "<<match.hasMatch();
+
     w.show();
     return a.exec();
 
