@@ -6,64 +6,23 @@
 #include <QTextStream>
 #include <QApplication>
 
+#ifdef EXECUTE_UNIT_TESTS
+#include "unit_test/dataentrytest.h"
+#endif
+
+
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+#ifdef EXECUTE_UNIT_TESTS
+    DataEntryTest dataEntryTest;
+    qDebug()<<"testing";
+    return QTest::qExec(&dataEntryTest);
+#else
     view w;
-
-    QByteArray masterPW = QString("masterPasswort").toUtf8();
-    masterPW = QCryptographicHash::hash(masterPW, QCryptographicHash::Sha256);
-    QFile file("temp.txt");
-    file.resize(0);
-    if(file.open(QIODevice::ReadWrite)){
-        QTextStream textStream(&file);
-        DataEntryBuilder builder("apple");
-        builder.addPassword("megaPasswort");
-        builder.addUsername("user1");
-        //builder.addWebsite("apple.com");
-        QSharedPointer<DataEntry> apple = builder.build(masterPW);
-        qDebug()<<"size of masterPW: "<<masterPW.size();
-        QByteArray json = QJsonDocument(apple.data()->toJsonObject()).toJson();
-        textStream << json;
-        file.close();
-
-        qDebug() << "id prior: "<<QString::fromUtf8(apple.data()->getID());
-
-    }
-
-    if(file.open(QIODevice::ReadOnly)){
-        QTextStream textStream(&file);
-        QByteArray json = file.readAll();
-        file.close();
-        QSharedPointer<DataEntry> entry = DataEntryBuilder::fromJsonObject(QJsonDocument::fromJson(json).object());
-        qDebug() << "id after: "<<QString::fromUtf8(entry.data()->getID());
-
-        entry.data()->decryptContent(masterPW);
-        qDebug() << "content: "<<QString::fromUtf8(entry.data()->getContentPublic()) << "\n"
-                 << "username: "<< entry.data()->getUsername().value_or(QString("no value")) <<"\n"
-                 << "password: "<<entry.data()->getPassword().value_or(QString("no value"));
-        entry.data()->encryptContent(masterPW);
-        qDebug() << "content: "<<QString::fromUtf8(entry.data()->getContentPublic()) << "\n"
-                 << "username: "<< entry.data()->getUsername().value_or(QString("no value")) <<"\n"
-                 << "password: "<<entry.data()->getPassword().value_or(QString("no value"));
-
-        entry.data()->decryptContent(masterPW);
-        qDebug() << "content: "<<QString::fromUtf8(entry.data()->getContentPublic()) << "\n"
-                 << "username: "<< entry.data()->getUsername().value_or(QString("no value")) <<"\n"
-                 << "password: "<<entry.data()->getPassword().value_or(QString("no value"));
-        entry.data()->encryptContent(masterPW);
-        qDebug() << "content: "<<QString::fromUtf8(entry.data()->getContentPublic()) << "\n"
-                 << "username: "<< entry.data()->getUsername().value_or(QString("no value")) <<"\n"
-                 << "password: "<<entry.data()->getPassword().value_or(QString("no value"));
-    }
-
-    QRegularExpression regexNaming = QRegularExpression(R"(^([a-z]|[A-Z]|[0-9]| |\$|\#|\-|\_|\.|\+|\!|\*|\'|\(|\)|\,|\/|\&|\?|\=|\:|\%)+$)");    QString test("https://amazon.com//Gd=450//_$-%+!*#()&?:%'");//
-    QString test2("d f455 sdf-s,gf4,.q2r.dfs#'df43+*+");
-    QRegularExpressionMatch match = regexNaming.match(test2);
-    qDebug()<<"re is valid?: "<<regexNaming.isValid();
-    qDebug()<<"regex match?: "<<match.hasMatch();
-
+    qDebug()<<"app-ing";
     w.show();
     return a.exec();
-
+#endif
 }
