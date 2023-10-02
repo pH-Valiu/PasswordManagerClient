@@ -14,12 +14,13 @@ int main(int argc, char *argv[])
     QByteArray masterPW = QString("masterPasswort").toUtf8();
     masterPW = QCryptographicHash::hash(masterPW, QCryptographicHash::Sha256);
     QFile file("temp.txt");
+    file.resize(0);
     if(file.open(QIODevice::ReadWrite)){
         QTextStream textStream(&file);
         DataEntryBuilder builder("apple");
         builder.addPassword("megaPasswort");
         builder.addUsername("user1");
-        builder.addWebsite("apple.com");
+        //builder.addWebsite("apple.com");
         QSharedPointer<DataEntry> apple = builder.build(masterPW);
         qDebug()<<"size of masterPW: "<<masterPW.size();
         QByteArray json = QJsonDocument(apple.data()->toJsonObject()).toJson();
@@ -56,9 +57,8 @@ int main(int argc, char *argv[])
                  << "password: "<<entry.data()->getPassword().value_or(QString("no value"));
     }
 
-    QRegularExpression regexNaming = QRegularExpression(R"(^([a-z]|[A-Z]|[0-9]| |\$|\#|\-|\_|\.|\+|\!|\*|\'|\(|\)|\,|\/|\&|\?|\=|\:|\%)+$)");
-    QString test("https://amazon.com//Gd=450//_$-%+!*#()&?:%'");//
-    QString test2("");
+    QRegularExpression regexNaming = QRegularExpression(R"(^([a-z]|[A-Z]|[0-9]| |\$|\#|\-|\_|\.|\+|\!|\*|\'|\(|\)|\,|\/|\&|\?|\=|\:|\%)+$)");    QString test("https://amazon.com//Gd=450//_$-%+!*#()&?:%'");//
+    QString test2("d f455 sdf-s,gf4,.q2r.dfs#'df43+*+");
     QRegularExpressionMatch match = regexNaming.match(test2);
     qDebug()<<"re is valid?: "<<regexNaming.isValid();
     qDebug()<<"regex match?: "<<match.hasMatch();

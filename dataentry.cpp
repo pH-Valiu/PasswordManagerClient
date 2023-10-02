@@ -6,8 +6,8 @@ QJsonObject DataEntry::toJsonObject(){
     QMap<QString, QVariant> map;
     map.insert("name", getName());
     map.insert("id", QString::fromUtf8(getID()));
-    map.insert("ivInner", QString::fromUtf8(getIvInner()));
-    map.insert("ivMidKey", QString::fromUtf8(getIvMidKey()));
+    map.insert("ivInner", QString::fromUtf8(getIvInner().toBase64()));
+    map.insert("ivMidKey", QString::fromUtf8(getIvMidKey().toBase64()));
     map.insert("midKey", QString::fromUtf8(getMidKey().toBase64()));
     map.insert("lastChanged", getLastChanged());
     map.insert("website", getWebsite().value_or(QString("")));
@@ -71,15 +71,23 @@ bool DataEntry::encryptContent(const QByteArray& masterPW){
 DataEntryBuilder::DataEntryBuilder(const QString& name){
     dataEntry = QSharedPointer<DataEntry>(new DataEntry());
     dataEntry->setID(QUuid::createUuid().toByteArray());
-    dataEntry->setIvInner(QString("1234567890123456").toUtf8());
-    dataEntry->setIvMidKey(QString("0987654321123456").toUtf8());
     if(regexNaming.match(name).hasMatch()){
         dataEntry->setName(name);
     }else{
         dataEntry->setName(dataEntry->getID());
     }
-    //dataEntry->setIvInner(QByteArray::number(QRandomGenerator64::global()->generate());
-    //dataEntry->setIvMidKey(QByteArray::number(QRandomGenerator64::global()->generate())));
+    srand(QTime::currentTime().minute());
+    QByteArray ivInner, ivMidKey;
+    int rnd = rand();
+    ivInner.append((unsigned char*) &rnd);
+    rnd = rand();
+    ivMidKey.append((unsigned char*) &rnd);
+    ivInner.resize(16);
+    ivMidKey.resize(16);
+    dataEntry->setIvInner(ivInner);
+    dataEntry->setIvMidKey(ivMidKey);
+    //dataEntry->setIvInner(QString("1234567890123456").toUtf8());
+    //dataEntry->setIvMidKey(QString("0987654321123456").toUtf8());
 }
 DataEntryBuilder::~DataEntryBuilder(){
     this->dataEntry.clear();
@@ -125,8 +133,8 @@ QSharedPointer<DataEntry> DataEntryBuilder::fromJsonObject(const QJsonObject& js
         QSharedPointer<DataEntry> entry = QSharedPointer<DataEntry>(new DataEntry());
         entry->setName(map.value("name", "").toString());
         entry->setID(map.value("id", "").toString().toUtf8());
-        entry->setIvInner(map.value("ivInner", "").toString().toUtf8());
-        entry->setIvMidKey(map.value("ivMidKey", "").toString().toUtf8());
+        entry->setIvInner(QByteArray::fromBase64(map.value("ivInner", "").toString().toUtf8()));
+        entry->setIvMidKey(QByteArray::fromBase64(map.value("ivMidKey", "").toString().toUtf8()));
         entry->setMidKey(QByteArray::fromBase64(map.value("midKey", "").toString().toUtf8()));
         entry->setContent(QByteArray::fromBase64(map.value("content", "").toString().toUtf8()));
         entry->setLastChanged(map.value("lastChanged", "").toDateTime());
