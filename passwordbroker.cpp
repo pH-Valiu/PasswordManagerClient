@@ -1,9 +1,66 @@
 #include "passwordbroker.h"
+#include <QCoreApplication>
+#include <QDir>
+#include <QFile>
 
 
+PasswordBroker::PasswordBroker() : vector(new QVector<QSharedPointer<DataEntry>>()){
+    QString mainDirectory = QCoreApplication::applicationDirPath();
+    QDir database(mainDirectory.append("/database"));
+    if(!database.exists()){
+        database.mkpath(mainDirectory.append("/database"));
+    }
 
-PasswordBroker::PasswordBroker() : vector(new QVector<QSharedPointer<DataEntry>>())
-{
+    QFile fileIv(mainDirectory.append("/database/iv"));
+    if(!database.exists("iv")){
+        srand(QTime::currentTime().msec());
+        int rnd = rand();
+        iv.append((unsigned char*) &rnd);
+        iv.resize(16);
+        if(fileIv.open(QIODevice::WriteOnly)){
+            QTextStream ivInput(&fileIv);
+            ivInput << QString::fromUtf8(iv.toBase64());
+            ivInput.flush();
+            fileIv.close();
+        }else{
+            //IV FILE COULD NOT BE OPENED
+            //ABORT
+        }
+    }else{
+        if(fileIv.open(QIODevice::ReadOnly)){
+            QTextStream ivInput(&fileIv);
+            iv = QByteArray::fromBase64(ivInput.readAll().toUtf8());
+            fileIv.close();
+            if(iv.size() != 16){
+                //IV SIZE IS NOT CORRECT
+                //ABORT
+                //IV FILE IS CORRUPTED
+            }
+        }else{
+            //IV FILE COULD NOT BE OPENED
+            //ABORT
+        }
+    }
+
+    QFile fileEntries(mainDirectory.append("/database/dataEntries"));
+    if(!database.exists("dataEntries")){
+        if(fileEntries.open(QIODevice::WriteOnly)){
+            fileEntries.close();
+        }else{
+            //DATAENTRIES FILE COULD NOT BE OPENEND
+            //ABORT
+        }
+    }else{
+        if(fileEntries.open(QIODevice::ReadOnly)){
+            QTextStream entriesInput(&fileEntries);
+            encryptedEntries = QByteArray::fromBase64(entriesInput.readAll().toUtf8());
+            fileEntries.close();
+            //Integrity of file has to be checked
+        }else{
+            //DATAENTRIES FILE COULD NOT BE OPENEND
+            //ABORT
+        }
+    }
 }
 
 PasswordBroker::~PasswordBroker(){

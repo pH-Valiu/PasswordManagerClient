@@ -4,6 +4,7 @@
 
 
 
+
 class PasswordBroker
 {
 public:
@@ -20,6 +21,9 @@ public:
 private:
     PasswordBroker();
     QScopedPointer<QVector<QSharedPointer<DataEntry>>> vector;
+    bool abort;
+    QByteArray encryptedEntries;
+    QByteArray iv;
 
 };
 
