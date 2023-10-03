@@ -12,7 +12,11 @@ class DataEntryTest : public QObject
 private slots:
     void initTestCase();
     void testBuilderFull();
+    void testBuilderPartial();
     void testBuilderJSON();
+    void testRegex();
+    void testModulator();
+    void testModulatorChangeMasterPW();
     void cleanupTestCase(){}
 
 public:

@@ -109,9 +109,9 @@ public:
     void addUsername(const QString& username);
     void addPassword(const QString& password);
     void addDetails(const QString& details);
+    static QRegularExpression regexNaming;
 private:
     QSharedPointer<DataEntry> dataEntry;
-    QRegularExpression regexNaming = QRegularExpression(R"(^([a-z]|[A-Z]|[0-9]| |\$|\#|\-|\_|\.|\+|\!|\*|\'|\(|\)|\,|\/|\&|\?|\=|\:|\%)+$)");
 
 };
 
@@ -126,7 +126,6 @@ public:
      * @param masterPW to decrypt midKey
      */
     DataEntryModulator(QSharedPointer<DataEntry> dataEntry, const QByteArray& masterPW);
-    ~DataEntryModulator();
     void changeName(const QString& name);
     void changeWebsite(const QString& website);
     void changeEmail(const QString& email);

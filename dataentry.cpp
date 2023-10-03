@@ -1,5 +1,7 @@
 #include "dataentry.h"
 
+QRegularExpression DataEntryBuilder::regexNaming = QRegularExpression(R"(^([a-z]|[A-Z]|[0-9]| |\$|\#|\-|\_|\.|\+|\!|\*|\'|\(|\)|\,|\/|\&|\?|\=|\:|\%)+$)");
+
 DataEntry::DataEntry(){}
 
 QJsonObject DataEntry::toJsonObject(){
@@ -17,7 +19,7 @@ QJsonObject DataEntry::toJsonObject(){
 }
 
 bool DataEntry::decryptContent(const QByteArray& masterPW){
-    if(!this->encryptedContent.isEmpty() && masterPW.size() == 32){
+    if(!this->encryptedContent.isNull() && !this->encryptedContent.isEmpty() && masterPW.size() == 32){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
         QByteArray decryptedJson = crypter.removePadding(crypter.decode(this->encryptedContent, decryptedMidKey, this->ivInner));
@@ -44,7 +46,7 @@ bool DataEntry::decryptContent(const QByteArray& masterPW){
 }
 
 bool DataEntry::encryptContent(const QByteArray& masterPW){
-    if(this->encryptedContent.isEmpty() && masterPW.size() == 32){
+    if((this->encryptedContent.isNull() || this->encryptedContent.isEmpty()) && masterPW.size() == 32){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
 
@@ -198,16 +200,15 @@ DataEntryModulator::DataEntryModulator(QSharedPointer<DataEntry> dataEntry, cons
     this->modified = false;
     this->masterPW = masterPW;
 }
-DataEntryModulator::~DataEntryModulator(){
-    saveChanges();
-}
+
 void DataEntryModulator::saveChanges(){
     bool encryptionWorked = this->dataEntry->encryptContent(this->masterPW);
     if(encryptionWorked && modified) dataEntry->setLastChanged(QDateTime::currentDateTime());
 
-    this->modified = false;
     this->dataEntry.clear();
     this->masterPW.clear();
+    this->modified = false;
+
 }
 
 void DataEntryModulator::changeName(const QString& name){
