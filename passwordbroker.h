@@ -8,11 +8,14 @@ class PasswordBroker
 {
 public:
     static QSharedPointer<PasswordBroker> getInstance();
-    //void addEntry(PasswordBroker::DataEntry);
-    void newEntry();
-    QSharedPointer<DataEntry> getEntryFromId(QByteArray id);
-    QSharedPointer<DataEntry> getEntryFromName(QString name);
-    QSharedPointer<DataEntry> getEntryFromWebsite(QString website);
+    bool encryptData(const QByteArray& masterPW);
+    bool decryptData(const QByteArray& masterPW);
+    bool changerMasterPW(const QByteArray& oldMasterPW, const QByteArray& newMasterPW);
+    void addEntry(QSharedPointer<DataEntry> dataEntry);
+    bool removeEntry(const QByteArray& id);
+    QSharedPointer<DataEntry> getEntryFromId(const QByteArray& id);
+    QSharedPointer<DataEntry> getEntryFromName(const QString& name);
+    QSharedPointer<DataEntry> getEntryFromWebsite(const QString& website);
     ~PasswordBroker();
 private:
     PasswordBroker();

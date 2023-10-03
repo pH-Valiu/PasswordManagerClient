@@ -92,7 +92,7 @@ public:
      * @param masterPW to encrypt midKey, has to be exactly 32 byte long
      * @return QSharedPointer to newly created DataEntry with encrypted content
      *
-     * Returns empty QSharedPointer containing nullptr if masterPW is not 32 bytes long
+     * Returns nullptr if masterPW is not 32 bytes long
      */
     QSharedPointer<DataEntry> build(const QByteArray& masterPW);
     /**
@@ -102,7 +102,7 @@ public:
      * midKey and content should be encoded in Base64, lastChanged should reflect a QDateTime
      * @return QSharedPointer to newly created DataEntry if the jsonObject contains every key/attribute
      *
-     * Otherwise it returns empty QSharedPointer containing nullptr
+     * Otherwise it returns nullptr
      */
     static QSharedPointer<DataEntry> fromJsonObject(const QJsonObject& jsonObject);
     /**

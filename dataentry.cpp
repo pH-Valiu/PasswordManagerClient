@@ -138,7 +138,7 @@ QSharedPointer<DataEntry> DataEntryBuilder::build(const QByteArray& masterPW){
         dataEntry->setLastChanged(QDateTime::currentDateTime());
         return dataEntry;
     }else{
-        return QSharedPointer<DataEntry>();
+        return nullptr;
     }
 }
 QSharedPointer<DataEntry> DataEntryBuilder::fromJsonObject(const QJsonObject& jsonObject){
@@ -164,7 +164,7 @@ QSharedPointer<DataEntry> DataEntryBuilder::fromJsonObject(const QJsonObject& js
     }else{
         //JSON object is incomplete
         //one or more keys (attributes) are missing
-        return QSharedPointer<DataEntry>();
+        return nullptr;
     }
 
 }
