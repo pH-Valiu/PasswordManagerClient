@@ -122,6 +122,7 @@ void DataEntryTest::testModulator(){
     QDateTime preLastChanged = appleEntry->getLastChanged();
     QCOMPARE(appleEntry->getEMail(), "user1@apple.com");
     appleMod.changeEmail("newMail@apple.com");
+    QThread::currentThread()->sleep(1);
     appleMod.saveChanges();
     QVERIFY(preLastChanged != appleEntry->getLastChanged());
     QCOMPARE(appleEntry->getEMail(), std::nullopt);
@@ -135,13 +136,13 @@ void DataEntryTest::testModulator(){
 
 }
 
-
 void DataEntryTest::testModulatorChangeMasterPW(){
     DataEntryModulator appleMod(appleEntry, masterPW);
     QDateTime preLastChanged = appleEntry->getLastChanged();
     appleMod.changeMasterPassword(QString("12345678901234567890123456789012").toUtf8());
+    QThread::currentThread()->sleep(1);
     appleMod.saveChanges();
-    QVERIFY(preLastChanged == appleEntry->getLastChanged());
+    QVERIFY(preLastChanged != appleEntry->getLastChanged());
     appleEntry->decryptContent(QString("12345678901234567890123456789012").toUtf8());
     QCOMPARE(appleEntry->getPassword(), ",~£:1Od33jy+lj");
     appleEntry->encryptContent(QString("12345678901234567890123456789012").toUtf8());

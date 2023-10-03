@@ -243,6 +243,7 @@ bool DataEntryModulator::changeMasterPassword(const QByteArray& newMasterPW){
 
         dataEntry->setMidKey(newEncryptedMidKey);
         masterPW = newMasterPW;
+        modified = true;
         return true;
     }else{
         return false;

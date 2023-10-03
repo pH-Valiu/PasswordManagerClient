@@ -17,7 +17,6 @@ int main(int argc, char *argv[])
 
 #ifdef EXECUTE_UNIT_TESTS
     DataEntryTest dataEntryTest;
-    qDebug()<<"testing";
     return QTest::qExec(&dataEntryTest);
 #else
     view w;
