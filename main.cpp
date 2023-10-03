@@ -20,7 +20,8 @@ int main(int argc, char *argv[])
     return QTest::qExec(&dataEntryTest);
 #else
     view w;
-    qDebug()<<"app-ing";
+    QSharedPointer<PasswordBroker> broker = PasswordBroker::getInstance();
+
     w.show();
     return a.exec();
 #endif

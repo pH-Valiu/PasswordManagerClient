@@ -118,10 +118,12 @@ void DataEntryTest::testRegex(){
 }
 
 void DataEntryTest::testModulator(){
+
     DataEntryModulator appleMod(appleEntry, masterPW);
     QDateTime preLastChanged = appleEntry->getLastChanged();
-    QCOMPARE(appleEntry->getEMail(), "user1@apple.com");
+    QCOMPARE(appleEntry->getEMail(), std::nullopt);
     appleMod.changeEmail("newMail@apple.com");
+    QCOMPARE(appleEntry->getEMail(), std::nullopt);
     QThread::currentThread()->sleep(1);
     appleMod.saveChanges();
     QVERIFY(preLastChanged != appleEntry->getLastChanged());

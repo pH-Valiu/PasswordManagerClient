@@ -2,13 +2,15 @@
 
 
 
-PasswordBroker::PasswordBroker()
+PasswordBroker::PasswordBroker() : vector(new QVector<QSharedPointer<DataEntry>>())
 {
-
+    //vector(new QVector<QSharedPointer<DataEntry>>());
 }
 
 PasswordBroker::~PasswordBroker(){
+    qDebug()<<"deletion";
     foreach(QSharedPointer<DataEntry> entry, (*vector.get())){
+        qDebug()<<"each";
         entry.data()->clearData();
         entry.clear();
     }

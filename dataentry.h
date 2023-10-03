@@ -18,6 +18,11 @@ DECLSPEC_IMPORT BOOLEAN WINAPI SystemFunction036(PVOID RandomBuffer, ULONG Rando
 
 class DataEntry {
 public:
+    /**
+     * @brief Constructs a clone of the given DataEntry
+     * @param toBeCloned pointer to the DataEntry being cloned
+     */
+    DataEntry(DataEntry* toBeCloned);
     QJsonObject toJsonObject();//done
     bool decryptContent(const QByteArray& masterPW); //done
     bool encryptContent(const QByteArray& masterPW); //done
@@ -141,6 +146,7 @@ public:
     void saveChanges();
 private:
     QSharedPointer<DataEntry> dataEntry;
+    DataEntry dataEntryClone;
     QByteArray masterPW;
     bool modified;
 };

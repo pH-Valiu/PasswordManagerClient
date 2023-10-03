@@ -4,6 +4,21 @@ QRegularExpression DataEntryBuilder::regexNaming = QRegularExpression(R"(^([a-z]
 
 DataEntry::DataEntry(){}
 
+DataEntry::DataEntry(DataEntry* toBeCloned){
+    this->name = toBeCloned->name;
+    this->id = toBeCloned->id;
+    this->lastChanged = toBeCloned->lastChanged;
+    this->ivInner = toBeCloned->ivInner;
+    this->ivMidKey = toBeCloned->ivMidKey;
+    this->midKey = toBeCloned->midKey;
+    this->website = toBeCloned->website;
+    this->encryptedContent = toBeCloned->encryptedContent;
+    this->email = toBeCloned->email;
+    this->username = toBeCloned->username;
+    this->password = toBeCloned->password;
+    this->details = toBeCloned->details;
+}
+
 QJsonObject DataEntry::toJsonObject(){
     QMap<QString, QVariant> map;
     map.insert("name", getName());
@@ -196,43 +211,52 @@ void DataEntryBuilder::addDetails(const QString& details){
 
 DataEntryModulator::DataEntryModulator(QSharedPointer<DataEntry> dataEntry, const QByteArray& masterPW){
     this->dataEntry = QSharedPointer<DataEntry>(dataEntry);
-    dataEntry->decryptContent(masterPW);
-    this->modified = false;
+    dataEntryClone = DataEntry(dataEntry.data());
+
     this->masterPW = masterPW;
+    this->modified = false;
+    dataEntryClone.decryptContent(masterPW);
 }
 
 void DataEntryModulator::saveChanges(){
-    bool encryptionWorked = this->dataEntry->encryptContent(this->masterPW);
-    if(encryptionWorked && modified) dataEntry->setLastChanged(QDateTime::currentDateTime());
+    bool encryptionWorked = this->dataEntryClone.encryptContent(this->masterPW);
+    if(encryptionWorked && modified){
+        dataEntry->setName(dataEntryClone.getName());
+        dataEntry->setWebsite(dataEntryClone.getWebsite());
+        dataEntry->setLastChanged(QDateTime::currentDateTime());
+        dataEntry->setMidKey(dataEntryClone.getMidKey());
+        dataEntry->setContent(dataEntryClone.getContent());
+    }
 
     this->dataEntry.clear();
     this->masterPW.clear();
+    this->dataEntryClone.clearData();
     this->modified = false;
 
 }
 
 void DataEntryModulator::changeName(const QString& name){
-    dataEntry->setName(name);
+    dataEntryClone.setName(name);
     modified = true;
 }
 void DataEntryModulator::changeWebsite(const QString& website){
-    dataEntry->setWebsite(website);
+    dataEntryClone.setWebsite(website);
     modified = true;
 }
 void DataEntryModulator::changeEmail(const QString& email){
-    dataEntry->setEMail(email);
+    dataEntryClone.setEMail(email);
     modified = true;
 }
 void DataEntryModulator::changeUsername(const QString& username){
-    dataEntry->setUsername(username);
+    dataEntryClone.setUsername(username);
     modified = true;
 }
 void DataEntryModulator::changePassword(const QString& password){
-    dataEntry->setPassword(password);
+    dataEntryClone.setPassword(password);
     modified = true;
 }
 void DataEntryModulator::changeDetails(const QString& details){
-    dataEntry->setDetails(details);
+    dataEntryClone.setDetails(details);
     modified = true;
 }
 bool DataEntryModulator::changeMasterPassword(const QByteArray& newMasterPW){
@@ -241,7 +265,7 @@ bool DataEntryModulator::changeMasterPassword(const QByteArray& newMasterPW){
         QByteArray oldDecryptedMidKey = crypter.removePadding(crypter.decode(dataEntry->getMidKey(), masterPW, dataEntry->getIvMidKey()));
         QByteArray newEncryptedMidKey = crypter.encode(oldDecryptedMidKey, newMasterPW, dataEntry->getIvMidKey());
 
-        dataEntry->setMidKey(newEncryptedMidKey);
+        dataEntryClone.setMidKey(newEncryptedMidKey);
         masterPW = newMasterPW;
         modified = true;
         return true;
