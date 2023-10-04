@@ -8,6 +8,7 @@
 
 #ifdef EXECUTE_UNIT_TESTS
 #include "unit_test/dataentrytest.h"
+#include "unit_test/passwordbrokertest.h"
 #endif
 
 
@@ -17,7 +18,10 @@ int main(int argc, char *argv[])
 
 #ifdef EXECUTE_UNIT_TESTS
     DataEntryTest dataEntryTest;
-    return QTest::qExec(&dataEntryTest);
+    PasswordBrokerTest passwordBrokerTest;
+    QTest::qExec(&passwordBrokerTest);
+    QTest::qExec(&dataEntryTest);
+    return 0;
 #else
     view w;
     QSharedPointer<PasswordBroker> broker = PasswordBroker::getInstance();

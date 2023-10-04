@@ -17,7 +17,7 @@ include($$PWD/PasswordManagerClient.pri)
 
 # Un-Comment this line when you want to test your code
 # Comment this line when you want to deploy your code
-#DEFINES += EXECUTE_UNIT_TESTS
+DEFINES += EXECUTE_UNIT_TESTS
 
 
 # Default rules for deployment.

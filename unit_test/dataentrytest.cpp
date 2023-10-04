@@ -95,6 +95,7 @@ void DataEntryTest::testBuilderJSON(){
     QCOMPARE(appleEntry->getID(), entry->getID().append(""));
     QDateTime lastChangedLater = entry->getLastChanged();
     QCOMPARE(lastChanged, lastChangedLater);
+    file.remove();
 }
 
 void DataEntryTest::testRegex(){

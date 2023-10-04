@@ -5,6 +5,7 @@ LIBS += "-L$$PWD/libraries/QAES" -lqaesencryption
 
 
 SOURCES += \
+    $$PWD/unit_test/passwordbrokertest.cpp \
     dataentry.cpp \
     passwordbroker.cpp \
     view.cpp \
@@ -12,6 +13,7 @@ SOURCES += \
     unit_test/dataentrytest.cpp
 
 HEADERS += \
+    $$PWD/unit_test/passwordbrokertest.h \
     dataentry.h \
     passwordbroker.h \
     view.h \
