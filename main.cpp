@@ -21,6 +21,7 @@ int main(int argc, char *argv[])
 #else
     view w;
     QSharedPointer<PasswordBroker> broker = PasswordBroker::getInstance();
+    qDebug() <<"return: "<<broker->fetchFileData();
 
     w.show();
     return a.exec();

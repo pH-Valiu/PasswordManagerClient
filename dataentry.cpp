@@ -34,6 +34,7 @@ QJsonObject DataEntry::toJsonObject(){
 }
 
 bool DataEntry::decryptContent(const QByteArray& masterPW){
+    //function won't notify you about wrong masterPW
     if(!this->encryptedContent.isNull() && !this->encryptedContent.isEmpty() && masterPW.size() == 32){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
@@ -61,6 +62,7 @@ bool DataEntry::decryptContent(const QByteArray& masterPW){
 }
 
 bool DataEntry::encryptContent(const QByteArray& masterPW){
+    //function won't notify you about wrong masterPW
     if((this->encryptedContent.isNull() || this->encryptedContent.isEmpty()) && masterPW.size() == 32){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
@@ -260,6 +262,8 @@ void DataEntryModulator::changeDetails(const QString& details){
     modified = true;
 }
 bool DataEntryModulator::changeMasterPassword(const QByteArray& newMasterPW){
+    //if oldMasterPW is incorrect this function will not notify you
+    //it will appear as if everything worked correctly
     if(masterPW.size() == 32 && newMasterPW.size() == 32){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray oldDecryptedMidKey = crypter.removePadding(crypter.decode(dataEntry->getMidKey(), masterPW, dataEntry->getIvMidKey()));

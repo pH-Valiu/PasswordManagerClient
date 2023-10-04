@@ -9,9 +9,11 @@ class PasswordBroker
 {
 public:
     static QSharedPointer<PasswordBroker> getInstance();
-    bool encryptData(const QByteArray& masterPW);
-    bool decryptData(const QByteArray& masterPW);
-    bool changerMasterPW(const QByteArray& oldMasterPW, const QByteArray& newMasterPW);
+    QString fetchFileData();
+    QString storeFileData();
+    QString encryptData(const QByteArray& masterPW);
+    QString decryptData(const QByteArray& masterPW);
+    QString changerMasterPW(const QByteArray& oldMasterPW, const QByteArray& newMasterPW);
     void addEntry(QSharedPointer<DataEntry> dataEntry);
     bool removeEntry(const QByteArray& id);
     QSharedPointer<DataEntry> getEntryFromId(const QByteArray& id);
@@ -21,9 +23,12 @@ public:
 private:
     PasswordBroker();
     QScopedPointer<QVector<QSharedPointer<DataEntry>>> vector;
-    bool abort;
-    QByteArray encryptedEntries;
-    QByteArray iv;
+    struct FileData{
+        QByteArray encryptedEntries;
+        QByteArray iv;
+        QByteArray mac;
+    } fileData;
+
 
 };
 
