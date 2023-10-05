@@ -7,25 +7,23 @@
 #include <QMessageAuthenticationCode>
 
 
-PasswordBroker::PasswordBroker() : vector(new QVector<QSharedPointer<DataEntry>>()){
+
+PasswordBroker::PasswordBroker() : vector(){
 }
 
 PasswordBroker::~PasswordBroker(){
-    for(qsizetype i=0; i<vector->size(); i++){
-        vector->at(i)->clearData();
+    for(qsizetype i=0; i<vector.size(); i++){
+        vector.at(i)->clearData();
     }
-    QMutableListIterator<QSharedPointer<DataEntry>> it(*vector.get());
+    QMutableListIterator<QSharedPointer<DataEntry>> it(vector);
     while(it.hasNext()){
         it.next().clear();
     }
-    vector->clear();
+    vector.clear();
 }
 
-QSharedPointer<PasswordBroker> PasswordBroker::getInstance(){
-    static QSharedPointer<PasswordBroker> broker = QSharedPointer<PasswordBroker>();
-    if(broker.isNull()){
-        broker = QSharedPointer<PasswordBroker>(new PasswordBroker());
-    }
+PasswordBroker& PasswordBroker::getInstance(){
+    static PasswordBroker broker;
     return broker;
 }
 
@@ -37,14 +35,12 @@ QString PasswordBroker::fetchFileData(){
 
     QFile fileIv(applicationDirPath + "/database/iv");
     if(!fileIv.exists()){
-        srand(QTime::currentTime().msec());
-        int rnd = rand();
-        fileData.iv.append((unsigned char*) &rnd);
-        fileData.iv.resize(16);
         if(fileIv.open(QIODevice::WriteOnly)){
-            QTextStream ivInput(&fileIv);
-            ivInput << QString::fromUtf8(fileData.iv.toBase64());
-            ivInput.flush();
+            srand(QTime::currentTime().msec());
+            int rnd = rand();
+            fileData.iv.resize(0);
+            fileData.iv.append((unsigned char*) &rnd);
+            fileData.iv.resize(16);
             fileIv.close();
         }else{
             //IV FILE COULD NOT BE OPENED
@@ -73,6 +69,7 @@ QString PasswordBroker::fetchFileData(){
     QFile fileMAC(applicationDirPath + "/database/mac");
     if(!fileMAC.exists()){
         if(fileMAC.open(QIODevice::WriteOnly)){
+            fileData.mac.resize(0);
             fileMAC.close();
         }else{
             //IV FILE COULD NOT BE OPENED
@@ -94,6 +91,7 @@ QString PasswordBroker::fetchFileData(){
     QFile fileEntries(applicationDirPath + "/database/dataEntries");
     if(!fileEntries.exists()){
         if(fileEntries.open(QIODevice::WriteOnly)){
+            fileData.encryptedEntries.resize(0);
             fileEntries.close();
         }else{
             //DATAENTRIES FILE COULD NOT BE OPENEND
@@ -184,9 +182,12 @@ QString PasswordBroker::storeFileData(){
 }
 
 QString PasswordBroker::encryptData(const QByteArray& masterPW){
+    if(fileData.iv.isNull() || fileData.iv.isEmpty()){
+        return "Internal Error: No IV available to encrypt data";
+    }
     QJsonArray jsonArray;
-    for(qsizetype i=0; i<vector->size(); i++){
-        jsonArray.append(vector->at(i)->toJsonObject());
+    for(qsizetype i=0; i<vector.size(); i++){
+        jsonArray.append(vector.at(i)->toJsonObject());
 
     }
     QByteArray jsonDoc = QJsonDocument(jsonArray).toJson(QJsonDocument::Indented);
@@ -205,48 +206,54 @@ QString PasswordBroker::encryptData(const QByteArray& masterPW){
 }
 
 QString PasswordBroker::decryptData(const QByteArray& masterPW){
-    if(fileData.encryptedEntries.isNull() || fileData.encryptedEntries.isEmpty()){
-        return "Internal Error: No data entries available to decrypt";
+    if(fileData.encryptedEntries.isNull()){
+        return "Internal Error: Encrypted entries variable hasn't been initialized";
     }
-    if(fileData.mac.isNull() || fileData.mac.isEmpty()){
-        return "Internal Error: No MAC available to verify authentity";
+    if(fileData.mac.isNull()){
+        return "Internal Error: MAC variable hasn't been initialized";
     }
-
-    QByteArray computedMAC = QMessageAuthenticationCode::hash(fileData.encryptedEntries, masterPW, QCryptographicHash::Sha256);
-
-    if(computedMAC != fileData.mac){
-        return "Security Error: computed MAC unequal to fetched MAC from file";
+    if(fileData.iv.isNull() || fileData.iv.isEmpty()){
+        return "Internal Error: No IV available to decrypt data";
     }
 
-    //MACs are equal
+    //No decryption if encryptedEntries is empty
+    if(!fileData.encryptedEntries.isEmpty()){
+        QByteArray computedMAC = QMessageAuthenticationCode::hash(fileData.encryptedEntries, masterPW, QCryptographicHash::Sha256);
 
-    QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-    QByteArray decryptedEntries = crypter.removePadding(crypter.decode(fileData.encryptedEntries, masterPW, fileData.iv));
-
-    if(decryptedEntries.isNull() || decryptedEntries.isEmpty()){
-        return "Internal Error: decryption of encrypted data entries failed";
-    }
-
-
-    QJsonParseError error;
-    QJsonDocument json = QJsonDocument::fromJson(decryptedEntries, &error);
-    if(error.error != QJsonParseError::NoError){
-        return "JSON Error: " + error.errorString();
-    }
-    if(!json.isArray()){
-        return "JSON Error: json file is not an array";
-    }
-    QJsonArray jsonArray = json.array();
-    for(qsizetype i=0; i<jsonArray.size(); i++){
-        if(!jsonArray.at(i).isObject()){
-            return "JSON Error: array value was not an object";
+        if(computedMAC != fileData.mac){
+            return "Security Error: computed MAC unequal to fetched MAC from file";
         }
-        QSharedPointer<DataEntry> entry = DataEntryBuilder::fromJsonObject(jsonArray.at(i).toObject());
-        if(entry.isNull()){
-            return "JSON Error: json object did not contain all required keys";
-        }
-        vector->append(entry);
 
+        //MACs are equal
+
+        QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
+        QByteArray decryptedEntries = crypter.removePadding(crypter.decode(fileData.encryptedEntries, masterPW, fileData.iv));
+
+        if(decryptedEntries.isNull() || decryptedEntries.isEmpty()){
+            return "Internal Error: decryption of encrypted data entries failed";
+        }
+
+
+        QJsonParseError error;
+        QJsonDocument json = QJsonDocument::fromJson(decryptedEntries, &error);
+        if(error.error != QJsonParseError::NoError){
+            return "JSON Error: " + error.errorString();
+        }
+        if(!json.isArray()){
+            return "JSON Error: json file is not an array";
+        }
+        QJsonArray jsonArray = json.array();
+        for(qsizetype i=0; i<jsonArray.size(); i++){
+            if(!jsonArray.at(i).isObject()){
+                return "JSON Error: array value was not an object";
+            }
+            QSharedPointer<DataEntry> entry = DataEntryBuilder::fromJsonObject(jsonArray.at(i).toObject());
+            if(entry.isNull()){
+                return "JSON Error: json object did not contain all required keys";
+            }
+            vector.append(entry);
+
+        }
     }
     return "";
 }
@@ -254,11 +261,11 @@ QString PasswordBroker::decryptData(const QByteArray& masterPW){
 QString PasswordBroker::changerMasterPW(const QByteArray& oldMasterPW, const QByteArray& newMasterPW){
     //Maybe try catch block for error catching and user notification?
 
-    for(qsizetype i=0; i<vector->size(); i++){
-        DataEntryModulator modulator(vector->at(i), oldMasterPW);
+    for(qsizetype i=0; i<vector.size(); i++){
+        DataEntryModulator modulator(vector.at(i), oldMasterPW);
         if(!modulator.changeMasterPassword(newMasterPW)){
             modulator.saveChanges();
-            return "Changing master password failed at " + vector->at(i)->getName();
+            return "Changing master password failed at " + vector.at(i)->getName();
         }
         modulator.saveChanges();
     }
@@ -266,38 +273,45 @@ QString PasswordBroker::changerMasterPW(const QByteArray& oldMasterPW, const QBy
 }
 
 void PasswordBroker::addEntry(QSharedPointer<DataEntry> dataEntry){
-    vector->append(dataEntry);
+    vector.append(dataEntry);
 }
 
-bool PasswordBroker::removeEntry(const QByteArray& id){
-    int entryRemoved = vector->removeIf([&](QSharedPointer<DataEntry> entry){
+bool PasswordBroker::removeEntryById(const QByteArray& id){
+    int entryRemoved = vector.removeIf([&](QSharedPointer<DataEntry> entry){
             return entry->getID() == id;
     });
     return entryRemoved;
 }
 
+bool PasswordBroker::removeEntryByName(const QString& name){
+    int entryRemoved = vector.removeIf([&](QSharedPointer<DataEntry> entry){
+            return entry->getName() == name;
+    });
+    return entryRemoved;
+}
+
 QSharedPointer<DataEntry> PasswordBroker::getEntryFromId(const QByteArray& id){
-    for(qsizetype i=0; i<vector->size(); i++){
-        if(vector->at(i)->getID() == id){
-            return vector->at(i);
+    for(qsizetype i=0; i<vector.size(); i++){
+        if(vector.at(i)->getID() == id){
+            return vector.at(i);
         }
     }
     return nullptr;
 }
 
 QSharedPointer<DataEntry> PasswordBroker::getEntryFromName(const QString& name){
-    for(qsizetype i=0; i<vector->size(); i++){
-        if(vector->at(i)->getName() == name){
-            return vector->at(i);
+    for(qsizetype i=0; i<vector.size(); i++){
+        if(vector.at(i)->getName() == name){
+            return vector.at(i);
         }
     }
     return nullptr;
 }
 
 QSharedPointer<DataEntry> PasswordBroker::getEntryFromWebsite(const QString& website){
-    for(qsizetype i=0; i<vector->size(); i++){
-        if(vector->at(i)->getWebsite() == website){
-            return vector->at(i);
+    for(qsizetype i=0; i<vector.size(); i++){
+        if(vector.at(i)->getWebsite() == website){
+            return vector.at(i);
         }
     }
     return nullptr;

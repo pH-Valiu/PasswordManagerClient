@@ -22,11 +22,10 @@ public:
      * @brief Constructs a clone of the given DataEntry
      * @param toBeCloned pointer to the DataEntry being cloned
      */
-    DataEntry(DataEntry* toBeCloned);
+    //DataEntry(const DataEntry& toBeCloned);
     QJsonObject toJsonObject();//done
     bool decryptContent(const QByteArray& masterPW); //done
     bool encryptContent(const QByteArray& masterPW); //done
-    QByteArray getContentPublic(){return encryptedContent;} //TO BE REMOVED
     QString getName()                                           {return name;}
     QByteArray getID()                                          {return id;}
     QDateTime getLastChanged()                                  {return lastChanged;}
@@ -42,8 +41,13 @@ public:
     void clearConfidential(){
         email.reset();username.reset();password.reset();details.reset();
     }
+    bool operator == (const DataEntry&) const;
     friend class DataEntryBuilder;
     friend class DataEntryModulator;
+#ifdef EXECUTE_UNIT_TESTS
+    friend class PasswordBrokerTest;
+    friend class DataEntryTest;
+#endif
 
 private:
     DataEntry();
@@ -76,6 +80,7 @@ private:
     QByteArray getContent()                                     {return encryptedContent;}
     QByteArray getIvInner()                                     {return ivInner;}
     QByteArray getIvMidKey()                                    {return ivMidKey;}
+    static QString showDiff(DataEntry& d1, DataEntry& d2);
 };
 
 
@@ -131,6 +136,7 @@ public:
      * @param masterPW to decrypt midKey
      */
     DataEntryModulator(QSharedPointer<DataEntry> dataEntry, const QByteArray& masterPW);
+    ~DataEntryModulator();
     void changeName(const QString& name);
     void changeWebsite(const QString& website);
     void changeEmail(const QString& email);

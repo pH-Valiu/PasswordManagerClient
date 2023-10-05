@@ -13,6 +13,7 @@ private slots:
     void initTestCase();
     void testSingleton();
     void testSimpleCallSequence();
+    void testSingleStoreFetch();
     void testMultipleStoreFetch();
     void testChangeMasterPW();
     void testLookupEntry();

@@ -4,20 +4,6 @@ QRegularExpression DataEntryBuilder::regexNaming = QRegularExpression(R"(^([a-z]
 
 DataEntry::DataEntry(){}
 
-DataEntry::DataEntry(DataEntry* toBeCloned){
-    this->name = toBeCloned->name;
-    this->id = toBeCloned->id;
-    this->lastChanged = toBeCloned->lastChanged;
-    this->ivInner = toBeCloned->ivInner;
-    this->ivMidKey = toBeCloned->ivMidKey;
-    this->midKey = toBeCloned->midKey;
-    this->website = toBeCloned->website;
-    this->encryptedContent = toBeCloned->encryptedContent;
-    this->email = toBeCloned->email;
-    this->username = toBeCloned->username;
-    this->password = toBeCloned->password;
-    this->details = toBeCloned->details;
-}
 
 QJsonObject DataEntry::toJsonObject(){
     QMap<QString, QVariant> map;
@@ -62,7 +48,7 @@ bool DataEntry::decryptContent(const QByteArray& masterPW){
 }
 
 bool DataEntry::encryptContent(const QByteArray& masterPW){
-    //function won't notify you about wrong masterPW
+    //this function won't notify you about wrong masterPW
     if((this->encryptedContent.isNull() || this->encryptedContent.isEmpty()) && masterPW.size() == 32){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
@@ -83,9 +69,63 @@ bool DataEntry::encryptContent(const QByteArray& masterPW){
     }
 }
 
+bool DataEntry::operator==(const DataEntry& other) const{
+    if(this->name != other.name) return false;
+    if(this->id != other.id) return false;
+    if(this->lastChanged != other.lastChanged) return false;
+    if(this->ivInner != other.ivInner) return false;
+    if(this->ivMidKey != other.ivMidKey) return false;
+    if(this->midKey != other.midKey) return false;
+    if(this->website != other.website) return false;
+    if(this->encryptedContent != other.encryptedContent) return false;
+    if(this->email != other.email) return false;
+    if(this->username != other.username) return false;
+    if(this->password != other.password) return false;
+    if(this->details != other.details) return false;
+    return true;
+}
 
+QString DataEntry::showDiff(DataEntry& d1, DataEntry& d2){
+    QString string("diff:\n");
+    if(d1.getName() != d2.getName()){
+        string+= "name: " + d1.getName() + " vs "+d2.getName()+"\n";
+    }
+    if(d1.getID() != d2.getID()){
+        string+= "id: " + d1.getID().toBase64() + " vs "+d2.getID().toBase64()+"\n";
+    }
+    if(d1.getLastChanged() != d2.getLastChanged()){
+        string+= "lastChanged: " + d1.getLastChanged().toString() + " vs "+d2.getLastChanged().toString()+"\n";
+    }
+    if(d1.getIvInner() != d2.getIvInner()){
+        string+= "ivInner: " + d1.getIvInner().toBase64() + " vs "+d2.getIvInner().toBase64()+"\n";
+    }
+    if(d1.getIvMidKey() != d2.getIvMidKey()){
+        string+= "ivMidKey: " + d1.getIvMidKey().toBase64() + " vs "+d2.getIvMidKey().toBase64()+"\n";
+    }
+    if(d1.getMidKey() != d2.getMidKey()){
+        string+= "midKey: " + d1.getMidKey().toBase64() + " vs "+d2.getMidKey().toBase64()+"\n";
+    }
+    if(d1.getWebsite() != d2.getWebsite()){
+        string+= "website: " + d1.getWebsite().value_or("") + " vs "+d2.getWebsite().value_or("")+"\n";
+    }
+    if(d1.getContent() != d2.getContent()){
+        string+= "content: " + d1.getContent().toBase64() + " vs "+d2.getContent().toBase64()+"\n";
+    }
+    if(d1.getEMail() != d2.getEMail()){
+        string+= "email: " + d1.getEMail().value_or("") + " vs "+d2.getEMail().value_or("")+"\n";
+    }
+    if(d1.getUsername() != d2.getUsername()){
+        string+= "username: " + d1.getUsername().value_or("") + " vs "+d2.getUsername().value_or("")+"\n";
+    }
+    if(d1.getPassword() != d2.getPassword()){
+        string+= "password: " + d1.getPassword().value_or("") + " vs "+d2.getPassword().value_or("")+"\n";
+    }
+    if(d1.getDetails() != d2.getDetails()){
+        string+= "details: " + d1.getDetails().value_or("") + " vs "+d2.getDetails().value_or("")+"\n";
+    }
+    return string;
 
-
+}
 
 DataEntryBuilder::DataEntryBuilder(const QString& name){
     dataEntry = QSharedPointer<DataEntry>(new DataEntry());
@@ -105,8 +145,6 @@ DataEntryBuilder::DataEntryBuilder(const QString& name){
     ivMidKey.resize(16);
     dataEntry->setIvInner(ivInner);
     dataEntry->setIvMidKey(ivMidKey);
-    //dataEntry->setIvInner(QString("1234567890123456").toUtf8());
-    //dataEntry->setIvMidKey(QString("0987654321123456").toUtf8());
 }
 DataEntryBuilder::~DataEntryBuilder(){
     this->dataEntry.clear();
@@ -213,11 +251,17 @@ void DataEntryBuilder::addDetails(const QString& details){
 
 DataEntryModulator::DataEntryModulator(QSharedPointer<DataEntry> dataEntry, const QByteArray& masterPW){
     this->dataEntry = QSharedPointer<DataEntry>(dataEntry);
-    dataEntryClone = DataEntry(dataEntry.data());
+    dataEntryClone = DataEntry(*dataEntry.get());
 
     this->masterPW = masterPW;
     this->modified = false;
     dataEntryClone.decryptContent(masterPW);
+}
+
+DataEntryModulator::~DataEntryModulator(){
+    this->dataEntry.clear();
+    this->masterPW.clear();
+    this->dataEntryClone.clearData();
 }
 
 void DataEntryModulator::saveChanges(){
@@ -230,7 +274,6 @@ void DataEntryModulator::saveChanges(){
         dataEntry->setContent(dataEntryClone.getContent());
     }
 
-    this->dataEntry.clear();
     this->masterPW.clear();
     this->dataEntryClone.clearData();
     this->modified = false;
