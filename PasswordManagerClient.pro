@@ -1,4 +1,4 @@
-QT += core gui network testlib
+QT += core gui network testlib widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 

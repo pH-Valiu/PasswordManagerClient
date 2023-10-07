@@ -5,19 +5,21 @@ LIBS += "-L$$PWD/libraries/QAES" -lqaesencryption
 
 
 SOURCES += \
+    $$PWD/messagehandler.cpp \
     $$PWD/unit_test/passwordbrokertest.cpp \
-    dataentry.cpp \
-    passwordbroker.cpp \
-    view.cpp \
-    main.cpp \
-    unit_test/dataentrytest.cpp
+    $$PWD/unit_test/dataentrytest.cpp \
+    $$PWD/dataentry.cpp \
+    $$PWD/passwordbroker.cpp \
+    $$PWD/view.cpp \
+    $$PWD/main.cpp
 
 HEADERS += \
+    $$PWD/messagehandler.h \
     $$PWD/unit_test/passwordbrokertest.h \
-    dataentry.h \
-    passwordbroker.h \
-    view.h \
-    unit_test/dataentrytest.h
+    $$PWD/unit_test/dataentrytest.h \
+    $$PWD/dataentry.h \
+    $$PWD/passwordbroker.h \
+    $$PWD/view.h
 
 FORMS += \
-    view.ui
+    $$PWD/view.ui

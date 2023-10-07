@@ -21,11 +21,11 @@ public:
      * @return
      */
     static PasswordBroker& getInstance();
-    QString fetchFileData();
-    QString storeFileData();
-    QString encryptData(const QByteArray& masterPW);
-    QString decryptData(const QByteArray& masterPW);
-    QString changerMasterPW(const QByteArray& oldMasterPW, const QByteArray& newMasterPW);
+    bool fetchFileData();
+    bool storeFileData();
+    bool encryptData(const QByteArray& masterPW);
+    bool decryptData(const QByteArray& masterPW);
+    bool changerMasterPW(const QByteArray& oldMasterPW, const QByteArray& newMasterPW);
     void addEntry(QSharedPointer<DataEntry> dataEntry);
     /**
      * @brief removeEntryById

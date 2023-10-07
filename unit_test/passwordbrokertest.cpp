@@ -58,8 +58,8 @@ void PasswordBrokerTest::testSimpleCallSequence(){
 
 void PasswordBrokerTest::testSingleStoreFetch(){
     PasswordBroker broker;
-    QVERIFY(broker.fetchFileData().isEmpty());
-    QVERIFY(broker.decryptData(masterPW).isEmpty());
+    QVERIFY(broker.fetchFileData());
+    QVERIFY(broker.decryptData(masterPW));
     QVERIFY(broker.entryCount() == 0);
     QVERIFY(!broker.fileData.iv.isEmpty());
     QVERIFY(broker.fileData.mac.isEmpty());
@@ -70,20 +70,20 @@ void PasswordBrokerTest::testSingleStoreFetch(){
     broker.addEntry(testEntry1);
     broker.addEntry(testEntry2);
     broker.addEntry(testEntry3);
-    QVERIFY(broker.encryptData(masterPW).isEmpty());
+    QVERIFY(broker.encryptData(masterPW));
     QVERIFY(!broker.fileData.encryptedEntries.isEmpty());
     QVERIFY(!broker.fileData.mac.isEmpty());
-    QVERIFY(broker.storeFileData().isEmpty());
+    QVERIFY(broker.storeFileData());
     broker.removeEntryByName("apple");
     broker.removeEntryByName("amazon");
     broker.removeEntryByName("twitter");
 
     PasswordBroker broker2;
-    QVERIFY(broker2.fetchFileData().isEmpty());
+    QVERIFY(broker2.fetchFileData());
     QVERIFY(!broker2.fileData.iv.isEmpty());
     QVERIFY(!broker2.fileData.mac.isEmpty());
     QVERIFY(!broker2.fileData.encryptedEntries.isEmpty());
-    QVERIFY(broker2.decryptData(masterPW).isEmpty());
+    QVERIFY(broker2.decryptData(masterPW));
     QCOMPARE(*broker2.getEntryFromName("apple").data(), *testEntry1.data());
     QCOMPARE(*broker2.getEntryFromName("amazon").data(), *testEntry2.data());
     QCOMPARE(*broker2.getEntryFromName("twitter").data(), *testEntry3.data());
@@ -94,19 +94,19 @@ void PasswordBrokerTest::testSingleStoreFetch(){
 
 void PasswordBrokerTest::testMultipleStoreFetch(){
     PasswordBroker broker;
-    QVERIFY(broker.fetchFileData().isEmpty());
+    QVERIFY(broker.fetchFileData());
     broker.addEntry(testEntry1);
     broker.addEntry(testEntry2);
     broker.addEntry(testEntry3);
-    QVERIFY(broker.encryptData(masterPW).isEmpty());
-    QVERIFY(broker.storeFileData().isEmpty());
+    QVERIFY(broker.encryptData(masterPW));
+    QVERIFY(broker.storeFileData());
     broker.removeEntryByName("apple");
     broker.removeEntryByName("amazon");
     broker.removeEntryByName("twitter");
 
     PasswordBroker broker2;
-    QVERIFY(broker2.fetchFileData().isEmpty());
-    QVERIFY(broker2.decryptData(masterPW).isEmpty());
+    QVERIFY(broker2.fetchFileData());
+    QVERIFY(broker2.decryptData(masterPW));
     QCOMPARE(*broker2.getEntryFromName("apple").data(), *testEntry1.data());
     QCOMPARE(*broker2.getEntryFromName("amazon").data(), *testEntry2.data());
     QCOMPARE(*broker2.getEntryFromName("twitter").data(), *testEntry3.data());
@@ -117,8 +117,8 @@ void PasswordBrokerTest::testMultipleStoreFetch(){
     broker2.storeFileData();
 
     PasswordBroker broker3;
-    QVERIFY(broker3.fetchFileData().isEmpty());
-    QVERIFY(broker3.decryptData(masterPW).isEmpty());
+    QVERIFY(broker3.fetchFileData());
+    QVERIFY(broker3.decryptData(masterPW));
     broker3.getEntryFromName("apple")->decryptContent(masterPW);
     QCOMPARE(broker3.getEntryFromName("apple")->getUsername(), "appleUser");
     broker3.getEntryFromName("apple")->encryptContent(masterPW);
@@ -139,19 +139,19 @@ void PasswordBrokerTest::testChangeMasterPW(){
     broker.addEntry(testEntry2);
     broker.addEntry(testEntry3);
     QByteArray newMasterPW = QString("12345678901234567890123456789012").toUtf8();
-    QVERIFY(broker.changerMasterPW(masterPW, newMasterPW).isEmpty());
-    QVERIFY(broker.fetchFileData().isEmpty());
-    QVERIFY(broker.encryptData(newMasterPW).isEmpty());
-    QVERIFY(broker.storeFileData().isEmpty());
+    QVERIFY(broker.changerMasterPW(masterPW, newMasterPW));
+    QVERIFY(broker.fetchFileData());
+    QVERIFY(broker.encryptData(newMasterPW));
+    QVERIFY(broker.storeFileData());
 
     PasswordBroker broker2;
-    QVERIFY(broker2.fetchFileData().isEmpty());
-    QVERIFY(broker2.decryptData(newMasterPW).isEmpty());
+    QVERIFY(broker2.fetchFileData());
+    QVERIFY(broker2.decryptData(newMasterPW));
     QVERIFY(broker2.getEntryFromName("apple")->decryptContent(newMasterPW));
     QCOMPARE(broker2.getEntryFromName("apple")->getPassword(), ",~£:1Od33jy+lj");
     QVERIFY(broker2.getEntryFromName("apple")->encryptContent(newMasterPW));
 
-    QVERIFY(broker.changerMasterPW(newMasterPW, masterPW).isEmpty());
+    QVERIFY(broker.changerMasterPW(newMasterPW, masterPW));
     broker.removeEntryByName("apple");
     broker.removeEntryByName("amazon");
     broker.removeEntryByName("twitter");
@@ -175,25 +175,25 @@ void PasswordBrokerTest::testLookupEntry(){
 
 void PasswordBrokerTest::testWrongMasterPW(){
     PasswordBroker broker;
-    QVERIFY(broker.fetchFileData().isEmpty());
+    QVERIFY(broker.fetchFileData());
     broker.addEntry(testEntry1);
     broker.addEntry(testEntry3);
-    QVERIFY(broker.encryptData(masterPW).isEmpty());
-    QVERIFY(broker.storeFileData().isEmpty());
+    QVERIFY(broker.encryptData(masterPW));
+    QVERIFY(broker.storeFileData());
     QVERIFY(broker.removeEntryByName("apple"));
     QVERIFY(!broker.removeEntryByName("amazon"));
     QVERIFY(broker.removeEntryByName("twitter"));
 
     QByteArray wrongMasterPW("12345678901234567890123456789012");
     PasswordBroker broker2;
-    QVERIFY(broker2.fetchFileData().isEmpty());
-    QVERIFY(broker2.decryptData(wrongMasterPW) == "Security Error: computed MAC unequal to fetched MAC from file");
-    QVERIFY(broker2.decryptData(masterPW).isEmpty());
+    QVERIFY(broker2.fetchFileData());
+    QVERIFY(!broker2.decryptData(wrongMasterPW));
+    QVERIFY(broker2.decryptData(masterPW));
     broker2.addEntry(testEntry2);
 
-    QVERIFY(broker2.encryptData(wrongMasterPW).isEmpty());
+    QVERIFY(broker2.encryptData(wrongMasterPW));
 
-    QVERIFY(broker2.decryptData(masterPW) == "Security Error: computed MAC unequal to fetched MAC from file");
+    QVERIFY(!broker2.decryptData(masterPW));
 
     QVERIFY(broker2.removeEntryByName("amazon"));
     QDir dirDatabase(QCoreApplication::applicationDirPath() + "/database");
