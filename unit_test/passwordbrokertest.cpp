@@ -88,6 +88,7 @@ void PasswordBrokerTest::testSingleStoreFetch(){
     QCOMPARE(*broker2.getEntryFromName("amazon").data(), *testEntry2.data());
     QCOMPARE(*broker2.getEntryFromName("twitter").data(), *testEntry3.data());
 
+
     QDir dirDatabase(QCoreApplication::applicationDirPath() + "/database");
     dirDatabase.removeRecursively();
 }

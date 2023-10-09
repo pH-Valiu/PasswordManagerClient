@@ -1,4 +1,5 @@
 #include "dataentry.h"
+#include "qaesencryption.h"
 
 QRegularExpression DataEntryBuilder::regexNaming = QRegularExpression(R"(^([a-z]|[A-Z]|[0-9]| |\$|\#|\-|\_|\.|\+|\!|\*|\'|\(|\)|\,|\/|\&|\?|\=|\:|\%)+$)");
 

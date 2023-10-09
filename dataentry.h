@@ -9,20 +9,10 @@
 #include <QPasswordDigestor>
 #include <QJsonObject>
 #include <QJsonDocument>
-#include "windows.h"
-#include "qaesencryption.h"
 
-extern "C" {
-DECLSPEC_IMPORT BOOLEAN WINAPI SystemFunction036(PVOID RandomBuffer, ULONG RandomBufferLength);
-}
 
 class DataEntry {
 public:
-    /**
-     * @brief Constructs a clone of the given DataEntry
-     * @param toBeCloned pointer to the DataEntry being cloned
-     */
-    //DataEntry(const DataEntry& toBeCloned);
     QJsonObject toJsonObject();//done
     bool decryptContent(const QByteArray& masterPW); //done
     bool encryptContent(const QByteArray& masterPW); //done

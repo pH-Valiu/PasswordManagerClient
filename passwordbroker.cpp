@@ -1,5 +1,6 @@
 #include "passwordbroker.h"
 #include "messagehandler.h"
+#include "qaesencryption.h"
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
@@ -59,7 +60,7 @@ bool PasswordBroker::fetchFileData(){
                 //IV SIZE IS NOT CORRECT
                 //ABORT
                 //IV FILE IS CORRUPTED
-                MessageHandler::warn("IV size is not correct and might be corrupted");
+                MessageHandler::critical("IV size is not correct and might be corrupted");
                 return false;
             }
         }else{
@@ -111,7 +112,7 @@ bool PasswordBroker::fetchFileData(){
             //MAC FILE DOES NOT EXIST WHILE ENTRIES FILE EXIST
             //MISSING MAC
             //ABORT
-            MessageHandler::warn("MAC file does not exist while DataEntries file does exist");
+            MessageHandler::critical("MAC file does not exist while DataEntries file does exist");
             return false;
         }else{
             if(fileEntries.open(QIODevice::ReadOnly)){
@@ -147,7 +148,7 @@ bool PasswordBroker::storeFileData(){
             //IV SIZE IS NOT CORRECT
             //ABORT
             //IV FILE IS CORRUPTED
-            MessageHandler::warn("IV size is not correct and might be corrupted");
+            MessageHandler::critical("IV size is not correct and might be corrupted");
             return false;
         }
         ivInput << QString::fromUtf8(fileData.iv.toBase64());
