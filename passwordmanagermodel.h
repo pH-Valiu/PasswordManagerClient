@@ -21,14 +21,13 @@ private:
 
 //Fragen die geklärt werden müsse:
 //WIE, WO und WANN ensteht ein neues lokales Backup?
-//-> wann?: beim schließen des programms / log out UND beim revertieren zu einem früheren backup
-//-> wo?: backup folder in AppData oder in PWD?
-//-> wie?: kopie des kompletten database folder mit timestamp als name
+//-> wann?: beim schließen des programms/log out UND beim revertieren zu einem früheren backup
+//-> wo?: backup folder in PWD
+//-> wie?: kopie des kompletten database folder mit timestamp als name (backend implemented)
 
 //WIE revertiere ich zu einem früheren Backup?
 //-> wie?: auf auswahl eines backup in einer liste (widget ListView)
 
-//
 
 //WAS passiert beim revertieren zu einem früheren Backup?
 //-> was?: saven des derzeitigen PasswordBrokers (neuer BackUpFolder eintrag)

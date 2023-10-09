@@ -16,6 +16,8 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
 
 #ifdef EXECUTE_UNIT_TESTS
+    //ATTENTION
+    //Executing this code deletes the current database folder
     DataEntryTest dataEntryTest;
     PasswordBrokerTest passwordBrokerTest;
     QTest::qExec(&passwordBrokerTest);

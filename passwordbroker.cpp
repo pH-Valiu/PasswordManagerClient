@@ -37,7 +37,7 @@ bool PasswordBroker::fetchFileData(){
 
 
     QFile fileIv(applicationDirPath + "/database/iv");
-    if(!fileIv.exists()){
+    if(!fileIv.exists() || fileIv.size() == 0){
         if(fileIv.open(QIODevice::WriteOnly)){
             srand(QTime::currentTime().msec());
             int rnd = rand();
@@ -73,7 +73,7 @@ bool PasswordBroker::fetchFileData(){
 
 
     QFile fileMAC(applicationDirPath + "/database/mac");
-    if(!fileMAC.exists()){
+    if(!fileMAC.exists() || fileMAC.size() == 0){
         if(fileMAC.open(QIODevice::WriteOnly)){
             fileData.mac.resize(0);
             fileMAC.close();
@@ -97,7 +97,7 @@ bool PasswordBroker::fetchFileData(){
     }
 
     QFile fileEntries(applicationDirPath + "/database/dataEntries");
-    if(!fileEntries.exists()){
+    if(!fileEntries.exists() || fileEntries.size() == 0){
         if(fileEntries.open(QIODevice::WriteOnly)){
             fileData.encryptedEntries.resize(0);
             fileEntries.close();

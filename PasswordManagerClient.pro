@@ -19,7 +19,7 @@ include($$PWD/PasswordManagerClient.pri)
 # Comment this line when you want to deploy your code
 # ATTENTION: Executing unit test will delete all your DataEntries, therefore all your password aswell
 # Please save your databse folder somewhere else first
-DEFINES += EXECUTE_UNIT_TESTS
+#DEFINES += EXECUTE_UNIT_TESTS
 
 
 # Default rules for deployment.
