@@ -5,7 +5,6 @@ LIBS += "-L$$PWD/libraries/QAES" -lqaesencryption
 
 
 SOURCES += \
-    $$PWD/localbackup.cpp \
     $$PWD/messagehandler.cpp \
     $$PWD/passwordmanagermodel.cpp \
     $$PWD/unit_test/passwordbrokertest.cpp \
