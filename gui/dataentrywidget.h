@@ -12,6 +12,8 @@ public:
     explicit DataEntryWidget(QSharedPointer<DataEntry> dataEntry, QWidget *parent = nullptr);
 private:
     QSharedPointer<DataEntry> dataEntry;
+protected:
+    virtual void paintEvent(QPaintEvent*);
 signals:
 
 };

@@ -24,7 +24,8 @@ view::view(QWidget *parent)
     testEntry1 = builder.build(masterPW);
     DataEntryWidget* dataEntryWidget = new DataEntryWidget(testEntry1);
     //QWidget* main = new QWidget;
-    setCentralWidget(dataEntryWidget);
+    this->setCentralWidget(dataEntryWidget);
+    this->setContentsMargins(10,10,10,10);
 
     QScrollArea* dataEntriesList = new QScrollArea;
 
