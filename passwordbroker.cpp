@@ -30,7 +30,7 @@ PasswordBroker& PasswordBroker::getInstance(){
     return broker;
 }
 
-bool PasswordBroker::fetchFileData(){
+bool PasswordBroker::fetchFileData(const QByteArray& masterPW){
     QString applicationDirPath = QCoreApplication::applicationDirPath();
     QDir mainDirectory(applicationDirPath);
     mainDirectory.mkdir("database");
@@ -129,10 +129,15 @@ bool PasswordBroker::fetchFileData(){
             }
         }
     }
-    return true;
+    if(decryptData(masterPW)){
+        fetchedFlag = true;
+        return true;
+    }else{
+        return false;
+    }
 }
 
-bool PasswordBroker::storeFileData(){
+bool PasswordBroker::storeFileData(const QByteArray& masterPW){
     QString applicationDirPath = QCoreApplication::applicationDirPath();
     QDir mainDirectory(applicationDirPath);
     mainDirectory.mkdir("database");
@@ -162,38 +167,47 @@ bool PasswordBroker::storeFileData(){
     }
 
 
-    QFile fileMAC(applicationDirPath + "/database/mac");
-    if(fileMAC.exists()){
-        fileMAC.resize(0);
-    }
-    if(fileMAC.open(QIODevice::WriteOnly)){
-        QTextStream macInput(&fileMAC);
-        macInput << QString::fromUtf8(fileData.mac.toBase64());
-        macInput.flush();
-        fileMAC.close();
-    }else{
-        //IV FILE COULD NOT BE OPENED
-        //ABORT
-        MessageHandler::warn("MAC file could not be opened: " + fileMAC.errorString());
-        return false;
-    }
+    if(fetchedFlag){
+        if(encryptData(masterPW)){
+            QFile fileMAC(applicationDirPath + "/database/mac");
+            if(fileMAC.exists()){
+                fileMAC.resize(0);
+            }
+            if(fileMAC.open(QIODevice::WriteOnly)){
+                QTextStream macInput(&fileMAC);
+                macInput << QString::fromUtf8(fileData.mac.toBase64());
+                macInput.flush();
+                fileMAC.close();
+            }else{
+                //IV FILE COULD NOT BE OPENED
+                //ABORT
+                MessageHandler::warn("MAC file could not be opened: " + fileMAC.errorString());
+                return false;
+            }
 
-    QFile fileEntries(applicationDirPath + "/database/dataEntries");
-    if(fileEntries.exists()){
-        fileEntries.resize(0);
-    }
-    if(fileEntries.open(QIODevice::WriteOnly)){
-        QTextStream entriesInput(&fileEntries);
-        entriesInput << QString::fromUtf8(fileData.encryptedEntries.toBase64());
-        entriesInput.flush();
-        fileEntries.close();
+            QFile fileEntries(applicationDirPath + "/database/dataEntries");
+            if(fileEntries.exists()){
+                fileEntries.resize(0);
+            }
+            if(fileEntries.open(QIODevice::WriteOnly)){
+                QTextStream entriesInput(&fileEntries);
+                entriesInput << QString::fromUtf8(fileData.encryptedEntries.toBase64());
+                entriesInput.flush();
+                fileEntries.close();
+            }else{
+                //DATAENTRIES FILE COULD NOT BE OPENEND
+                //ABORT
+                MessageHandler::warn("DataEntries file could not be opened: " + fileEntries.errorString());
+                return false;
+            }
+            return true;
+        }else{
+            return false;
+        }
     }else{
-        //DATAENTRIES FILE COULD NOT BE OPENEND
-        //ABORT
-        MessageHandler::warn("DataEntries file could not be opened: " + fileEntries.errorString());
+        MessageHandler::critical("Trying to save data to file before files have ever been fetched", "Data Integrity Error:");
         return false;
     }
-    return true;
 }
 
 bool PasswordBroker::encryptData(const QByteArray& masterPW){

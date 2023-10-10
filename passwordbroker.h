@@ -21,10 +21,20 @@ public:
      * @return
      */
     static PasswordBroker& getInstance();
-    bool fetchFileData();
-    bool storeFileData();
-    bool encryptData(const QByteArray& masterPW);
-    bool decryptData(const QByteArray& masterPW);
+    /**
+     * @brief fetchFileData() should only be called once per application
+     *
+     * storeFileData() works only if fetchFileData() has been called once and returned true
+     * @param masterPW to decrypt fetched data
+     * @return whether the operation was successful or not
+     */
+    bool fetchFileData(const QByteArray& masterPW);
+    /**
+     * @brief storeFileData can be called multiple times but only after fetchFileData() has been called once and returned true
+     * @param masterPW to encrypt data
+     * @return whether the operation was successful or not
+     */
+    bool storeFileData(const QByteArray& masterPW);
     bool changerMasterPW(const QByteArray& oldMasterPW, const QByteArray& newMasterPW);
     void addEntry(QSharedPointer<DataEntry> dataEntry);
     /**
@@ -51,6 +61,9 @@ public:
 
 private:
     PasswordBroker();
+    bool encryptData(const QByteArray& masterPW);
+    bool decryptData(const QByteArray& masterPW);
+    bool fetchedFlag = false;
     QVector<QSharedPointer<DataEntry>> vector;
     struct FileData{
         QByteArray encryptedEntries;

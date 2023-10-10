@@ -58,8 +58,8 @@ void PasswordBrokerTest::testSimpleCallSequence(){
 
 void PasswordBrokerTest::testSingleStoreFetch(){
     PasswordBroker broker;
-    QVERIFY(broker.fetchFileData());
-    QVERIFY(broker.decryptData(masterPW));
+    QVERIFY(broker.fetchFileData(masterPW));
+    //QVERIFY(broker.decryptData(masterPW));
     QVERIFY(broker.entryCount() == 0);
     QVERIFY(!broker.fileData.iv.isEmpty());
     QVERIFY(broker.fileData.mac.isEmpty());
@@ -70,20 +70,20 @@ void PasswordBrokerTest::testSingleStoreFetch(){
     broker.addEntry(testEntry1);
     broker.addEntry(testEntry2);
     broker.addEntry(testEntry3);
-    QVERIFY(broker.encryptData(masterPW));
+    //QVERIFY(broker.encryptData(masterPW));
+    QVERIFY(broker.storeFileData(masterPW));
     QVERIFY(!broker.fileData.encryptedEntries.isEmpty());
     QVERIFY(!broker.fileData.mac.isEmpty());
-    QVERIFY(broker.storeFileData());
     broker.removeEntryByName("apple");
     broker.removeEntryByName("amazon");
     broker.removeEntryByName("twitter");
 
     PasswordBroker broker2;
-    QVERIFY(broker2.fetchFileData());
+    QVERIFY(broker2.fetchFileData(masterPW));
     QVERIFY(!broker2.fileData.iv.isEmpty());
     QVERIFY(!broker2.fileData.mac.isEmpty());
     QVERIFY(!broker2.fileData.encryptedEntries.isEmpty());
-    QVERIFY(broker2.decryptData(masterPW));
+    //QVERIFY(broker2.decryptData(masterPW));
     QCOMPARE(*broker2.getEntryFromName("apple").data(), *testEntry1.data());
     QCOMPARE(*broker2.getEntryFromName("amazon").data(), *testEntry2.data());
     QCOMPARE(*broker2.getEntryFromName("twitter").data(), *testEntry3.data());
@@ -95,36 +95,36 @@ void PasswordBrokerTest::testSingleStoreFetch(){
 
 void PasswordBrokerTest::testMultipleStoreFetch(){
     PasswordBroker broker;
-    QVERIFY(broker.fetchFileData());
+    QVERIFY(broker.fetchFileData(masterPW));
     broker.addEntry(testEntry1);
     broker.addEntry(testEntry2);
     broker.addEntry(testEntry3);
-    QVERIFY(broker.encryptData(masterPW));
-    QVERIFY(broker.storeFileData());
+    //QVERIFY(broker.encryptData(masterPW));
+    QVERIFY(broker.storeFileData(masterPW));
     broker.removeEntryByName("apple");
     broker.removeEntryByName("amazon");
     broker.removeEntryByName("twitter");
 
     PasswordBroker broker2;
-    QVERIFY(broker2.fetchFileData());
-    QVERIFY(broker2.decryptData(masterPW));
+    QVERIFY(broker2.fetchFileData(masterPW));
+    //QVERIFY(broker2.decryptData(masterPW));
     QCOMPARE(*broker2.getEntryFromName("apple").data(), *testEntry1.data());
     QCOMPARE(*broker2.getEntryFromName("amazon").data(), *testEntry2.data());
     QCOMPARE(*broker2.getEntryFromName("twitter").data(), *testEntry3.data());
     DataEntryModulator mod(broker2.getEntryFromName("apple"), masterPW);
     mod.changeUsername("appleUser");
     mod.saveChanges();
-    broker2.encryptData(masterPW);
-    broker2.storeFileData();
+    //broker2.encryptData(masterPW);
+    broker2.storeFileData(masterPW);
 
     PasswordBroker broker3;
-    QVERIFY(broker3.fetchFileData());
-    QVERIFY(broker3.decryptData(masterPW));
+    QVERIFY(broker3.fetchFileData(masterPW));
+    //QVERIFY(broker3.decryptData(masterPW));
     broker3.getEntryFromName("apple")->decryptContent(masterPW);
     QCOMPARE(broker3.getEntryFromName("apple")->getUsername(), "appleUser");
     broker3.getEntryFromName("apple")->encryptContent(masterPW);
-    broker3.encryptData(masterPW);
-    broker3.storeFileData();
+    //broker3.encryptData(masterPW);
+    broker3.storeFileData(masterPW);
 
 
     QDir dirDatabase(QCoreApplication::applicationDirPath() + "/database");
@@ -133,6 +133,7 @@ void PasswordBrokerTest::testMultipleStoreFetch(){
 
 void PasswordBrokerTest::testChangeMasterPW(){
     PasswordBroker broker;
+    QVERIFY(broker.fetchFileData(masterPW));
     QVERIFY(testEntry1->decryptContent(masterPW));
     QCOMPARE(testEntry1->getPassword(), ",~£:1Od33jy+lj");
     QVERIFY(testEntry1->encryptContent(masterPW));
@@ -141,13 +142,12 @@ void PasswordBrokerTest::testChangeMasterPW(){
     broker.addEntry(testEntry3);
     QByteArray newMasterPW = QString("12345678901234567890123456789012").toUtf8();
     QVERIFY(broker.changerMasterPW(masterPW, newMasterPW));
-    QVERIFY(broker.fetchFileData());
-    QVERIFY(broker.encryptData(newMasterPW));
-    QVERIFY(broker.storeFileData());
+    //QVERIFY(broker.encryptData(newMasterPW));
+    QVERIFY(broker.storeFileData(newMasterPW));
 
     PasswordBroker broker2;
-    QVERIFY(broker2.fetchFileData());
-    QVERIFY(broker2.decryptData(newMasterPW));
+    QVERIFY(broker2.fetchFileData(newMasterPW));
+    //QVERIFY(broker2.decryptData(newMasterPW));
     QVERIFY(broker2.getEntryFromName("apple")->decryptContent(newMasterPW));
     QCOMPARE(broker2.getEntryFromName("apple")->getPassword(), ",~£:1Od33jy+lj");
     QVERIFY(broker2.getEntryFromName("apple")->encryptContent(newMasterPW));
@@ -176,20 +176,20 @@ void PasswordBrokerTest::testLookupEntry(){
 
 void PasswordBrokerTest::testWrongMasterPW(){
     PasswordBroker broker;
-    QVERIFY(broker.fetchFileData());
+    QVERIFY(broker.fetchFileData(masterPW));
     broker.addEntry(testEntry1);
     broker.addEntry(testEntry3);
-    QVERIFY(broker.encryptData(masterPW));
-    QVERIFY(broker.storeFileData());
+    //QVERIFY(broker.encryptData(masterPW));
+    QVERIFY(broker.storeFileData(masterPW));
     QVERIFY(broker.removeEntryByName("apple"));
     QVERIFY(!broker.removeEntryByName("amazon"));
     QVERIFY(broker.removeEntryByName("twitter"));
 
     QByteArray wrongMasterPW("12345678901234567890123456789012");
     PasswordBroker broker2;
-    QVERIFY(broker2.fetchFileData());
-    QVERIFY(!broker2.decryptData(wrongMasterPW));
-    QVERIFY(broker2.decryptData(masterPW));
+    QVERIFY(!broker2.fetchFileData(wrongMasterPW));
+    //QVERIFY(!broker2.decryptData(wrongMasterPW));
+    QVERIFY(broker2.fetchFileData(masterPW));
     broker2.addEntry(testEntry2);
 
     QVERIFY(broker2.encryptData(wrongMasterPW));
