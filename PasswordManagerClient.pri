@@ -28,3 +28,10 @@ HEADERS += \
 
 FORMS += \
     $$PWD/view.ui
+
+DISTFILES += \
+    $$PWD/gui/ico/copy.ico \
+    $$PWD/gui/ico/save.ico \
+    $$PWD/gui/ico/edit.ico \
+    $$PWD/gui/ico/show.ico \
+    $$PWD/gui/ico/delete.ico

@@ -17,14 +17,18 @@ view::view(QWidget *parent)
     QByteArray masterPW = QString("12345678901234567890123456789012").toUtf8();
     DataEntryBuilder builder("apple");
     builder.addDetails("Just call up the website² and \"log\" in ?*?");
-    builder.addWebsite("https://apple.com/?query=user-log_on#");
+    builder.addWebsite("https://apple.com/database?query=user-log_on#");
     builder.addUsername("user1");
     builder.addPassword(",~£:1Od33jy+lj");
     builder.addEmail("user1@apple.com");
     testEntry1 = builder.build(masterPW);
     DataEntryWidget* dataEntryWidget = new DataEntryWidget(testEntry1);
-    //QWidget* main = new QWidget;
-    this->setCentralWidget(dataEntryWidget);
+
+    QVBoxLayout* tempLayout = new QVBoxLayout();
+    tempLayout->addWidget(dataEntryWidget);
+    QWidget* widget = new QWidget();
+    widget->setLayout(tempLayout);
+    this->setCentralWidget(widget);
     this->setContentsMargins(10,10,10,10);
 
     QScrollArea* dataEntriesList = new QScrollArea;
