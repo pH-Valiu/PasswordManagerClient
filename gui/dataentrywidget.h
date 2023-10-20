@@ -5,15 +5,18 @@
 #include <QWidget>
 #include <QLabel>
 #include <QPushButton>
+#include <QVBoxLayout>
 #include "dataentry.h"
 
 class DataEntryWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit DataEntryWidget(QSharedPointer<DataEntry> dataEntry, QWidget *parent = nullptr);
+    explicit DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, const QByteArray& masterPW, QWidget *parent = nullptr);
+    void switchShowButtonIcon(bool eyeClosed) const;
 private:
-    QSharedPointer<DataEntry> dataEntry;
+    QSharedPointer<const DataEntry> dataEntry;
+    bool plain = false;
     QLabel* name;
     QLabel* website;
     QLabel* username;
@@ -29,9 +32,18 @@ private:
     QPushButton* emailCopyButton;
     QPushButton* passwordCopyButton;
     QPushButton* detailsCopyButton;
+
+    void setupButtonPanel(QVBoxLayout* entryLayout);
+    void setupHeaderPanel(QVBoxLayout* entryLayout);
+    void setupContentPanel(QVBoxLayout* entryLayout);
+    void connectSignalSlots();
+    void updateContent();
 protected:
     virtual void paintEvent(QPaintEvent*);
 signals:
+    showClicked(const QByteArray& id);
+    editClicked(const QByteArray& id);
+    deleteClicked(const QByteArray& id);
 
 };
 

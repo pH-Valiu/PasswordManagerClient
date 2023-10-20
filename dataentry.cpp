@@ -6,7 +6,7 @@ QRegularExpression DataEntryBuilder::regexNaming = QRegularExpression(R"(^([a-z]
 DataEntry::DataEntry(){}
 
 
-QJsonObject DataEntry::toJsonObject(){
+QJsonObject DataEntry::toJsonObject() const{
     QMap<QString, QVariant> map;
     map.insert("name", getName());
     map.insert("id", QString::fromUtf8(getID()));
@@ -42,6 +42,7 @@ bool DataEntry::decryptContent(const QByteArray& masterPW){
 
         this->encryptedContent.clear();
         decryptedMidKey.clear();
+        plain = true;
         return true;
     }else{
         return false;
@@ -64,6 +65,7 @@ bool DataEntry::encryptContent(const QByteArray& masterPW){
         this->setContent(encryptedContent);
         this->clearConfidential();
         decryptedMidKey.clear();
+        plain = false;
         return true;
     }else{
         return false;

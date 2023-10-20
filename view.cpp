@@ -22,7 +22,7 @@ view::view(QWidget *parent)
     builder.addPassword(",~£:1Od33jy+lj");
     builder.addEmail("user1@apple.com");
     testEntry1 = builder.build(masterPW);
-    DataEntryWidget* dataEntryWidget = new DataEntryWidget(testEntry1);
+    DataEntryWidget* dataEntryWidget = new DataEntryWidget(testEntry1, masterPW);
 
     QVBoxLayout* tempLayout = new QVBoxLayout();
     tempLayout->addWidget(dataEntryWidget);

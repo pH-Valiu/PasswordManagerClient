@@ -1,10 +1,16 @@
 #ifndef PASSWORDMANAGERMODEL_H
 #define PASSWORDMANAGERMODEL_H
 
+#include "passwordbroker.h"
+#include <QObject>
 
-class PasswordManagerModel
+
+class PasswordManagerModel : public QObject
 {
+    Q_OBJECT
 public:
+    //eigentlich singleton!!!
+    PasswordManagerModel();
     PasswordManagerModel(PasswordManagerModel& other) = delete;
     void operator = (const PasswordManagerModel&) = delete;
     /**
@@ -13,8 +19,22 @@ public:
      */
     static PasswordManagerModel& getInstance();
 private:
-    PasswordManagerModel();
     bool revertToOlderLocalBackup();
+    PasswordBroker& broker;
+public slots:
+    /**
+     * @brief showHideEntry en/decrypts secret content of dataEntry using its id as the identifier
+     * @param the id of the dataEntry
+     * @return 0 if id was not findable or en/decryption failed
+     *
+     * 1 if dataEntry got encrypted
+     *
+     * 2 if dataEntry got decrypted
+     */
+    int showHideEntry(const QByteArray& id);
+
+    void addEntry(QSharedPointer<DataEntry>& entry);
+
 };
 
 #endif // PASSWORDMANAGERMODEL_H

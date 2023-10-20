@@ -10,20 +10,24 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 
+namespace GLOBALES_TEMP{
+static const QByteArray staticMasterPW = "12345678901234567890123456789012";
+}
 
 class DataEntry {
 public:
-    QJsonObject toJsonObject();//done
+    QJsonObject toJsonObject() const;//done
     bool decryptContent(const QByteArray& masterPW); //done
     bool encryptContent(const QByteArray& masterPW); //done
-    QString getName()                                           {return name;}
-    QByteArray getID()                                          {return id;}
-    QDateTime getLastChanged()                                  {return lastChanged;}
-    std::optional<QString> getWebsite()                         {return website;}
-    std::optional<QString> getEMail()                           {return email;}
-    std::optional<QString> getUsername()                        {return username;}
-    std::optional<QString> getPassword()                        {return password;}
-    std::optional<QString> getDetails()                         {return details;}
+    bool isPlain() const                                        {return plain;}
+    QString getName() const                                     {return name;}
+    QByteArray getID() const                                    {return id;}
+    QDateTime getLastChanged() const                            {return lastChanged;}
+    std::optional<QString> getWebsite() const                   {return website;}
+    std::optional<QString> getEMail() const                     {return email;}
+    std::optional<QString> getUsername() const                  {return username;}
+    std::optional<QString> getPassword() const                  {return password;}
+    std::optional<QString> getDetails() const                   {return details;}
     void clearData(){
         name.clear();id=0;website.reset();lastChanged=QDateTime();ivInner.clear();ivMidKey.clear(); midKey.clear();encryptedContent.clear();
         clearConfidential();
@@ -53,6 +57,7 @@ private:
     std::optional<QString> username;       //opt.
     std::optional<QString> password;       //mandatory
     std::optional<QString> details;        //opt.
+    bool plain;             //auto.
 
     void setName(const QString& name)                           {this->name=name;}
     void setWebsite(const std::optional<QString>& website)      {this->website=website;}
@@ -62,14 +67,14 @@ private:
     void setDetails(const std::optional<QString>& details)      {this->details=details;}
     void setLastChanged(const QDateTime& lastChanged)           {this->lastChanged=lastChanged;}
     void setMidKey(const QByteArray& midKey)                    {this->midKey=midKey;}
-    void setContent(const QByteArray& content)                  {this->encryptedContent=content;}
     void setIvInner(const QByteArray& ivInner)                  {this->ivInner=ivInner;}
     void setIvMidKey(const QByteArray& ivMidKey)                {this->ivMidKey=ivMidKey;}
     void setID(const QByteArray& id)                            {this->id=id;}
-    QByteArray getMidKey()                                      {return midKey;}
-    QByteArray getContent()                                     {return encryptedContent;}
-    QByteArray getIvInner()                                     {return ivInner;}
-    QByteArray getIvMidKey()                                    {return ivMidKey;}
+    void setContent(const QByteArray& content)                  {this->encryptedContent=content;}
+    QByteArray getMidKey() const                                {return midKey;}
+    QByteArray getContent() const                               {return encryptedContent;}
+    QByteArray getIvInner() const                               {return ivInner;}
+    QByteArray getIvMidKey() const                              {return ivMidKey;}
     static QString showDiff(DataEntry& d1, DataEntry& d2);
 };
 

@@ -5,7 +5,9 @@ LIBS += "-L$$PWD/libraries/QAES" -lqaesencryption
 
 
 SOURCES += \
+    $$PWD/gui/passwordmanagerview.cpp \
     $$PWD/messagehandler.cpp \
+    $$PWD/passwordmanageradapter.cpp \
     $$PWD/passwordmanagermodel.cpp \
     $$PWD/unit_test/passwordbrokertest.cpp \
     $$PWD/unit_test/dataentrytest.cpp \
@@ -16,8 +18,10 @@ SOURCES += \
     $$PWD/main.cpp
 
 HEADERS += \
+    $$PWD/gui/passwordmanagerview.h \
     $$PWD/localbackup.h \
     $$PWD/messagehandler.h \
+    $$PWD/passwordmanageradapter.h \
     $$PWD/passwordmanagermodel.h \
     $$PWD/unit_test/passwordbrokertest.h \
     $$PWD/unit_test/dataentrytest.h \
@@ -34,4 +38,5 @@ DISTFILES += \
     $$PWD/gui/ico/save.ico \
     $$PWD/gui/ico/edit.ico \
     $$PWD/gui/ico/show.ico \
+    $$PWD/gui/ico/dont-show.ico \
     $$PWD/gui/ico/delete.ico

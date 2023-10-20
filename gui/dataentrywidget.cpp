@@ -3,16 +3,58 @@
 #include <QFormLayout>
 #include <QPushButton>
 #include <QCoreApplication>
+#include <QGuiApplication>
+#include <QClipboard>
 #include <QFrame>
 #include <QPainter>
 
-DataEntryWidget::DataEntryWidget(QSharedPointer<DataEntry> dataEntry, QWidget *parent)
+DataEntryWidget::DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, const QByteArray& masterPW, QWidget *parent)
     : QWidget{parent}, dataEntry{dataEntry}
 {
     //main VBoxLayout
     QVBoxLayout* entryLayout = new QVBoxLayout;
     entryLayout->setContentsMargins(5, 5, 5, 5);
 
+    //button panel
+    setupButtonPanel(entryLayout);
+
+    //header panel
+    setupHeaderPanel(entryLayout);
+
+    //space between header and content
+    entryLayout->addSpacing(15);
+
+    //content panel
+    setupContentPanel(entryLayout);
+
+    //horizontal line 2
+    QFrame* horizontalLine2 = new QFrame;
+    horizontalLine2->setLineWidth(3);
+    horizontalLine2->setMidLineWidth(3);
+    horizontalLine2->setFrameShape(QFrame::HLine);
+    horizontalLine2->setFrameShadow(QFrame::Raised);
+    entryLayout->addWidget(horizontalLine2);
+
+    //lastChanged label
+    lastChanged = new QLabel(dataEntry->getLastChanged().toString());
+    lastChanged->setAlignment(Qt::AlignRight);
+    QFont lastChangedFont("Arial", 8, QFont::ExtraLight, true);
+    lastChanged->setFont(lastChangedFont);
+    entryLayout->addWidget(lastChanged);
+
+
+    this->setLayout(entryLayout);
+    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    //this->setFixedSize(size());
+
+    //connect Buttons with Methods
+    connectSignalSlots();
+
+
+}
+
+
+void DataEntryWidget::setupButtonPanel(QVBoxLayout* entryLayout){
     //button area
     QHBoxLayout* topButtonLayout = new QHBoxLayout;
     topButtonLayout->setContentsMargins(10, 5, 10, 5);
@@ -41,12 +83,14 @@ DataEntryWidget::DataEntryWidget(QSharedPointer<DataEntry> dataEntry, QWidget *p
     horizontalLine->setFrameShape(QFrame::HLine);
     horizontalLine->setFrameShadow(QFrame::Raised);
     entryLayout->addWidget(horizontalLine);
+}
 
+void DataEntryWidget::setupHeaderPanel(QVBoxLayout *entryLayout){
     //header
     QVBoxLayout* headerLayout = new QVBoxLayout();
     name = new QLabel(dataEntry->getName());
     name->setAlignment(Qt::AlignHCenter);
-    QFont nameFont("Arial", 20, QFont::Bold);
+    QFont nameFont("Arial", 22, QFont::Bold);
     name->setFont(nameFont);
     headerLayout->addWidget(name);
 
@@ -63,11 +107,9 @@ DataEntryWidget::DataEntryWidget(QSharedPointer<DataEntry> dataEntry, QWidget *p
     headerWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     entryLayout->addWidget(headerWidget);
 
+}
 
-    //space between header and content
-    entryLayout->addSpacing(15);
-
-
+void DataEntryWidget::setupContentPanel(QVBoxLayout *entryLayout){
     //Content
     QFont contentFont("Arial", 12, QFont::Normal, false);
     username = new QLabel("Username:\t****");
@@ -128,32 +170,42 @@ DataEntryWidget::DataEntryWidget(QSharedPointer<DataEntry> dataEntry, QWidget *p
     contentWidget->setLayout(contentLayout);
     contentWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     entryLayout->addWidget(contentWidget);
-
-
-
-    //horizontal line 2
-    QFrame* horizontalLine2 = new QFrame;
-    horizontalLine2->setLineWidth(3);
-    horizontalLine2->setMidLineWidth(3);
-    horizontalLine2->setFrameShape(QFrame::HLine);
-    horizontalLine2->setFrameShadow(QFrame::Raised);
-    entryLayout->addWidget(horizontalLine2);
-
-    //lastChanged label
-    lastChanged = new QLabel(dataEntry->getLastChanged().toString());
-    lastChanged->setAlignment(Qt::AlignRight);
-    QFont lastChangedFont("Arial", 8, QFont::ExtraLight, true);
-    lastChanged->setFont(lastChangedFont);
-    entryLayout->addWidget(lastChanged);
-
-
-
-
-
-    this->setLayout(entryLayout);
-    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-    //this->setFixedSize(size());
 }
+
+void DataEntryWidget::connectSignalSlots(){
+    connect(usernameCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getUsername().value_or(""));});
+    connect(emailCopyButton , &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getEMail().value_or(""));});
+    connect(passwordCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getPassword().value_or(""));});
+    connect(detailsCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getDetails().value_or(""));});
+    connect(showButton, &QPushButton::clicked, this, [&]{emit showClicked(dataEntry->getID());});
+    connect(editButton, &QPushButton::clicked, this, [&]{emit editClicked(dataEntry->getID());});
+    connect(deleteButton, &QPushButton::clicked, this, [&]{emit deleteClicked(dataEntry->getID());});
+
+}
+
+
+void DataEntryWidget::switchShowButtonIcon(bool eyeClosed) const{
+    if(eyeClosed){
+        QIcon i(QCoreApplication::applicationDirPath().append("/gui/ico/dont-show.ico"));
+        qDebug()<<"in"<<i.isNull();
+        showButton->setIcon(i);
+        qDebug()<<"hjere";
+    }else{
+        showButton->setIcon(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/show.ico")));
+    }
+}
+
+void DataEntryWidget::updateContent(){
+    QString uText = "Username:\t"+dataEntry->getUsername().value_or("****");
+    username->setText(uText);
+    QString eText = "Email:\t"+dataEntry->getEMail().value_or("****");
+    email->setText(eText);
+    QString pText = "Password:\t"+dataEntry->getPassword().value_or("****");
+    password->setText(pText);
+    QString dText = "Details:\t"+dataEntry->getDetails().value_or("****");
+    details->setText(dText);
+}
+
 
 
 void DataEntryWidget::paintEvent(QPaintEvent* event){

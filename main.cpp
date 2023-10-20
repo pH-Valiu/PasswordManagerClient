@@ -1,5 +1,4 @@
-#include "view.h"
-#include "passwordbroker.h"
+#include "passwordmanageradapter.h"
 
 #include <QFile>
 #include <QTextStream>
@@ -9,6 +8,7 @@
 #include "unit_test/dataentrytest.h"
 #include "unit_test/passwordbrokertest.h"
 #endif
+
 
 
 int main(int argc, char *argv[])
@@ -25,11 +25,13 @@ int main(int argc, char *argv[])
     // :)
     return 0;
 #else
-    view w;
+    //view w;
     //PasswordBroker& broker = PasswordBroker::getInstance();
     //qDebug() <<"return: "<<broker.fetchFileData();
 
-    w.show();
+    //w.show();
+
+    PasswordManagerAdapter adapter;
     return a.exec();
 #endif
 }

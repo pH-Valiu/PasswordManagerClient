@@ -38,6 +38,7 @@ void PasswordBrokerTest::testSingleton(){
 }
 
 void PasswordBrokerTest::testSimpleCallSequence(){
+#ifdef EXECUTE_UNIT_TESTS
     PasswordBroker broker;
     broker.addEntry(testEntry1);
     broker.addEntry(testEntry2);
@@ -52,11 +53,12 @@ void PasswordBrokerTest::testSimpleCallSequence(){
     QVERIFY(broker.removeEntryByName("apple"));
     QVERIFY(broker.removeEntryByName("twitter"));
     QVERIFY(!broker.removeEntryByName("twitter"));
-
+#endif
 
 }
 
 void PasswordBrokerTest::testSingleStoreFetch(){
+#ifdef EXECUTE_UNIT_TESTS
     PasswordBroker broker;
     QVERIFY(broker.fetchFileData(masterPW));
     //QVERIFY(broker.decryptData(masterPW));
@@ -91,9 +93,12 @@ void PasswordBrokerTest::testSingleStoreFetch(){
 
     QDir dirDatabase(QCoreApplication::applicationDirPath() + "/database");
     dirDatabase.removeRecursively();
+#endif
+
 }
 
 void PasswordBrokerTest::testMultipleStoreFetch(){
+#ifdef EXECUTE_UNIT_TESTS
     PasswordBroker broker;
     QVERIFY(broker.fetchFileData(masterPW));
     broker.addEntry(testEntry1);
@@ -129,9 +134,12 @@ void PasswordBrokerTest::testMultipleStoreFetch(){
 
     QDir dirDatabase(QCoreApplication::applicationDirPath() + "/database");
     dirDatabase.removeRecursively();
+#endif
+
 }
 
 void PasswordBrokerTest::testChangeMasterPW(){
+#ifdef EXECUTE_UNIT_TESTS
     PasswordBroker broker;
     QVERIFY(broker.fetchFileData(masterPW));
     QVERIFY(testEntry1->decryptContent(masterPW));
@@ -158,10 +166,12 @@ void PasswordBrokerTest::testChangeMasterPW(){
     broker.removeEntryByName("twitter");
     QDir dirDatabase(QCoreApplication::applicationDirPath() + "/database");
     dirDatabase.removeRecursively();
+#endif
 
 }
 
 void PasswordBrokerTest::testLookupEntry(){
+#ifdef EXECUTE_UNIT_TESTS
     PasswordBroker broker;
     broker.addEntry(testEntry1);
     broker.addEntry(testEntry2);
@@ -172,9 +182,12 @@ void PasswordBrokerTest::testLookupEntry(){
     QVERIFY(broker.removeEntryByName("apple"));
     QVERIFY(broker.removeEntryByName("amazon"));
     QVERIFY(broker.removeEntryByName("twitter"));
+#endif
+
 }
 
 void PasswordBrokerTest::testWrongMasterPW(){
+#ifdef EXECUTE_UNIT_TESTS
     PasswordBroker broker;
     QVERIFY(broker.fetchFileData(masterPW));
     broker.addEntry(testEntry1);
@@ -199,5 +212,6 @@ void PasswordBrokerTest::testWrongMasterPW(){
     QVERIFY(broker2.removeEntryByName("amazon"));
     QDir dirDatabase(QCoreApplication::applicationDirPath() + "/database");
     dirDatabase.removeRecursively();
+#endif
 
 }
