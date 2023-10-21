@@ -61,10 +61,10 @@ public:
 
 private:
     PasswordBroker();
+    QVector<QSharedPointer<DataEntry>> vector;
     bool encryptData(const QByteArray& masterPW);
     bool decryptData(const QByteArray& masterPW);
     bool fetchedFlag = false;
-    QVector<QSharedPointer<DataEntry>> vector;
     struct FileData{
         QByteArray encryptedEntries;
         QByteArray iv;

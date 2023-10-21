@@ -3,14 +3,13 @@
 
 #include "passwordbroker.h"
 #include <QObject>
+#include <QPointer>
 
 
 class PasswordManagerModel : public QObject
 {
     Q_OBJECT
 public:
-    //eigentlich singleton!!!
-    PasswordManagerModel();
     PasswordManagerModel(PasswordManagerModel& other) = delete;
     void operator = (const PasswordManagerModel&) = delete;
     /**
@@ -18,14 +17,18 @@ public:
      * @return
      */
     static PasswordManagerModel& getInstance();
+    std::unique_ptr<DataEntryModulator> getModulator(const QByteArray& id);
 private:
-    bool revertToOlderLocalBackup();
+    PasswordManagerModel();
     PasswordBroker& broker;
+    bool revertToOlderLocalBackup();
 public slots:
     /**
      * @brief showHideEntry en/decrypts secret content of dataEntry using its id as the identifier
      * @param the id of the dataEntry
-     * @return 0 if id was not findable or en/decryption failed
+     * @return 0 if id was not findable
+     *
+     * -1 if dataEntry could not be en/decrypted
      *
      * 1 if dataEntry got encrypted
      *
@@ -34,6 +37,7 @@ public slots:
     int showHideEntry(const QByteArray& id);
 
     void addEntry(QSharedPointer<DataEntry>& entry);
+
 
 };
 

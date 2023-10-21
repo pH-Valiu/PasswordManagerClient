@@ -5,27 +5,29 @@ LIBS += "-L$$PWD/libraries/QAES" -lqaesencryption
 
 
 SOURCES += \
+    $$PWD/gui/dataentrymodulatordialog.cpp \
     $$PWD/gui/passwordmanagerview.cpp \
+    $$PWD/gui/dataentrywidget.cpp \
     $$PWD/messagehandler.cpp \
     $$PWD/passwordmanageradapter.cpp \
     $$PWD/passwordmanagermodel.cpp \
     $$PWD/unit_test/passwordbrokertest.cpp \
     $$PWD/unit_test/dataentrytest.cpp \
-    $$PWD/gui/dataentrywidget.cpp \
     $$PWD/dataentry.cpp \
     $$PWD/passwordbroker.cpp \
     $$PWD/view.cpp \
     $$PWD/main.cpp
 
 HEADERS += \
+    $$PWD/gui/dataentrymodulatordialog.h \
     $$PWD/gui/passwordmanagerview.h \
+    $$PWD/gui/dataentrywidget.h \
     $$PWD/localbackup.h \
     $$PWD/messagehandler.h \
     $$PWD/passwordmanageradapter.h \
     $$PWD/passwordmanagermodel.h \
     $$PWD/unit_test/passwordbrokertest.h \
     $$PWD/unit_test/dataentrytest.h \
-    $$PWD/gui/dataentrywidget.h \
     $$PWD/dataentry.h \
     $$PWD/passwordbroker.h \
     $$PWD/view.h

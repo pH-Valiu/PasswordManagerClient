@@ -22,7 +22,7 @@ DataEntryWidget::DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, cons
     setupHeaderPanel(entryLayout);
 
     //space between header and content
-    entryLayout->addSpacing(15);
+    entryLayout->addSpacing(10);
 
     //content panel
     setupContentPanel(entryLayout);
@@ -44,7 +44,7 @@ DataEntryWidget::DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, cons
 
 
     this->setLayout(entryLayout);
-    this->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    this->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     //this->setFixedSize(size());
 
     //connect Buttons with Methods
@@ -177,25 +177,24 @@ void DataEntryWidget::connectSignalSlots(){
     connect(emailCopyButton , &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getEMail().value_or(""));});
     connect(passwordCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getPassword().value_or(""));});
     connect(detailsCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getDetails().value_or(""));});
-    connect(showButton, &QPushButton::clicked, this, [&]{emit showClicked(dataEntry->getID());});
-    connect(editButton, &QPushButton::clicked, this, [&]{emit editClicked(dataEntry->getID());});
-    connect(deleteButton, &QPushButton::clicked, this, [&]{emit deleteClicked(dataEntry->getID());});
-
+    connect(showButton, &QPushButton::clicked, this, [&]{emit showClicked(dataEntry->getID(), this);});
+    connect(editButton, &QPushButton::clicked, this, [&]{emit editClicked(dataEntry->getID(), this);});
+    connect(deleteButton, &QPushButton::clicked, this, [&]{emit deleteClicked(dataEntry->getID(), this);});
 }
-
 
 void DataEntryWidget::switchShowButtonIcon(bool eyeClosed) const{
     if(eyeClosed){
-        QIcon i(QCoreApplication::applicationDirPath().append("/gui/ico/dont-show.ico"));
-        qDebug()<<"in"<<i.isNull();
-        showButton->setIcon(i);
-        qDebug()<<"hjere";
+        showButton->setIcon(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/dont-show.ico")));
     }else{
         showButton->setIcon(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/show.ico")));
     }
 }
 
 void DataEntryWidget::updateContent(){
+    name->setText(dataEntry->getName());
+    website->setText("<"+dataEntry->getWebsite().value_or("")+">");
+    lastChanged->setText(dataEntry->getLastChanged().toString());
+
     QString uText = "Username:\t"+dataEntry->getUsername().value_or("****");
     username->setText(uText);
     QString eText = "Email:\t"+dataEntry->getEMail().value_or("****");
@@ -205,8 +204,6 @@ void DataEntryWidget::updateContent(){
     QString dText = "Details:\t"+dataEntry->getDetails().value_or("****");
     details->setText(dText);
 }
-
-
 
 void DataEntryWidget::paintEvent(QPaintEvent* event){
     QPainter painter(this);

@@ -1,69 +1,51 @@
 #include "passwordmanageradapter.h"
+#include <dataentry.h>
+
 
 PasswordManagerAdapter::PasswordManagerAdapter() :
     QObject(nullptr),
-    model{new PasswordManagerModel()},
+    model{PasswordManagerModel::getInstance()},
     view{new PasswordManagerView()}
 {
 
     QSharedPointer<DataEntry> testEntry1;
-    QByteArray masterPW = QString("12345678901234567890123456789012").toUtf8();
-    DataEntryBuilder builder("applfe");
+    DataEntryBuilder builder("Apple");
     builder.addDetails("Just call up the website² and \"log\" in ?*?");
     builder.addWebsite("https://apple.com/database?query=user-log_on#");
     builder.addUsername("user1");
     builder.addPassword(",~£:1Od33jy+lj");
     builder.addEmail("user1@apple.com");
-    testEntry1 = builder.build(masterPW);
+    testEntry1 = builder.build(GLOBALES_TEMP::staticMasterPW);
 
-    model->addEntry(testEntry1);
+    model.addEntry(testEntry1);
 
 
-    DataEntryWidget* dataEntryWidget = new DataEntryWidget(testEntry1, masterPW);
+    DataEntryWidget* dataEntryWidget = new DataEntryWidget(testEntry1, GLOBALES_TEMP::staticMasterPW);
 
     QSharedPointer<DataEntry> testEntry2;
-    DataEntryBuilder builder2("amazon");
-    builder2.addDetails("Jbbbust call up the website² and \"log\" in ?*?");
-    builder2.addWebsite("://amazon.com/database?query=user-log_on#");
-    builder2.addUsername("use21");
-    builder2.addPassword(",~£:aaaaaaalj");
-    builder2.addEmail("user122apple.com");
-    testEntry2 = builder2.build(masterPW);
+    DataEntryBuilder builder2("Amazon");
+    builder2.addDetails("Your online shipping service");
+    builder2.addWebsite("https://amazon.com/");
+    builder2.addUsername("user2");
+    builder2.addPassword("passwort stark");
+    builder2.addEmail("user2@amazon.com");
+    testEntry2 = builder2.build(GLOBALES_TEMP::staticMasterPW);
 
-    model->addEntry(testEntry2);
+    model.addEntry(testEntry2);
 
 
-    DataEntryWidget* dataEntryWidget2 = new DataEntryWidget(testEntry2, masterPW);
+    DataEntryWidget* dataEntryWidget2 = new DataEntryWidget(testEntry2, GLOBALES_TEMP::staticMasterPW);
     view->addDataEntryWidget(dataEntryWidget);
     view->addDataEntryWidget(dataEntryWidget2);
-    view->refresh();
-    view->update();
-
-    QVBoxLayout* vbox = new QVBoxLayout();
-    QWidget* w = new QWidget();
-    QScrollArea* sc = new QScrollArea();
-    vbox->addWidget(dataEntryWidget);
-    vbox->addWidget(dataEntryWidget2);
-    w->setLayout(vbox);
-    sc->setWidget(w);
-    view->setCentralWidget(sc);
 
 
 
-    connect(dataEntryWidget, &DataEntryWidget::showClicked, model, [=](const QByteArray& id){
-        switch(model->showHideEntry(id)){
-        case 1:
-            qDebug()<<"case 1";
-            dataEntryWidget->switchShowButtonIcon(false);
-            break;
-        case 2:
-            qDebug()<<"case 2";
-            dataEntryWidget->switchShowButtonIcon(true);
-            qDebug()<<"out";
-            break;
-        }
-    });
-    connect(dataEntryWidget2, &DataEntryWidget::showClicked, model, &PasswordManagerModel::showHideEntry);
+    connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
+    connect(dataEntryWidget2, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
+    connect(dataEntryWidget, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
+    connect(dataEntryWidget2, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
+
+
     connectSignalSlots();
     view->show();
 }
@@ -74,5 +56,23 @@ PasswordManagerAdapter::~PasswordManagerAdapter(){
 
 void PasswordManagerAdapter::connectSignalSlots(){
 
+}
+
+void PasswordManagerAdapter::handleShow(const QByteArray& id, DataEntryWidget* widget){
+    switch(model.showHideEntry(id)){
+    case 1:
+        widget->switchShowButtonIcon(false);
+        break;
+    case 2:
+        widget->switchShowButtonIcon(true);
+        break;
+    }
+    widget->updateContent();
+}
+
+void PasswordManagerAdapter::handleEdit(const QByteArray& id, DataEntryWidget* widget){
+    //view->setEnabled(false);
+    view->editDataEntry(model.getModulator(id));
+    widget->updateContent();
 }
 

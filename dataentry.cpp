@@ -172,6 +172,7 @@ QSharedPointer<DataEntry> DataEntryBuilder::build(const QByteArray& masterPW){
         QByteArray contentAsJson = QJsonDocument(QJsonObject::fromVariantMap(map)).toJson(QJsonDocument::Compact);
         QByteArray encryptedContent = crypter.encode(contentAsJson, plainMidKey, dataEntry->getIvInner());
         dataEntry->setContent(encryptedContent);
+        dataEntry->plain = false;
 
 
         contentAsJson.clear();
@@ -281,6 +282,12 @@ void DataEntryModulator::saveChanges(){
     this->dataEntryClone.clearData();
     this->modified = false;
 
+}
+
+void DataEntryModulator::cancelChanges(){
+    this->masterPW.clear();
+    this->dataEntryClone.clearData();
+    this->modified = false;
 }
 
 void DataEntryModulator::changeName(const QString& name){

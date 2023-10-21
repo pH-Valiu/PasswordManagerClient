@@ -1,15 +1,13 @@
 #include "passwordmanagerview.h"
+#include "gui/dataentrymodulatordialog.h"
 
 PasswordManagerView::PasswordManagerView(QWidget *parent)
     : QMainWindow{parent}
 {
     scrollAreaLayout = new QVBoxLayout();
-    QWidget* ww = new QWidget();
-    scrollAreaLayout->addWidget(ww);
-
+    scrollAreaLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
 
     scrollAreaWidget = new QWidget();
-
     scrollAreaWidget->setLayout(scrollAreaLayout);
 
     scrollArea = new QScrollArea();
@@ -22,14 +20,16 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
 
 PasswordManagerView::~PasswordManagerView(){
     delete scrollAreaLayout;
-}
-
-void PasswordManagerView::refresh(){
-    scrollAreaWidget->show();
-    scrollArea->show();
+    delete scrollAreaWidget;
+    delete scrollArea;
 }
 
 void PasswordManagerView::addDataEntryWidget(DataEntryWidget* dataEntryWidget){
     scrollAreaLayout->addWidget(dataEntryWidget);
-    //refresh();
+    scrollArea->update();
+}
+
+void PasswordManagerView::editDataEntry(std::unique_ptr<DataEntryModulator> modulator){
+    DataEntryModulatorDialog* dialog = new DataEntryModulatorDialog(std::move(modulator), this);
+    dialog->show();
 }

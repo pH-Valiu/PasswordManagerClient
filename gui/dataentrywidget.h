@@ -13,10 +13,11 @@ class DataEntryWidget : public QWidget
     Q_OBJECT
 public:
     explicit DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, const QByteArray& masterPW, QWidget *parent = nullptr);
+public slots:
     void switchShowButtonIcon(bool eyeClosed) const;
+    void updateContent();
 private:
     QSharedPointer<const DataEntry> dataEntry;
-    bool plain = false;
     QLabel* name;
     QLabel* website;
     QLabel* username;
@@ -37,13 +38,12 @@ private:
     void setupHeaderPanel(QVBoxLayout* entryLayout);
     void setupContentPanel(QVBoxLayout* entryLayout);
     void connectSignalSlots();
-    void updateContent();
 protected:
     virtual void paintEvent(QPaintEvent*);
 signals:
-    showClicked(const QByteArray& id);
-    editClicked(const QByteArray& id);
-    deleteClicked(const QByteArray& id);
+    void showClicked(const QByteArray& id, DataEntryWidget* self);
+    void editClicked(const QByteArray& id, DataEntryWidget* self);
+    void deleteClicked(const QByteArray& id, DataEntryWidget* self);
 
 };
 

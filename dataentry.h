@@ -57,7 +57,7 @@ private:
     std::optional<QString> username;       //opt.
     std::optional<QString> password;       //mandatory
     std::optional<QString> details;        //opt.
-    bool plain;             //auto.
+    bool plain=false;             //auto.
 
     void setName(const QString& name)                           {this->name=name;}
     void setWebsite(const std::optional<QString>& website)      {this->website=website;}
@@ -127,6 +127,10 @@ public:
      * @brief Constructs a DataEntryModulator to change attributes of dataEntry
      *
      * Only works when masterPW is 32 bytes long
+     *
+     * A copy of the dataEntry will be decrypted in the constructor
+     *
+     * It is being assumed that the dataEntry is not in plain mode during the usage of DataEntryModulator
      * @param dataEntry to be altered
      * @param masterPW to decrypt midKey
      */
@@ -144,7 +148,20 @@ public:
      * @return true if the change was successfull, false if key sizes were not 32 bytes
      */
     bool changeMasterPassword(const QByteArray& newMasterPW);
+    /**
+     * @brief saveChanges() finished the modulator
+     *
+     * The copy of the dataEntry will be encrypted again and its content will be copied back into the original dataEntry
+     */
     void saveChanges();
+    void cancelChanges();
+
+    QString getName()   {return dataEntryClone.getName();}
+    QString getWebsite()   {return dataEntryClone.getWebsite().value_or("");}
+    QString getUsername()   {return dataEntryClone.getUsername().value_or("");}
+    QString getEmail()   {return dataEntryClone.getEMail().value_or("");}
+    QString getPassword()   {return dataEntryClone.getPassword().value_or("");}
+    QString getDetails()   {return dataEntryClone.getDetails().value_or("");}
 private:
     QSharedPointer<DataEntry> dataEntry;
     DataEntry dataEntryClone;

@@ -13,13 +13,13 @@ class PasswordManagerView : public QMainWindow
 public:
     PasswordManagerView(QWidget *parent = nullptr);
     ~PasswordManagerView();
+    void editDataEntry(std::unique_ptr<DataEntryModulator>);
+public slots:
+    void addDataEntryWidget(DataEntryWidget*);
+private:
     QWidget* scrollAreaWidget;
     QVBoxLayout* scrollAreaLayout;
     QScrollArea* scrollArea;
-public slots:
-    void refresh();
-    void addDataEntryWidget(DataEntryWidget*);
-private:
 
 signals:
 
