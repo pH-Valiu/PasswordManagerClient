@@ -13,6 +13,8 @@ class DataEntryWidget : public QWidget
     Q_OBJECT
 public:
     explicit DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, const QByteArray& masterPW, QWidget *parent = nullptr);
+    ~DataEntryWidget();
+    QString getName()       {return name->text();}
 public slots:
     void switchShowButtonIcon(bool eyeClosed) const;
     void updateContent();

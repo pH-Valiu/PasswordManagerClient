@@ -95,7 +95,7 @@ void DataEntryModulatorDialog::connectSignalSlots(){
 
 void DataEntryModulatorDialog::reject(){
     QMessageBox::StandardButton resBtn = QMessageBox::Close;
-    if(closeDialog){
+    if(xButtonPressed){
         resBtn = QMessageBox::question(
             this, "Are you sure?",
             tr("Are you sure?\n"),
@@ -112,6 +112,7 @@ void DataEntryModulatorDialog::reject(){
     }
 
     if (resBtn == QMessageBox::Close){
+        emit closing();
         QDialog::reject();
     }
 }
@@ -132,7 +133,8 @@ void DataEntryModulatorDialog::save(){
     passwordEdit->clear();
     detailsEdit->clear();
 
-    closeDialog = false;
+    xButtonPressed = false;
+    emit closing();
     this->close();
 }
 
@@ -146,7 +148,8 @@ void DataEntryModulatorDialog::cancel(){
     passwordEdit->clear();
     detailsEdit->clear();
 
-    closeDialog = false;
+    xButtonPressed = false;
+    emit closing();
     this->close();
 }
 

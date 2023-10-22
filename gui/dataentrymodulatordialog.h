@@ -27,12 +27,14 @@ private:
     QTextEdit* detailsEdit;
     QPushButton* saveButton;
     QPushButton* closeButton;
-    bool closeDialog = true;
+    bool xButtonPressed = true;
 
     void connectSignalSlots();
 private slots:
     void save();
     void cancel();
+signals:
+    void closing();
 };
 
 #endif // DATAENTRYMODULATORDIALOG_H

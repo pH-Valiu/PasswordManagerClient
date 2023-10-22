@@ -45,12 +45,28 @@ DataEntryWidget::DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, cons
 
     this->setLayout(entryLayout);
     this->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    //this->setFixedSize(size());
+    this->setMinimumSize(400, 400);
 
     //connect Buttons with Methods
     connectSignalSlots();
+}
 
-
+DataEntryWidget::~DataEntryWidget(){
+    dataEntry.clear();
+    delete name;
+    delete website;
+    delete username;
+    delete email;
+    delete password;
+    delete details;
+    delete lastChanged;
+    delete editButton;
+    delete showButton;
+    delete deleteButton;
+    delete usernameCopyButton;
+    delete emailCopyButton;
+    delete passwordCopyButton;
+    delete detailsCopyButton;
 }
 
 
@@ -115,15 +131,19 @@ void DataEntryWidget::setupContentPanel(QVBoxLayout *entryLayout){
     username = new QLabel("Username:\t****");
     username->setFont(contentFont);
     username->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    username->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     email = new QLabel("Email:\t****");
     email->setFont(contentFont);
     email->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    email->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     password = new QLabel("Password:\t****");
     password->setFont(contentFont);
     password->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    password->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     details = new QLabel("Details:\t****");
     details->setFont(contentFont);
     details->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    details->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
     details->setWordWrap(true);
 
 
@@ -158,6 +178,7 @@ void DataEntryWidget::setupContentPanel(QVBoxLayout *entryLayout){
     t1r->addWidget(emailCopyButton);
     t1r->addWidget(passwordCopyButton);
     t1r->addWidget(detailsCopyButton);
+    t1r->setSizeConstraint(QLayout::SetMinimumSize);
     QWidget* t1rWid = new QWidget();
     t1rWid->setLayout(t1r);
 

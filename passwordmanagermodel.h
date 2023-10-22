@@ -35,8 +35,29 @@ public slots:
      * 2 if dataEntry got decrypted
      */
     int showHideEntry(const QByteArray& id);
+    /**
+     * @brief showEntry decrypts secret content of dataEntry using its id as the identifier
+     * @param id of the dataEntry
+     * @return 0 if id was not findable
+     *
+     * -1 if dataEntry could not be decrypted
+     *
+     * 1 if dataEntry got decrypted
+     */
+    int showEntry(const QByteArray& id);
+    /**
+     * @brief showEntry encrypts secret content of dataEntry using its id as the identifier
+     * @param id of the dataEntry
+     * @return 0 if id was not findable
+     *
+     * -1 if dataEntry could not be encrypted
+     *
+     * 1 if dataEntry got encrypted
+     */
+    int hideEntry(const QByteArray& id);
 
     void addEntry(QSharedPointer<DataEntry>& entry);
+    int removeEntry(const QByteArray& id);
 
 
 };

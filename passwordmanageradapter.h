@@ -20,6 +20,7 @@ private:
 private slots:
     void handleShow(const QByteArray& id, DataEntryWidget* widget);
     void handleEdit(const QByteArray& id, DataEntryWidget* widget);
+    void handleDelete(const QByteArray& id, DataEntryWidget* widget);
 };
 
 #endif // PASSWORDMANAGERADAPTER_H

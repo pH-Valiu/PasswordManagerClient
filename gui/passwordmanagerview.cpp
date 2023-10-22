@@ -29,7 +29,19 @@ void PasswordManagerView::addDataEntryWidget(DataEntryWidget* dataEntryWidget){
     scrollArea->update();
 }
 
-void PasswordManagerView::editDataEntry(std::unique_ptr<DataEntryModulator> modulator){
-    DataEntryModulatorDialog* dialog = new DataEntryModulatorDialog(std::move(modulator), this);
-    dialog->show();
+void PasswordManagerView::removeDataEntryWidget(DataEntryWidget* dataEntryWidget){
+    scrollAreaLayout->removeWidget(dataEntryWidget);
+    scrollArea->update();
+}
+
+void PasswordManagerView::editDataEntry(std::unique_ptr<DataEntryModulator> modulator, DataEntryWidget* widget){
+    if(modulator){
+        this->setEnabled(false);
+        DataEntryModulatorDialog* dialog = new DataEntryModulatorDialog(std::move(modulator), this);
+        connect(dialog, &DataEntryModulatorDialog::closing, this, [=]{
+            this->setEnabled(true);
+            widget->updateContent();
+        });
+        dialog->show();
+    }
 }

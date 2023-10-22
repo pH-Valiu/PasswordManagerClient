@@ -22,7 +22,7 @@ QJsonObject DataEntry::toJsonObject() const{
 
 bool DataEntry::decryptContent(const QByteArray& masterPW){
     //function won't notify you about wrong masterPW
-    if(!this->encryptedContent.isNull() && !this->encryptedContent.isEmpty() && masterPW.size() == 32){
+    if(!this->encryptedContent.isNull() && !this->encryptedContent.isEmpty() && masterPW.size() == 32 && !plain){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
         QByteArray decryptedJson = crypter.removePadding(crypter.decode(this->encryptedContent, decryptedMidKey, this->ivInner));
@@ -51,7 +51,7 @@ bool DataEntry::decryptContent(const QByteArray& masterPW){
 
 bool DataEntry::encryptContent(const QByteArray& masterPW){
     //this function won't notify you about wrong masterPW
-    if((this->encryptedContent.isNull() || this->encryptedContent.isEmpty()) && masterPW.size() == 32){
+    if((this->encryptedContent.isNull() || this->encryptedContent.isEmpty()) && masterPW.size() == 32 && plain){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
 
@@ -254,12 +254,14 @@ void DataEntryBuilder::addDetails(const QString& details){
 
 
 DataEntryModulator::DataEntryModulator(QSharedPointer<DataEntry> dataEntry, const QByteArray& masterPW){
-    this->dataEntry = QSharedPointer<DataEntry>(dataEntry);
-    dataEntryClone = DataEntry(*dataEntry.get());
+    if(!dataEntry.isNull()){
+        this->dataEntry = QSharedPointer<DataEntry>(dataEntry);
+        dataEntryClone = DataEntry(*dataEntry.get());
 
-    this->masterPW = masterPW;
-    this->modified = false;
-    dataEntryClone.decryptContent(masterPW);
+        this->masterPW = masterPW;
+        this->modified = false;
+        dataEntryClone.decryptContent(masterPW);
+    }
 }
 
 DataEntryModulator::~DataEntryModulator(){

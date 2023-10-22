@@ -1,5 +1,6 @@
 #include "passwordmanageradapter.h"
 #include <dataentry.h>
+#include <QMessageBox>
 
 
 PasswordManagerAdapter::PasswordManagerAdapter() :
@@ -44,6 +45,8 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
     connect(dataEntryWidget2, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
     connect(dataEntryWidget, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
     connect(dataEntryWidget2, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
+    connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
+    connect(dataEntryWidget2, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
 
 
     connectSignalSlots();
@@ -66,13 +69,45 @@ void PasswordManagerAdapter::handleShow(const QByteArray& id, DataEntryWidget* w
     case 2:
         widget->switchShowButtonIcon(true);
         break;
+    case 0:
+        //id was not findable
+        return;
     }
     widget->updateContent();
 }
 
 void PasswordManagerAdapter::handleEdit(const QByteArray& id, DataEntryWidget* widget){
-    //view->setEnabled(false);
-    view->editDataEntry(model.getModulator(id));
-    widget->updateContent();
+    switch(model.hideEntry(id)){
+    case 1:
+        widget->switchShowButtonIcon(false);
+        break;
+    case -1:
+        //widgets is already in hideMode
+        break;
+    case 0:
+        //id was not findable
+        return;
+    }
+    view->editDataEntry(model.getModulator(id), widget);
+}
+
+void PasswordManagerAdapter::handleDelete(const QByteArray& id, DataEntryWidget* widget){
+    QMessageBox::StandardButton resBtn =  QMessageBox::question(
+            widget, "Are you sure?",
+            "Do you really want to delete data entry: "+widget->getName()+"?\n",
+            QMessageBox::Yes | QMessageBox::No,
+            QMessageBox::No);
+
+
+    if (resBtn == QMessageBox::Yes) {
+        //delete
+        model.removeEntry(id);
+        view->removeDataEntryWidget(widget);
+        view->update();
+    }
+
+    if (resBtn == QMessageBox::No){
+        //do nothing
+    }
 }
 
