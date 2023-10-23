@@ -16,6 +16,9 @@ public:
     void editDataEntry(std::unique_ptr<DataEntryModulator>, DataEntryWidget* widget);
 public slots:
     void addDataEntryWidget(DataEntryWidget*);
+    /**
+     * @brief removeDataEntryWidget removes the widget from the layout and deletes it afterwards
+     */
     void removeDataEntryWidget(DataEntryWidget*);
 private:
     QWidget* scrollAreaWidget;

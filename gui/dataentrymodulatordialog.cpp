@@ -14,22 +14,22 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(std::unique_ptr<DataEntryModu
     QVBoxLayout* vbox = new QVBoxLayout();
 
     //name
+    QWidget* nameWidget= new QWidget(this);
     QString dialogName = "Edit Entry: "+mod->getName();
-    QLabel* topLabel = new QLabel(dialogName);
+    QLabel* topLabel = new QLabel(dialogName, nameWidget);
     QFont nameFont("Arial", 22, QFont::Bold);
     topLabel->setFont(nameFont);
 
     QHBoxLayout* hboxName = new QHBoxLayout();
     hboxName->addWidget(topLabel);
 
-    QWidget* nameWidget= new QWidget();
     nameWidget->setLayout(hboxName);
 
     vbox->addWidget(nameWidget);
 
 
     //horizontal line
-    QFrame* horizontalLine = new QFrame;
+    QFrame* horizontalLine = new QFrame(this);
     horizontalLine->setLineWidth(3);
     horizontalLine->setMidLineWidth(3);
     horizontalLine->setFrameShape(QFrame::HLine);
@@ -38,13 +38,14 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(std::unique_ptr<DataEntryModu
 
 
     //form
+    QWidget* formWidget = new QWidget(this);
     QFormLayout* form = new QFormLayout();
-    nameEdit = new QLineEdit(mod->getName());
-    websiteEdit = new QLineEdit(mod->getWebsite());
-    usernameEdit = new QLineEdit(mod->getUsername());
-    emailEdit = new QLineEdit(mod->getEmail());
-    passwordEdit = new QLineEdit(mod->getPassword());
-    detailsEdit = new QTextEdit(mod->getDetails());
+    nameEdit = new QLineEdit(mod->getName(), formWidget);
+    websiteEdit = new QLineEdit(mod->getWebsite(), formWidget);
+    usernameEdit = new QLineEdit(mod->getUsername(), formWidget);
+    emailEdit = new QLineEdit(mod->getEmail(), formWidget);
+    passwordEdit = new QLineEdit(mod->getPassword(), formWidget);
+    detailsEdit = new QTextEdit(mod->getDetails(), formWidget);
     form->addRow("Name:\t", nameEdit);
     form->addRow("Website:\t", websiteEdit);
     form->addRow("Username:\t", usernameEdit);
@@ -52,13 +53,12 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(std::unique_ptr<DataEntryModu
     form->addRow("Password:\t", passwordEdit);
     form->addRow("Details:\t", detailsEdit);
 
-    QWidget* formWidget = new QWidget();
     formWidget->setLayout(form);
     vbox->addWidget(formWidget);
 
 
     //horizontal line2
-    QFrame* horizontalLine2 = new QFrame;
+    QFrame* horizontalLine2 = new QFrame(this);
     horizontalLine2->setLineWidth(3);
     horizontalLine2->setMidLineWidth(3);
     horizontalLine2->setFrameShape(QFrame::HLine);
@@ -67,17 +67,21 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(std::unique_ptr<DataEntryModu
 
 
     //button area
-    saveButton = new QPushButton("Save");
+    QWidget* buttonArea = new QWidget(this);
+    saveButton = new QPushButton("Save", buttonArea);
     saveButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     saveButton->setFixedSize(saveButton->sizeHint());
-    closeButton = new QPushButton("Close");
+    saveButton->setDefault(true);
+    saveButton->setAutoDefault(true);
+    closeButton = new QPushButton("Close", buttonArea);
     closeButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     closeButton->setFixedSize(closeButton->sizeHint());
+    closeButton->setDefault(false);
+    closeButton->setAutoDefault(false);
     QHBoxLayout* buttonLayout = new QHBoxLayout();
     buttonLayout->addWidget(closeButton);
     buttonLayout->addWidget(saveButton);
 
-    QWidget* buttonArea = new QWidget();
     buttonArea->setLayout(buttonLayout);
     vbox->addWidget(buttonArea);
 
@@ -154,6 +158,7 @@ void DataEntryModulatorDialog::cancel(){
 }
 
 DataEntryModulatorDialog::~DataEntryModulatorDialog(){
+    mod->cancelChanges();
     delete nameEdit;
     delete websiteEdit;
     delete usernameEdit;
@@ -162,6 +167,5 @@ DataEntryModulatorDialog::~DataEntryModulatorDialog(){
     delete detailsEdit;
     delete saveButton;
     delete closeButton;
-    mod->cancelChanges();
 }
 

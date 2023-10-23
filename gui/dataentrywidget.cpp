@@ -12,7 +12,7 @@ DataEntryWidget::DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, cons
     : QWidget{parent}, dataEntry{dataEntry}
 {
     //main VBoxLayout
-    QVBoxLayout* entryLayout = new QVBoxLayout;
+    QVBoxLayout* entryLayout = new QVBoxLayout();
     entryLayout->setContentsMargins(5, 5, 5, 5);
 
     //button panel
@@ -28,7 +28,7 @@ DataEntryWidget::DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, cons
     setupContentPanel(entryLayout);
 
     //horizontal line 2
-    QFrame* horizontalLine2 = new QFrame;
+    QFrame* horizontalLine2 = new QFrame(this);
     horizontalLine2->setLineWidth(3);
     horizontalLine2->setMidLineWidth(3);
     horizontalLine2->setFrameShape(QFrame::HLine);
@@ -36,7 +36,7 @@ DataEntryWidget::DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, cons
     entryLayout->addWidget(horizontalLine2);
 
     //lastChanged label
-    lastChanged = new QLabel(dataEntry->getLastChanged().toString());
+    lastChanged = new QLabel(dataEntry->getLastChanged().toString(), this);
     lastChanged->setAlignment(Qt::AlignRight);
     QFont lastChangedFont("Arial", 8, QFont::ExtraLight, true);
     lastChanged->setFont(lastChangedFont);
@@ -72,28 +72,28 @@ DataEntryWidget::~DataEntryWidget(){
 
 void DataEntryWidget::setupButtonPanel(QVBoxLayout* entryLayout){
     //button area
-    QHBoxLayout* topButtonLayout = new QHBoxLayout;
+    QWidget* buttonPanel = new QWidget(this);
+    QHBoxLayout* topButtonLayout = new QHBoxLayout();
     topButtonLayout->setContentsMargins(10, 5, 10, 5);
-    editButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/edit.ico")), "");
+    editButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/edit.ico")), "", buttonPanel);
     editButton->setIconSize(QSize(32, 32));
     editButton->setFixedSize(48, 48);
-    showButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/show.ico")), "");
+    showButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/show.ico")), "", buttonPanel);
     showButton->setIconSize(QSize(32, 32));
     showButton->setFixedSize(48, 48);
-    deleteButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/delete.ico")), "");
+    deleteButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/delete.ico")), "", buttonPanel);
     deleteButton->setIconSize(QSize(32, 32));
     deleteButton->setFixedSize(48, 48);
     topButtonLayout->addWidget(editButton);
     topButtonLayout->addWidget(showButton);
     topButtonLayout->addWidget(deleteButton);
 
-    QWidget* buttonPanel = new QWidget;
     buttonPanel->setLayout(topButtonLayout);
     buttonPanel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     entryLayout->addWidget(buttonPanel);
 
     //horizontal line
-    QFrame* horizontalLine = new QFrame;
+    QFrame* horizontalLine = new QFrame(this);
     horizontalLine->setLineWidth(3);
     horizontalLine->setMidLineWidth(3);
     horizontalLine->setFrameShape(QFrame::HLine);
@@ -103,22 +103,22 @@ void DataEntryWidget::setupButtonPanel(QVBoxLayout* entryLayout){
 
 void DataEntryWidget::setupHeaderPanel(QVBoxLayout *entryLayout){
     //header
+    QWidget* headerWidget = new QWidget(this);
     QVBoxLayout* headerLayout = new QVBoxLayout();
-    name = new QLabel(dataEntry->getName());
+    name = new QLabel(dataEntry->getName(), headerWidget);
     name->setAlignment(Qt::AlignHCenter);
     QFont nameFont("Arial", 22, QFont::Bold);
     name->setFont(nameFont);
     headerLayout->addWidget(name);
 
     QString websiteS = "<" + dataEntry->getWebsite().value_or("") + ">";
-    website = new QLabel(websiteS);
+    website = new QLabel(websiteS, headerWidget);
     website->setAlignment(Qt::AlignHCenter);
     QFont websiteFont("Arial", 10, QFont::Normal, true);
     website->setFont(websiteFont);
     headerLayout->addWidget(website);
 
 
-    QWidget* headerWidget = new QWidget();
     headerWidget->setLayout(headerLayout);
     headerWidget->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     entryLayout->addWidget(headerWidget);
@@ -127,20 +127,23 @@ void DataEntryWidget::setupHeaderPanel(QVBoxLayout *entryLayout){
 
 void DataEntryWidget::setupContentPanel(QVBoxLayout *entryLayout){
     //Content
+    QWidget* contentWidget = new QWidget(this);
+    QWidget* t1lWid = new QWidget(contentWidget);
+    QWidget* t1rWid = new QWidget(contentWidget);
     QFont contentFont("Arial", 12, QFont::Normal, false);
-    username = new QLabel("Username:\t****");
+    username = new QLabel("Username:\t****", t1lWid);
     username->setFont(contentFont);
     username->setTextInteractionFlags(Qt::TextSelectableByMouse);
     username->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    email = new QLabel("Email:\t****");
+    email = new QLabel("Email:\t****", t1lWid);
     email->setFont(contentFont);
     email->setTextInteractionFlags(Qt::TextSelectableByMouse);
     email->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    password = new QLabel("Password:\t****");
+    password = new QLabel("Password:\t****", t1lWid);
     password->setFont(contentFont);
     password->setTextInteractionFlags(Qt::TextSelectableByMouse);
     password->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
-    details = new QLabel("Details:\t****");
+    details = new QLabel("Details:\t****", t1lWid);
     details->setFont(contentFont);
     details->setTextInteractionFlags(Qt::TextSelectableByMouse);
     details->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
@@ -148,16 +151,16 @@ void DataEntryWidget::setupContentPanel(QVBoxLayout *entryLayout){
 
 
     QIcon copyIcon(QCoreApplication::applicationDirPath().append("/gui/ico/copy.ico"));
-    usernameCopyButton = new QPushButton(copyIcon, "");
+    usernameCopyButton = new QPushButton(copyIcon, "", t1rWid);
     usernameCopyButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     usernameCopyButton->setToolTip("copy username");
-    emailCopyButton = new QPushButton(copyIcon, "");
+    emailCopyButton = new QPushButton(copyIcon, "", t1rWid);
     emailCopyButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     emailCopyButton->setToolTip("copy email");
-    passwordCopyButton = new QPushButton(copyIcon, "");
+    passwordCopyButton = new QPushButton(copyIcon, "", t1rWid);
     passwordCopyButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     passwordCopyButton->setToolTip("copy password");
-    detailsCopyButton = new QPushButton(copyIcon, "");
+    detailsCopyButton = new QPushButton(copyIcon, "", t1rWid);
     detailsCopyButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     detailsCopyButton->setToolTip("copy details");
 
@@ -168,7 +171,6 @@ void DataEntryWidget::setupContentPanel(QVBoxLayout *entryLayout){
     t1l->addWidget(email);
     t1l->addWidget(password);
     t1l->addWidget(details);
-    QWidget* t1lWid = new QWidget();
     t1lWid->setLayout(t1l);
 
     QVBoxLayout* t1r = new QVBoxLayout();
@@ -179,7 +181,6 @@ void DataEntryWidget::setupContentPanel(QVBoxLayout *entryLayout){
     t1r->addWidget(passwordCopyButton);
     t1r->addWidget(detailsCopyButton);
     t1r->setSizeConstraint(QLayout::SetMinimumSize);
-    QWidget* t1rWid = new QWidget();
     t1rWid->setLayout(t1r);
 
     contentLayout->addWidget(t1lWid);
@@ -187,7 +188,6 @@ void DataEntryWidget::setupContentPanel(QVBoxLayout *entryLayout){
 
 
 
-    QWidget* contentWidget = new QWidget();
     contentWidget->setLayout(contentLayout);
     contentWidget->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     entryLayout->addWidget(contentWidget);

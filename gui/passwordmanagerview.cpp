@@ -4,13 +4,13 @@
 PasswordManagerView::PasswordManagerView(QWidget *parent)
     : QMainWindow{parent}
 {
-    scrollAreaLayout = new QVBoxLayout();
+    scrollArea = new QScrollArea(this);
+    scrollAreaWidget = new QWidget(scrollArea);
+    scrollAreaLayout = new QVBoxLayout(scrollAreaWidget);
     scrollAreaLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
 
-    scrollAreaWidget = new QWidget();
     scrollAreaWidget->setLayout(scrollAreaLayout);
 
-    scrollArea = new QScrollArea();
     scrollArea->setWidget(scrollAreaWidget);
 
     this->setCentralWidget(scrollArea);
@@ -26,11 +26,13 @@ PasswordManagerView::~PasswordManagerView(){
 
 void PasswordManagerView::addDataEntryWidget(DataEntryWidget* dataEntryWidget){
     scrollAreaLayout->addWidget(dataEntryWidget);
+    dataEntryWidget->setParent(scrollAreaWidget);
     scrollArea->update();
 }
 
 void PasswordManagerView::removeDataEntryWidget(DataEntryWidget* dataEntryWidget){
     scrollAreaLayout->removeWidget(dataEntryWidget);
+    delete dataEntryWidget;
     scrollArea->update();
 }
 

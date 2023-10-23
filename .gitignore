@@ -3,6 +3,7 @@
 
 *~
 *.autosave
+*.png
 *.core
 *.moc
 *.o
