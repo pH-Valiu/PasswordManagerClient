@@ -1,7 +1,11 @@
 # Important so that I can just type '#inlcude "qaesencryption.h' without specifying the folder the header file is in
-INCLUDEPATH += $$PWD/libraries/QAES
+INCLUDEPATH += \
+    $$PWD/libraries/QAES \
+    $$PWD/libraries/WinCrypt
 
-LIBS += "-L$$PWD/libraries/QAES" -lqaesencryption
+LIBS += \
+    "-L$$PWD/libraries/QAES" -lqaesencryption \
+    "-L$$PWD/libraries/WinCrypt" -lcrypt32
 
 
 SOURCES += \
@@ -15,7 +19,6 @@ SOURCES += \
     $$PWD/unit_test/dataentrytest.cpp \
     $$PWD/dataentry.cpp \
     $$PWD/passwordbroker.cpp \
-    $$PWD/view.cpp \
     $$PWD/main.cpp
 
 HEADERS += \
@@ -29,11 +32,9 @@ HEADERS += \
     $$PWD/unit_test/passwordbrokertest.h \
     $$PWD/unit_test/dataentrytest.h \
     $$PWD/dataentry.h \
-    $$PWD/passwordbroker.h \
-    $$PWD/view.h
+    $$PWD/passwordbroker.h
 
-FORMS += \
-    $$PWD/view.ui
+FORMS +=
 
 DISTFILES += \
     $$PWD/gui/ico/copy.ico \

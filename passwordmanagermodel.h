@@ -18,11 +18,6 @@ public:
      */
     static PasswordManagerModel& getInstance();
     std::unique_ptr<DataEntryModulator> getModulator(const QByteArray& id);
-private:
-    PasswordManagerModel();
-    PasswordBroker& broker;
-    bool revertToOlderLocalBackup();
-public slots:
     /**
      * @brief showHideEntry en/decrypts secret content of dataEntry using its id as the identifier
      * @param the id of the dataEntry
@@ -58,6 +53,12 @@ public slots:
 
     void addEntry(QSharedPointer<DataEntry>& entry);
     int removeEntry(const QByteArray& id);
+    void removeAllEntries()     {broker.removeAllEntries();}
+private:
+    PasswordManagerModel();
+    PasswordBroker& broker;
+    bool revertToOlderLocalBackup();
+
 
 
 };

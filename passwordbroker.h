@@ -49,6 +49,7 @@ public:
      * @return true if one or more entries were removed, false if none
      */
     bool removeEntryByName(const QString& name);
+    void removeAllEntries()             {vector.clear();}
     QSharedPointer<DataEntry> getEntryFromId(const QByteArray& id);
     QSharedPointer<DataEntry> getEntryFromName(const QString& name);
     QSharedPointer<DataEntry> getEntryFromWebsite(const QString& website);

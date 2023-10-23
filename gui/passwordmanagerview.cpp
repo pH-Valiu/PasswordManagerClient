@@ -15,6 +15,7 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
 
     this->setCentralWidget(scrollArea);
     this->setContentsMargins(10, 10, 10, 10);
+    this->setMinimumSize(600, 800);
 
 }
 

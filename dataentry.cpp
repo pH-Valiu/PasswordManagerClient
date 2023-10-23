@@ -130,6 +130,8 @@ QString DataEntry::showDiff(DataEntry& d1, DataEntry& d2){
 
 }
 
+
+
 DataEntryBuilder::DataEntryBuilder(const QString& name){
     dataEntry = QSharedPointer<DataEntry>(new DataEntry());
     dataEntry->setID(QUuid::createUuid().toByteArray());

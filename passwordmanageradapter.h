@@ -16,7 +16,11 @@ public:
 private:
     PasswordManagerModel& model;
     PasswordManagerView* view;
+    QSharedPointer<QByteArray> masterPW;
+
     void connectSignalSlots();
+    bool unprotectMasterPW();
+    bool protectMasterPW();
 private slots:
     void handleShow(const QByteArray& id, DataEntryWidget* widget);
     void handleEdit(const QByteArray& id, DataEntryWidget* widget);

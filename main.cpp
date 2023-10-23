@@ -25,12 +25,6 @@ int main(int argc, char *argv[])
     // :)
     return 0;
 #else
-    //view w;
-    //PasswordBroker& broker = PasswordBroker::getInstance();
-    //qDebug() <<"return: "<<broker.fetchFileData();
-
-    //w.show();
-
     PasswordManagerAdapter adapter;
     return a.exec();
 #endif

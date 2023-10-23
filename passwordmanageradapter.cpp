@@ -1,5 +1,8 @@
 #include "passwordmanageradapter.h"
 #include <dataentry.h>
+#include <windows.h>
+#include <dpapi.h>
+#include <wincrypt.h>
 #include <QMessageBox>
 
 
@@ -8,6 +11,23 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
     model{PasswordManagerModel::getInstance()},
     view{new PasswordManagerView()}
 {
+
+    //!!! TEMP
+    QString tempMasterPW = "12345678901234567890123456789012";
+
+    masterPW = QSharedPointer<QByteArray>(new QByteArray(tempMasterPW.toUtf8()));
+
+    qDebug()<<"[u_pr] pw: "<<masterPW.get()->toBase64();
+
+    protectMasterPW();
+
+    qDebug()<<"[pr] pw: "<<masterPW.get()->toBase64();
+
+    unprotectMasterPW();
+
+    qDebug()<<"[u_pr] pw: "<<masterPW.get()->toBase64();
+
+
 
     QSharedPointer<DataEntry> testEntry1;
     DataEntryBuilder builder("Apple");
@@ -55,9 +75,57 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
 
 PasswordManagerAdapter::~PasswordManagerAdapter(){
     delete view;
+    model.removeAllEntries();
 }
 
 void PasswordManagerAdapter::connectSignalSlots(){
+
+}
+
+bool PasswordManagerAdapter::unprotectMasterPW(){
+    DWORD bPW = masterPW->size();
+    LPVOID pPW = (LPVOID) masterPW.get()->data();
+
+    if(bPW != 32){
+        return false;
+    }
+
+    int dMod = 0;
+    if(!(dMod = bPW % CRYPTPROTECTMEMORY_BLOCK_SIZE)){
+        bPW += (CRYPTPROTECTMEMORY_BLOCK_SIZE - dMod);
+    }
+
+    if(!CryptUnprotectMemory(pPW, bPW, CRYPTPROTECTMEMORY_SAME_PROCESS)){
+        SecureZeroMemory(pPW, bPW);
+        pPW = NULL;
+        return false;
+    }
+
+    pPW = NULL;
+    return S_OK;
+}
+
+bool PasswordManagerAdapter::protectMasterPW(){
+    DWORD bPW = masterPW->size();
+    LPVOID pPW = (LPVOID) masterPW.get()->data();
+
+    if(bPW != 32){
+        return false;
+    }
+
+    int dMod = 0;
+    if((dMod = bPW % CRYPTPROTECTMEMORY_BLOCK_SIZE)){
+        bPW += (CRYPTPROTECTMEMORY_BLOCK_SIZE - dMod);
+    }
+
+    if(!CryptProtectMemory(pPW, bPW, CRYPTPROTECTMEMORY_SAME_PROCESS)){
+        SecureZeroMemory(pPW, bPW);
+        pPW = NULL;
+        return false;
+    }
+
+    pPW = NULL;
+    return S_OK;
 
 }
 
