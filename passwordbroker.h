@@ -56,8 +56,8 @@ public:
     qsizetype entryCount() {return vector.size();}
     ~PasswordBroker();
 
-#ifdef EXECUTE_UNIT_TESTS
     friend class PasswordBrokerTest;
+#ifdef EXECUTE_UNIT_TESTS
 #endif
 
 private:

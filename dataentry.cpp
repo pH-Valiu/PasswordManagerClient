@@ -268,12 +268,13 @@ DataEntryModulator::DataEntryModulator(QSharedPointer<DataEntry> dataEntry, cons
 
 DataEntryModulator::~DataEntryModulator(){
     this->dataEntry.clear();
-    this->masterPW.clear();
     this->dataEntryClone.clearData();
+    SecureZeroMemory(masterPW.data(), masterPW.size());
+    this->masterPW.clear();
 }
 
 void DataEntryModulator::saveChanges(){
-    bool encryptionWorked = this->dataEntryClone.encryptContent(this->masterPW);
+    bool encryptionWorked = this->dataEntryClone.encryptContent(masterPW);
     if(encryptionWorked && modified){
         dataEntry->setName(dataEntryClone.getName());
         dataEntry->setWebsite(dataEntryClone.getWebsite());
@@ -282,15 +283,17 @@ void DataEntryModulator::saveChanges(){
         dataEntry->setContent(dataEntryClone.getContent());
     }
 
-    this->masterPW.clear();
     this->dataEntryClone.clearData();
+    SecureZeroMemory(masterPW.data(), masterPW.size());
+    this->masterPW.clear();
     this->modified = false;
 
 }
 
 void DataEntryModulator::cancelChanges(){
-    this->masterPW.clear();
     this->dataEntryClone.clearData();
+    SecureZeroMemory(masterPW.data(), masterPW.size());
+    this->masterPW.clear();
     this->modified = false;
 }
 
@@ -321,13 +324,13 @@ void DataEntryModulator::changeDetails(const QString& details){
 bool DataEntryModulator::changeMasterPassword(const QByteArray& newMasterPW){
     //if oldMasterPW is incorrect this function will not notify you
     //it will appear as if everything worked correctly
-    if(masterPW.size() == 32 && newMasterPW.size() == 32){
+    if(this->masterPW.size() == 32 && newMasterPW.size() == 32){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-        QByteArray oldDecryptedMidKey = crypter.removePadding(crypter.decode(dataEntry->getMidKey(), masterPW, dataEntry->getIvMidKey()));
+        QByteArray oldDecryptedMidKey = crypter.removePadding(crypter.decode(dataEntry->getMidKey(), this->masterPW, dataEntry->getIvMidKey()));
         QByteArray newEncryptedMidKey = crypter.encode(oldDecryptedMidKey, newMasterPW, dataEntry->getIvMidKey());
 
         dataEntryClone.setMidKey(newEncryptedMidKey);
-        masterPW = newMasterPW;
+        this->masterPW = newMasterPW;
         modified = true;
         return true;
     }else{

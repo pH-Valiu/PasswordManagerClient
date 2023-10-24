@@ -12,11 +12,12 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
     view{new PasswordManagerView()}
 {
 
-    //!!! TEMP
     QString tempMasterPW = "12345678901234567890123456789012";
 
     masterPW = QSharedPointer<QByteArray>(new QByteArray(tempMasterPW.toUtf8()));
+    protectMasterPW();
 
+    /*
     qDebug()<<"[u_pr] pw: "<<masterPW.get()->toBase64();
 
     protectMasterPW();
@@ -26,9 +27,11 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
     unprotectMasterPW();
 
     qDebug()<<"[u_pr] pw: "<<masterPW.get()->toBase64();
+    */
 
 
 
+    unprotectMasterPW();
     QSharedPointer<DataEntry> testEntry1;
     DataEntryBuilder builder("Apple");
     builder.addDetails("Just call up the website² and \"log\" in ?*?");
@@ -36,12 +39,12 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
     builder.addUsername("user1");
     builder.addPassword(",~£:1Od33jy+lj");
     builder.addEmail("user1@apple.com");
-    testEntry1 = builder.build(GLOBALES_TEMP::staticMasterPW);
+    testEntry1 = builder.build(masterPW->constData());
 
     model.addEntry(testEntry1);
 
 
-    DataEntryWidget* dataEntryWidget = new DataEntryWidget(testEntry1, GLOBALES_TEMP::staticMasterPW);
+    DataEntryWidget* dataEntryWidget = new DataEntryWidget(testEntry1);
 
     QSharedPointer<DataEntry> testEntry2;
     DataEntryBuilder builder2("Amazon");
@@ -50,12 +53,14 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
     builder2.addUsername("user2");
     builder2.addPassword("passwort stark");
     builder2.addEmail("user2@amazon.com");
-    testEntry2 = builder2.build(GLOBALES_TEMP::staticMasterPW);
+    testEntry2 = builder2.build(masterPW->constData());
 
     model.addEntry(testEntry2);
 
+    protectMasterPW();
 
-    DataEntryWidget* dataEntryWidget2 = new DataEntryWidget(testEntry2, GLOBALES_TEMP::staticMasterPW);
+
+    DataEntryWidget* dataEntryWidget2 = new DataEntryWidget(testEntry2);
     view->addDataEntryWidget(dataEntryWidget);
     view->addDataEntryWidget(dataEntryWidget2);
 
@@ -102,6 +107,7 @@ bool PasswordManagerAdapter::unprotectMasterPW(){
     }
 
     pPW = NULL;
+    masterPW->resize(32);
     return S_OK;
 }
 
@@ -130,33 +136,46 @@ bool PasswordManagerAdapter::protectMasterPW(){
 }
 
 void PasswordManagerAdapter::handleShow(const QByteArray& id, DataEntryWidget* widget){
-    switch(model.showHideEntry(id)){
+    qDebug()<<masterPW->constData();
+    unprotectMasterPW();
+    qDebug()<<masterPW->constData();
+    switch(model.showHideEntry(id, masterPW)){
     case 1:
         widget->switchShowButtonIcon(false);
         break;
     case 2:
         widget->switchShowButtonIcon(true);
         break;
+    case -2:
+        //masterPW was null
+        break;
     case 0:
         //id was not findable
-        return;
+        break;
+
     }
+    protectMasterPW();
     widget->updateContent();
 }
 
 void PasswordManagerAdapter::handleEdit(const QByteArray& id, DataEntryWidget* widget){
-    switch(model.hideEntry(id)){
+    unprotectMasterPW();
+    switch(model.hideEntry(id, masterPW)){
     case 1:
         widget->switchShowButtonIcon(false);
         break;
     case -1:
         //widgets is already in hideMode
         break;
+    case -2:
+        //masterPW was null
+        break;
     case 0:
         //id was not findable
-        return;
+        break;
     }
-    view->editDataEntry(model.getModulator(id), widget);
+    view->editDataEntry(model.getModulator(id, masterPW), widget);
+    protectMasterPW();
 }
 
 void PasswordManagerAdapter::handleDelete(const QByteArray& id, DataEntryWidget* widget){
@@ -169,6 +188,24 @@ void PasswordManagerAdapter::handleDelete(const QByteArray& id, DataEntryWidget*
 
     if (resBtn == QMessageBox::Yes) {
         //delete
+
+        unprotectMasterPW();
+        switch(model.hideEntry(id, masterPW)){
+        case 1:
+            widget->switchShowButtonIcon(false);
+            break;
+        case -1:
+            //widgets is already in hideMode
+            break;
+        case -2:
+            //masterPW was null
+            break;
+        case 0:
+            //id was not findable
+            break;
+        }
+        protectMasterPW();
+
         model.removeEntry(id);
         view->removeDataEntryWidget(widget);
         view->update();

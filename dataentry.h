@@ -9,10 +9,7 @@
 #include <QPasswordDigestor>
 #include <QJsonObject>
 #include <QJsonDocument>
-
-namespace GLOBALES_TEMP{
-static const QByteArray staticMasterPW = "12345678901234567890123456789012";
-}
+#include <windows.h>
 
 class DataEntry {
 public:
@@ -29,10 +26,28 @@ public:
     std::optional<QString> getPassword() const                  {return password;}
     std::optional<QString> getDetails() const                   {return details;}
     void clearData(){
-        name.clear();id=0;website.reset();lastChanged=QDateTime();ivInner.clear();ivMidKey.clear(); midKey.clear();encryptedContent.clear();
+        name.clear();id=0;website.reset();lastChanged=QDateTime();ivInner.clear();ivMidKey.clear(); midKey.clear();
+        SecureZeroMemory(encryptedContent.data(), encryptedContent.size());
+        encryptedContent.clear();
         clearConfidential();
     }
     void clearConfidential(){
+        if(email.has_value()){
+            SecureZeroMemory(email.value().data(), email.value().size());
+            email.value().clear();
+        }
+        if(username.has_value()){
+            SecureZeroMemory(username.value().data(), username.value().size());
+            username.value().clear();
+        }
+        if(password.has_value()){
+            SecureZeroMemory(password.value().data(), password.value().size());
+            password.value().clear();
+        }
+        if(details.has_value()){
+            SecureZeroMemory(details.value().data(), details.value().size());
+            details.value().clear();
+        }
         email.reset();username.reset();password.reset();details.reset();
     }
     bool operator == (const DataEntry&) const;
@@ -128,7 +143,8 @@ public:
      *
      * Only works when masterPW is 32 bytes long
      *
-     * A copy of the dataEntry will be decrypted in the constructor
+     * A copy of the dataEntry will be decrypted in the modulator during its lifetime
+     * A copy of the masterPW will be temporarily decrypted in the modulator during its lifetime
      *
      * It is being assumed that the dataEntry is not in plain mode during the usage of DataEntryModulator
      * @param dataEntry to be altered

@@ -9,45 +9,57 @@ PasswordManagerModel& PasswordManagerModel::getInstance(){
     return passwordManagerModel;
 }
 
-int PasswordManagerModel::showHideEntry(const QByteArray& id){
+int PasswordManagerModel::showHideEntry(const QByteArray& id, QSharedPointer<QByteArray> masterPW){
     QSharedPointer<DataEntry> dataEntry = broker.getEntryFromId(id);
     if(dataEntry){
-        if(dataEntry->isPlain()){
-            if(dataEntry->encryptContent(GLOBALES_TEMP::staticMasterPW)){
+        if(!masterPW.isNull()){
+            if(dataEntry->isPlain()){
+                if(dataEntry->encryptContent(masterPW->constData())){
+                    return 1;
+                }else{
+                    return -1;
+                }
+            }else{
+                if(dataEntry->decryptContent(masterPW->constData())){
+                    return 2;
+                }else{
+                    return -1;
+                }
+            }
+        }else{
+            return -2;
+        }
+    }
+    return 0;
+}
+
+int PasswordManagerModel::showEntry(const QByteArray& id, QSharedPointer<QByteArray> masterPW){
+    QSharedPointer<DataEntry> dataEntry = broker.getEntryFromId(id);
+    if(dataEntry){
+        if(!masterPW.isNull()){
+            if(dataEntry->decryptContent(masterPW->constData())){
                 return 1;
             }else{
                 return -1;
             }
         }else{
-            if(dataEntry->decryptContent(GLOBALES_TEMP::staticMasterPW)){
-                return 2;
+            return -2;
+        }
+    }
+    return 0;
+}
+
+int PasswordManagerModel::hideEntry(const QByteArray& id, QSharedPointer<QByteArray> masterPW){
+    QSharedPointer<DataEntry> dataEntry = broker.getEntryFromId(id);
+    if(dataEntry){
+        if(!masterPW.isNull()){
+            if(dataEntry->encryptContent(masterPW->constData())){
+                return 1;
             }else{
                 return -1;
             }
-        }
-    }
-    return 0;
-}
-
-int PasswordManagerModel::showEntry(const QByteArray& id){
-    QSharedPointer<DataEntry> dataEntry = broker.getEntryFromId(id);
-    if(dataEntry){
-        if(dataEntry->decryptContent(GLOBALES_TEMP::staticMasterPW)){
-            return 1;
         }else{
-            return -1;
-        }
-    }
-    return 0;
-}
-
-int PasswordManagerModel::hideEntry(const QByteArray& id){
-    QSharedPointer<DataEntry> dataEntry = broker.getEntryFromId(id);
-    if(dataEntry){
-        if(dataEntry->encryptContent(GLOBALES_TEMP::staticMasterPW)){
-            return 1;
-        }else{
-            return -1;
+            return -2;
         }
     }
     return 0;
@@ -61,11 +73,15 @@ int PasswordManagerModel::removeEntry(const QByteArray& id){
     return broker.removeEntryById(id);
 }
 
-std::unique_ptr<DataEntryModulator> PasswordManagerModel::getModulator(const QByteArray& id){
+std::unique_ptr<DataEntryModulator> PasswordManagerModel::getModulator(const QByteArray& id, QSharedPointer<QByteArray> masterPW){
     QSharedPointer<DataEntry> entry = broker.getEntryFromId(id);
     if(entry){
-        return std::make_unique<DataEntryModulator>(DataEntryModulator(entry, GLOBALES_TEMP::staticMasterPW));
-    }else{
-        return nullptr;
+        if(masterPW){
+            if(!masterPW.isNull()){
+                return std::make_unique<DataEntryModulator>(DataEntryModulator(entry, masterPW->constData()));
+            }
+        }
     }
+    return nullptr;
+
 }

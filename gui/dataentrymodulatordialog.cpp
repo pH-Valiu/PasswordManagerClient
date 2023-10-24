@@ -130,6 +130,7 @@ void DataEntryModulatorDialog::save(){
     mod->changeDetails(detailsEdit->toPlainText());
     mod->saveChanges();
 
+
     nameEdit->clear();
     websiteEdit->clear();
     usernameEdit->clear();

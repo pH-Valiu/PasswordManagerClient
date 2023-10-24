@@ -8,7 +8,7 @@
 #include <QFrame>
 #include <QPainter>
 
-DataEntryWidget::DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, const QByteArray& masterPW, QWidget *parent)
+DataEntryWidget::DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, QWidget *parent)
     : QWidget{parent}, dataEntry{dataEntry}
 {
     //main VBoxLayout

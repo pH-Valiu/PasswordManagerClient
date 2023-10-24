@@ -12,7 +12,7 @@ class DataEntryWidget : public QWidget
 {
     Q_OBJECT
 public:
-    explicit DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, const QByteArray& masterPW, QWidget *parent = nullptr);
+    explicit DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, QWidget *parent = nullptr);
     ~DataEntryWidget();
     QString getName()       {return name->text();}
 public slots:
