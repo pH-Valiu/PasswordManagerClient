@@ -5,6 +5,9 @@ QRegularExpression DataEntryBuilder::regexNaming = QRegularExpression(R"(^([a-z]
 
 DataEntry::DataEntry(){}
 
+DataEntry::~DataEntry(){
+    clearData();
+}
 
 QJsonObject DataEntry::toJsonObject() const{
     QMap<QString, QVariant> map;

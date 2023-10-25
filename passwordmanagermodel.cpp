@@ -65,12 +65,16 @@ int PasswordManagerModel::hideEntry(const QByteArray& id, QSharedPointer<QByteAr
     return 0;
 }
 
-void PasswordManagerModel::addEntry(QSharedPointer<DataEntry> &entry){
+void PasswordManagerModel::addEntry(QSharedPointer<DataEntry>& entry){
     broker.addEntry(entry);
 }
 
-int PasswordManagerModel::removeEntry(const QByteArray& id){
-    return broker.removeEntryById(id);
+bool PasswordManagerModel::removeEntry(const QByteArray& id){
+    qDebug()<<"removeEntry-model"<<broker.entryCount();
+    broker.removeEntryById(id);
+    qDebug()<<broker.entryCount();
+
+    return 1;
 }
 
 std::unique_ptr<DataEntryModulator> PasswordManagerModel::getModulator(const QByteArray& id, QSharedPointer<QByteArray> masterPW){

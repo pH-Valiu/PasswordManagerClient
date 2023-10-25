@@ -136,9 +136,7 @@ bool PasswordManagerAdapter::protectMasterPW(){
 }
 
 void PasswordManagerAdapter::handleShow(const QByteArray& id, DataEntryWidget* widget){
-    qDebug()<<masterPW->constData();
     unprotectMasterPW();
-    qDebug()<<masterPW->constData();
     switch(model.showHideEntry(id, masterPW)){
     case 1:
         widget->switchShowButtonIcon(false);

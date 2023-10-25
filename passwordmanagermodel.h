@@ -62,7 +62,16 @@ public:
     int hideEntry(const QByteArray& id, QSharedPointer<QByteArray> masterPW);
 
     void addEntry(QSharedPointer<DataEntry>& entry);
-    int removeEntry(const QByteArray& id);
+    /**
+     * @brief removeEntry removes the data entry with id as its identifier
+     *
+     * If there is still another QSharedPointer floating around pointing to the entry,
+     *
+     * the entrie's data won't get deleted
+     * @param identifier id for the data entry
+     * @return whether the data data entry got removed or not
+     */
+    bool removeEntry(const QByteArray& id);
     void removeAllEntries()     {broker.removeAllEntries();}
 private:
     PasswordManagerModel();

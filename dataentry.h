@@ -13,6 +13,7 @@
 
 class DataEntry {
 public:
+    ~DataEntry();
     QJsonObject toJsonObject() const;//done
     bool decryptContent(const QByteArray& masterPW); //done
     bool encryptContent(const QByteArray& masterPW); //done

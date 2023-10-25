@@ -288,7 +288,7 @@ bool PasswordBroker::decryptData(const QByteArray& masterPW){
             }
             QSharedPointer<DataEntry> entry = DataEntryBuilder::fromJsonObject(jsonArray.at(i).toObject());
             if(entry.isNull()){
-                MessageHandler::warn("JSON object did not contain all required keys", "JSON Error:");
+                MessageHandler::warn("JSON object did not contain all required 'keys'", "JSON Error:");
                 return false;
             }
             vector.append(entry);
@@ -312,22 +312,24 @@ bool PasswordBroker::changerMasterPW(const QByteArray& oldMasterPW, const QByteA
     return true;
 }
 
-void PasswordBroker::addEntry(QSharedPointer<DataEntry> dataEntry){
+void PasswordBroker::addEntry(QSharedPointer<DataEntry>& dataEntry){
     vector.append(dataEntry);
 }
 
 bool PasswordBroker::removeEntryById(const QByteArray& id){
-    int entryRemoved = vector.removeIf([&](QSharedPointer<DataEntry> entry){
-            return entry->getID() == id;
-    });
-    return entryRemoved;
+    for(qsizetype i=0; i<vector.size(); i++){
+        if(vector.at(i)->getID() == id){
+            vector.remove(i);
+            return true;
+        }
+    }
+    return false;
 }
-
-bool PasswordBroker::removeEntryByName(const QString& name){
-    int entryRemoved = vector.removeIf([&](QSharedPointer<DataEntry> entry){
-            return entry->getName() == name;
-    });
-    return entryRemoved;
+void PasswordBroker::removeAllEntries(){
+    for(qsizetype i=0; i<vector.size(); i++){
+        vector[i].clear();
+    }
+    vector.clear();
 }
 
 QSharedPointer<DataEntry> PasswordBroker::getEntryFromId(const QByteArray& id){

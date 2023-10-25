@@ -36,7 +36,7 @@ public:
      */
     bool storeFileData(const QByteArray& masterPW);
     bool changerMasterPW(const QByteArray& oldMasterPW, const QByteArray& newMasterPW);
-    void addEntry(QSharedPointer<DataEntry> dataEntry);
+    void addEntry(QSharedPointer<DataEntry>& dataEntry);
     /**
      * @brief removeEntryById
      * @param id
@@ -44,12 +44,9 @@ public:
      */
     bool removeEntryById(const QByteArray& id);
     /**
-     * @brief removeEntryByName
-     * @param name
-     * @return true if one or more entries were removed, false if none
+     * @brief removeAllEntries and deleted their containing data
      */
-    bool removeEntryByName(const QString& name);
-    void removeAllEntries()             {vector.clear();}
+    void removeAllEntries();
     QSharedPointer<DataEntry> getEntryFromId(const QByteArray& id);
     QSharedPointer<DataEntry> getEntryFromName(const QString& name);
     QSharedPointer<DataEntry> getEntryFromWebsite(const QString& website);
