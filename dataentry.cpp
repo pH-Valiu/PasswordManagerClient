@@ -3,10 +3,13 @@
 
 QRegularExpression DataEntryBuilder::regexNaming = QRegularExpression(R"(^([a-z]|[A-Z]|[0-9]| |\$|\#|\-|\_|\.|\+|\!|\*|\'|\(|\)|\,|\/|\&|\?|\=|\:|\%)+$)");
 
-DataEntry::DataEntry(){}
+DataEntry::DataEntry(){
+    qDebug()<<"entry created";
+}
 
 DataEntry::~DataEntry(){
     clearData();
+    qDebug()<<"entry deleted";
 }
 
 QJsonObject DataEntry::toJsonObject() const{

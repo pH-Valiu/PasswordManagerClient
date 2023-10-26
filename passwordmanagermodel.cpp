@@ -70,9 +70,7 @@ void PasswordManagerModel::addEntry(QSharedPointer<DataEntry>& entry){
 }
 
 bool PasswordManagerModel::removeEntry(const QByteArray& id){
-    qDebug()<<"removeEntry-model"<<broker.entryCount();
     broker.removeEntryById(id);
-    qDebug()<<broker.entryCount();
 
     return 1;
 }

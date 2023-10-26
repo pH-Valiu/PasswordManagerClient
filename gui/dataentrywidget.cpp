@@ -52,7 +52,15 @@ DataEntryWidget::DataEntryWidget(QSharedPointer<const DataEntry> dataEntry, QWid
 }
 
 DataEntryWidget::~DataEntryWidget(){
+    //Clear reference binding from QSharedPointer to the DataEntry*
     dataEntry.clear();
+
+    name->clear();
+    website->clear();
+    username->clear();
+    email->clear();
+    password->clear();
+    details->clear();
     delete name;
     delete website;
     delete username;
@@ -111,9 +119,11 @@ void DataEntryWidget::setupHeaderPanel(QVBoxLayout *entryLayout){
     name->setFont(nameFont);
     headerLayout->addWidget(name);
 
-    QString websiteS = "<" + dataEntry->getWebsite().value_or("") + ">";
+    QString websiteS = "<a href=\"" + dataEntry->getWebsite().value_or("") +"\">"+dataEntry->getWebsite().value_or("")+"</a>";
     website = new QLabel(websiteS, headerWidget);
     website->setAlignment(Qt::AlignHCenter);
+    website->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    website->setOpenExternalLinks(true);
     QFont websiteFont("Arial", 10, QFont::Normal, true);
     website->setFont(websiteFont);
     headerLayout->addWidget(website);
@@ -213,7 +223,7 @@ void DataEntryWidget::switchShowButtonIcon(bool eyeClosed) const{
 
 void DataEntryWidget::updateContent(){
     name->setText(dataEntry->getName());
-    website->setText("<"+dataEntry->getWebsite().value_or("")+">");
+    website->setText("<a href=\""+dataEntry->getWebsite().value_or("")+"\">"+dataEntry->getWebsite().value_or("")+"</a>");
     lastChanged->setText(dataEntry->getLastChanged().toString());
 
     QString uText = "Username:\t"+dataEntry->getUsername().value_or("****");
