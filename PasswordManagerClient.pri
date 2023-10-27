@@ -42,4 +42,6 @@ DISTFILES += \
     $$PWD/gui/ico/edit.ico \
     $$PWD/gui/ico/show.ico \
     $$PWD/gui/ico/dont-show.ico \
-    $$PWD/gui/ico/delete.ico
+    $$PWD/gui/ico/delete.ico \
+    $$PWD/gui/ico/search.ico \
+    $$PWD/gui/ico/add.ico

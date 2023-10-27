@@ -32,7 +32,7 @@ public:
      *
      * 2 if dataEntry got decrypted
      */
-    int showHideEntry(const QByteArray& id, QSharedPointer<QByteArray> masterPW);
+    int showHideEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW);
     /**
      * @brief showEntry decrypts secret content of dataEntry using its id as the identifier
      * @param id of the dataEntry
@@ -45,7 +45,7 @@ public:
      *
      * 1 if dataEntry got decrypted
      */
-    int showEntry(const QByteArray& id, QSharedPointer<QByteArray> masterPW);
+    int showEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW);
     /**
      * @brief showEntry encrypts secret content of dataEntry using its id as the identifier
      * @param id of the dataEntry
@@ -59,7 +59,7 @@ public:
      * 1 if dataEntry got encrypted
      */
 
-    int hideEntry(const QByteArray& id, QSharedPointer<QByteArray> masterPW);
+    int hideEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW);
 
     void addEntry(QSharedPointer<DataEntry>& entry);
     /**

@@ -3,7 +3,9 @@
 
 #include <QMainWindow>
 #include <QWidget>
-#include <QVBoxLayout>
+#include <QLayout>
+#include <QPushButton>
+#include <QLineEdit>
 #include <QScrollArea>
 #include "gui/dataentrywidget.h"
 
@@ -24,6 +26,13 @@ private:
     QWidget* scrollAreaWidget;
     QVBoxLayout* scrollAreaLayout;
     QScrollArea* scrollArea;
+    QWidget* entriesWidget;
+    QVBoxLayout* entriesLayout;
+    QWidget* entriesHeaderWidget;
+    QHBoxLayout* entriesHeaderLayout;
+    QPushButton* addEntryButton;
+    QLineEdit* searchLineEdit;
+
 
 signals:
 

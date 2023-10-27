@@ -119,7 +119,7 @@ void DataEntryWidget::setupHeaderPanel(QVBoxLayout *entryLayout){
     name->setFont(nameFont);
     headerLayout->addWidget(name);
 
-    QString websiteS = "<a href=\"" + dataEntry->getWebsite().value_or("") +"\">"+dataEntry->getWebsite().value_or("")+"</a>";
+    QString websiteS = "<a style= color:black href=\"" + dataEntry->getWebsite().value_or("") +"\">"+dataEntry->getWebsite().value_or("")+"</a>";
     website = new QLabel(websiteS, headerWidget);
     website->setAlignment(Qt::AlignHCenter);
     website->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -223,7 +223,7 @@ void DataEntryWidget::switchShowButtonIcon(bool eyeClosed) const{
 
 void DataEntryWidget::updateContent(){
     name->setText(dataEntry->getName());
-    website->setText("<a href=\""+dataEntry->getWebsite().value_or("")+"\">"+dataEntry->getWebsite().value_or("")+"</a>");
+    website->setText("<a style= color:black href=\""+dataEntry->getWebsite().value_or("")+"\">"+dataEntry->getWebsite().value_or("")+"</a>");
     lastChanged->setText(dataEntry->getLastChanged().toString());
 
     QString uText = "Username:\t"+dataEntry->getUsername().value_or("****");

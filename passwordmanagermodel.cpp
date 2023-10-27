@@ -9,7 +9,7 @@ PasswordManagerModel& PasswordManagerModel::getInstance(){
     return passwordManagerModel;
 }
 
-int PasswordManagerModel::showHideEntry(const QByteArray& id, QSharedPointer<QByteArray> masterPW){
+int PasswordManagerModel::showHideEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
     QSharedPointer<DataEntry> dataEntry = broker.getEntryFromId(id);
     if(dataEntry){
         if(!masterPW.isNull()){
@@ -33,7 +33,7 @@ int PasswordManagerModel::showHideEntry(const QByteArray& id, QSharedPointer<QBy
     return 0;
 }
 
-int PasswordManagerModel::showEntry(const QByteArray& id, QSharedPointer<QByteArray> masterPW){
+int PasswordManagerModel::showEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
     QSharedPointer<DataEntry> dataEntry = broker.getEntryFromId(id);
     if(dataEntry){
         if(!masterPW.isNull()){
@@ -49,7 +49,7 @@ int PasswordManagerModel::showEntry(const QByteArray& id, QSharedPointer<QByteAr
     return 0;
 }
 
-int PasswordManagerModel::hideEntry(const QByteArray& id, QSharedPointer<QByteArray> masterPW){
+int PasswordManagerModel::hideEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
     QSharedPointer<DataEntry> dataEntry = broker.getEntryFromId(id);
     if(dataEntry){
         if(!masterPW.isNull()){
