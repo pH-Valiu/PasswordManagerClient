@@ -116,8 +116,8 @@ void DataEntryModulatorDialog::reject(){
     }
 
     if (resBtn == QMessageBox::Close){
-        emit closing();
         QDialog::reject();
+        emit closing();
     }
 }
 
@@ -139,8 +139,8 @@ void DataEntryModulatorDialog::save(){
     detailsEdit->clear();
 
     xButtonPressed = false;
-    emit closing();
     this->close();
+    emit closing();
 }
 
 void DataEntryModulatorDialog::cancel(){
@@ -154,8 +154,8 @@ void DataEntryModulatorDialog::cancel(){
     detailsEdit->clear();
 
     xButtonPressed = false;
-    emit closing();
     this->close();
+    emit closing();
 }
 
 DataEntryModulatorDialog::~DataEntryModulatorDialog(){

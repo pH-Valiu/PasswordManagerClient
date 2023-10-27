@@ -75,7 +75,8 @@ bool PasswordManagerModel::removeEntry(const QByteArray& id){
     return 1;
 }
 
-std::unique_ptr<DataEntryModulator> PasswordManagerModel::getModulator(const QByteArray& id, QSharedPointer<QByteArray> masterPW){
+//effb748
+std::unique_ptr<DataEntryModulator> PasswordManagerModel::getModulator(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
     QSharedPointer<DataEntry> entry = broker.getEntryFromId(id);
     if(entry){
         if(masterPW){

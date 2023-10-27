@@ -144,14 +144,16 @@ public:
      *
      * Only works when masterPW is 32 bytes long
      *
-     * A copy of the dataEntry will be decrypted in the modulator during its lifetime
+     * A deep copy of the dataEntry will be decrypted in the modulator during its lifetime
      * A copy of the masterPW will be temporarily decrypted in the modulator during its lifetime
      *
      * It is being assumed that the dataEntry is not in plain mode during the usage of DataEntryModulator
      * @param dataEntry to be altered
      * @param masterPW to decrypt midKey
      */
-    DataEntryModulator(QSharedPointer<DataEntry> dataEntry, const QByteArray& masterPW);
+    DataEntryModulator(const QSharedPointer<DataEntry>& dataEntry, const QByteArray& masterPW);
+    DataEntryModulator(DataEntryModulator&&) = default;
+    DataEntryModulator& operator = (DataEntryModulator&&) = default;
     ~DataEntryModulator();
     void changeName(const QString& name);
     void changeWebsite(const QString& website);
@@ -173,15 +175,29 @@ public:
     void saveChanges();
     void cancelChanges();
 
-    QString getName()   {return dataEntryClone.getName();}
-    QString getWebsite()   {return dataEntryClone.getWebsite().value_or("");}
-    QString getUsername()   {return dataEntryClone.getUsername().value_or("");}
-    QString getEmail()   {return dataEntryClone.getEMail().value_or("");}
-    QString getPassword()   {return dataEntryClone.getPassword().value_or("");}
-    QString getDetails()   {return dataEntryClone.getDetails().value_or("");}
+    QString getName()   {return dataEntryClone->getName();}
+    QString getWebsite()   {return dataEntryClone->getWebsite().value_or("");}
+    QString getUsername()   {return dataEntryClone->getUsername().value_or("");}
+    QString getEmail()   {return dataEntryClone->getEMail().value_or("");}
+    QString getPassword()   {return dataEntryClone->getPassword().value_or("");}
+    QString getDetails()   {return dataEntryClone->getDetails().value_or("");}
 private:
     QSharedPointer<DataEntry> dataEntry;
-    DataEntry dataEntryClone;
+    //the reason for the dataEntryClone here is quite complex
+    /*
+     * It started with trying to optimize it away from plain DataEntry
+     * to sth not so intensive when copying (especially "hidden" copies) dataEntryModulator
+     *
+     * First realization with a simple pointer did not work, since destructor of DataEntryModulator
+     * deleted the space on the heap
+     *
+     * Realization with unique_ptr required some fiddling with default copy constructors and std::move()
+     *
+     * It works now
+     *
+     * Always make sure that when you want to access dataEntryClone, that the content behind it, is not yet deleted
+     */
+    std::unique_ptr<DataEntry> dataEntryClone = nullptr;
     QByteArray masterPW;
     bool modified;
 };

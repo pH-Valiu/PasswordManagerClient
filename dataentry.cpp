@@ -3,13 +3,10 @@
 
 QRegularExpression DataEntryBuilder::regexNaming = QRegularExpression(R"(^([a-z]|[A-Z]|[0-9]| |\$|\#|\-|\_|\.|\+|\!|\*|\'|\(|\)|\,|\/|\&|\?|\=|\:|\%)+$)");
 
-DataEntry::DataEntry(){
-    qDebug()<<"entry created";
-}
+DataEntry::DataEntry(){}
 
 DataEntry::~DataEntry(){
     clearData();
-    qDebug()<<"entry deleted";
 }
 
 QJsonObject DataEntry::toJsonObject() const{
@@ -259,37 +256,38 @@ void DataEntryBuilder::addDetails(const QString& details){
 
 
 
-
-
-DataEntryModulator::DataEntryModulator(QSharedPointer<DataEntry> dataEntry, const QByteArray& masterPW){
+DataEntryModulator::DataEntryModulator(const QSharedPointer<DataEntry>& dataEntry, const QByteArray& masterPW){
     if(!dataEntry.isNull()){
-        this->dataEntry = QSharedPointer<DataEntry>(dataEntry);
-        dataEntryClone = DataEntry(*dataEntry.get());
+        this->dataEntry = dataEntry;
+
+        //deep copy of dataEntry
+        dataEntryClone = std::make_unique<DataEntry>(*dataEntry.get());
 
         this->masterPW = masterPW;
         this->modified = false;
-        dataEntryClone.decryptContent(masterPW);
+        dataEntryClone->decryptContent(masterPW);
     }
 }
+
 
 DataEntryModulator::~DataEntryModulator(){
     this->dataEntry.clear();
-    this->dataEntryClone.clearData();
     SecureZeroMemory(masterPW.data(), masterPW.size());
     this->masterPW.clear();
+    dataEntryClone.reset();
 }
 
 void DataEntryModulator::saveChanges(){
-    bool encryptionWorked = this->dataEntryClone.encryptContent(masterPW);
+    bool encryptionWorked = this->dataEntryClone->encryptContent(masterPW);
     if(encryptionWorked && modified){
-        dataEntry->setName(dataEntryClone.getName());
-        dataEntry->setWebsite(dataEntryClone.getWebsite());
+        dataEntry->setName(dataEntryClone->getName());
+        dataEntry->setWebsite(dataEntryClone->getWebsite());
         dataEntry->setLastChanged(QDateTime::currentDateTime());
-        dataEntry->setMidKey(dataEntryClone.getMidKey());
-        dataEntry->setContent(dataEntryClone.getContent());
+        dataEntry->setMidKey(dataEntryClone->getMidKey());
+        dataEntry->setContent(dataEntryClone->getContent());
     }
 
-    this->dataEntryClone.clearData();
+    this->dataEntryClone->clearData();
     SecureZeroMemory(masterPW.data(), masterPW.size());
     this->masterPW.clear();
     this->modified = false;
@@ -297,34 +295,37 @@ void DataEntryModulator::saveChanges(){
 }
 
 void DataEntryModulator::cancelChanges(){
-    this->dataEntryClone.clearData();
+    //might cause an error if unique_ptr dataEntryClone got already reset by destructor??
+    //but then how should this method even be getting called
+    this->dataEntryClone->clearData();
+
     SecureZeroMemory(masterPW.data(), masterPW.size());
     this->masterPW.clear();
     this->modified = false;
 }
 
 void DataEntryModulator::changeName(const QString& name){
-    dataEntryClone.setName(name);
+    dataEntryClone->setName(name);
     modified = true;
 }
 void DataEntryModulator::changeWebsite(const QString& website){
-    dataEntryClone.setWebsite(website);
+    dataEntryClone->setWebsite(website);
     modified = true;
 }
 void DataEntryModulator::changeEmail(const QString& email){
-    dataEntryClone.setEMail(email);
+    dataEntryClone->setEMail(email);
     modified = true;
 }
 void DataEntryModulator::changeUsername(const QString& username){
-    dataEntryClone.setUsername(username);
+    dataEntryClone->setUsername(username);
     modified = true;
 }
 void DataEntryModulator::changePassword(const QString& password){
-    dataEntryClone.setPassword(password);
+    dataEntryClone->setPassword(password);
     modified = true;
 }
 void DataEntryModulator::changeDetails(const QString& details){
-    dataEntryClone.setDetails(details);
+    dataEntryClone->setDetails(details);
     modified = true;
 }
 bool DataEntryModulator::changeMasterPassword(const QByteArray& newMasterPW){
@@ -332,10 +333,10 @@ bool DataEntryModulator::changeMasterPassword(const QByteArray& newMasterPW){
     //it will appear as if everything worked correctly
     if(this->masterPW.size() == 32 && newMasterPW.size() == 32){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-        QByteArray oldDecryptedMidKey = crypter.removePadding(crypter.decode(dataEntry->getMidKey(), this->masterPW, dataEntry->getIvMidKey()));
-        QByteArray newEncryptedMidKey = crypter.encode(oldDecryptedMidKey, newMasterPW, dataEntry->getIvMidKey());
+        QByteArray oldDecryptedMidKey = crypter.removePadding(crypter.decode(dataEntryClone->getMidKey(), this->masterPW, dataEntryClone->getIvMidKey()));
+        QByteArray newEncryptedMidKey = crypter.encode(oldDecryptedMidKey, newMasterPW, dataEntryClone->getIvMidKey());
 
-        dataEntryClone.setMidKey(newEncryptedMidKey);
+        dataEntryClone->setMidKey(newEncryptedMidKey);
         this->masterPW = newMasterPW;
         modified = true;
         return true;

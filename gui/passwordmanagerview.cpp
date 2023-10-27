@@ -44,6 +44,7 @@ void PasswordManagerView::editDataEntry(std::unique_ptr<DataEntryModulator> modu
         connect(dialog, &DataEntryModulatorDialog::closing, this, [=]{
             this->setEnabled(true);
             widget->updateContent();
+            delete dialog;
         });
         dialog->show();
     }

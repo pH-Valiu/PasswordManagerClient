@@ -172,7 +172,7 @@ void PasswordManagerAdapter::handleEdit(const QByteArray& id, DataEntryWidget* w
         //id was not findable
         break;
     }
-    view->editDataEntry(model.getModulator(id, masterPW), widget);
+    view->editDataEntry(std::move(model.getModulator(id, masterPW)), widget);
     protectMasterPW();
 }
 
