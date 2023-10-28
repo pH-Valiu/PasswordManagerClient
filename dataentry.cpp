@@ -135,14 +135,13 @@ QString DataEntry::showDiff(DataEntry& d1, DataEntry& d2){
 
 
 
-DataEntryBuilder::DataEntryBuilder(const QString& name){
+DataEntryBuilder::DataEntryBuilder(const QByteArray& masterPW){
+    this->masterPW = masterPW;
+
     dataEntry = QSharedPointer<DataEntry>(new DataEntry());
     dataEntry->setID(QUuid::createUuid().toByteArray());
-    if(regexNaming.match(name).hasMatch()){
-        dataEntry->setName(name);
-    }else{
-        dataEntry->setName(dataEntry->getID());
-    }
+
+
     srand(QTime::currentTime().minute());
     QByteArray ivInner, ivMidKey;
     int rnd = rand();
@@ -156,9 +155,11 @@ DataEntryBuilder::DataEntryBuilder(const QString& name){
 }
 DataEntryBuilder::~DataEntryBuilder(){
     this->dataEntry.clear();
+    SecureZeroMemory(masterPW.data(), masterPW.size());
+    this->masterPW.clear();
 }
-QSharedPointer<DataEntry> DataEntryBuilder::build(const QByteArray& masterPW){
-    if(masterPW.size() == 32){
+QSharedPointer<DataEntry> DataEntryBuilder::build(){
+    if(this->masterPW.size() == 32){
         QByteArray plainMidKey = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
                                                                     QByteArray::number(QRandomGenerator::global()->generate64()),
                                                                     QString("some ineteresting salt").toUtf8(),
@@ -166,7 +167,7 @@ QSharedPointer<DataEntry> DataEntryBuilder::build(const QByteArray& masterPW){
                                                                     32);
 
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-        QByteArray encryptedMidKey = crypter.encode(plainMidKey, masterPW, dataEntry->getIvMidKey());
+        QByteArray encryptedMidKey = crypter.encode(plainMidKey, this->masterPW, dataEntry->getIvMidKey());
         dataEntry->setMidKey(encryptedMidKey);
 
         QMap<QString, QVariant> map;
@@ -218,6 +219,13 @@ QSharedPointer<DataEntry> DataEntryBuilder::fromJsonObject(const QJsonObject& js
 
 }
 
+void DataEntryBuilder::addName(const QString &name){
+    if(regexNaming.match(name).hasMatch()){
+        dataEntry->setName(name);
+    }else{
+        dataEntry->setName(dataEntry->getID());
+    }
+}
 void DataEntryBuilder::addWebsite(const QString& website){
     if(regexNaming.match(website).hasMatch()){
         dataEntry->setWebsite(website);
@@ -252,6 +260,11 @@ void DataEntryBuilder::addDetails(const QString& details){
     }else{
         dataEntry->setDetails(details);
     }
+}
+
+void DataEntryBuilder::deleteMasterPW(){
+    SecureZeroMemory(masterPW.data(), masterPW.size());
+    this->masterPW.clear();
 }
 
 

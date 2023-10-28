@@ -18,6 +18,7 @@ public:
      */
     static PasswordManagerModel& getInstance();
     std::unique_ptr<DataEntryModulator> getModulator(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW);
+    std::unique_ptr<DataEntryBuilder> getBuilder(const QSharedPointer<QByteArray>& masterPW);
     /**
      * @brief showHideEntry en/decrypts secret content of dataEntry using its id as the identifier
      * @param the id of the dataEntry

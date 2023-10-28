@@ -16,6 +16,7 @@ public:
     PasswordManagerView(QWidget *parent = nullptr);
     ~PasswordManagerView();
     void editDataEntry(std::unique_ptr<DataEntryModulator>, DataEntryWidget* widget);
+    void createDataEntry(std::unique_ptr<DataEntryBuilder>);
 public slots:
     void addDataEntryWidget(DataEntryWidget*);
     /**
@@ -34,8 +35,12 @@ private:
     QLineEdit* searchLineEdit;
 
 
-signals:
+    void connectSignalSlots();
 
+
+signals:
+    void addEntryButtonClicked();
+    void newEntry(QSharedPointer<DataEntry>);
 };
 
 #endif // PASSWORDMANAGERVIEW_H

@@ -1,4 +1,4 @@
-#include "dataentrymodulatordialog.h"
+#include "dataentrybuilderdialog.h"
 #include <QFont>
 #include <QFormLayout>
 #include <QVBoxLayout>
@@ -7,17 +7,15 @@
 #include <QMessageBox>
 #include <QRegularExpressionValidator>
 
-
-DataEntryModulatorDialog::DataEntryModulatorDialog(std::unique_ptr<DataEntryModulator> modulator, QWidget* parent) :
+DataEntryBuilderDialog::DataEntryBuilderDialog(std::unique_ptr<DataEntryBuilder> bud, QWidget* parent) :
     QDialog{parent},
-    mod{std::move(modulator)}
+    builder{std::move(bud)}
 {
     QVBoxLayout* vbox = new QVBoxLayout();
 
     //name
     QWidget* nameWidget= new QWidget(this);
-    QString dialogName = "Edit Entry: "+mod->getName();
-    QLabel* topLabel = new QLabel(dialogName, nameWidget);
+    QLabel* topLabel = new QLabel("Create new entry:", nameWidget);
     QFont nameFont("Arial", 22, QFont::Bold);
     topLabel->setFont(nameFont);
 
@@ -42,15 +40,15 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(std::unique_ptr<DataEntryModu
     QWidget* formWidget = new QWidget(this);
     QFormLayout* form = new QFormLayout();
     QRegularExpressionValidator* lineEditValidator = new QRegularExpressionValidator(DataEntryBuilder::regexNaming, formWidget);
-    nameEdit = new QLineEdit(mod->getName(), formWidget);
+    nameEdit = new QLineEdit(formWidget);
     nameEdit->setValidator(lineEditValidator);
-    websiteEdit = new QLineEdit(mod->getWebsite(), formWidget);
+    websiteEdit = new QLineEdit(formWidget);
     websiteEdit->setValidator(lineEditValidator);
 
-    usernameEdit = new QLineEdit(mod->getUsername(), formWidget);
-    emailEdit = new QLineEdit(mod->getEmail(), formWidget);
-    passwordEdit = new QLineEdit(mod->getPassword(), formWidget);
-    detailsEdit = new QTextEdit(mod->getDetails(), formWidget);
+    usernameEdit = new QLineEdit(formWidget);
+    emailEdit = new QLineEdit(formWidget);
+    passwordEdit = new QLineEdit(formWidget);
+    detailsEdit = new QTextEdit(formWidget);
     form->addRow("Name:\t", nameEdit);
     form->addRow("Website:\t", websiteEdit);
     form->addRow("Username:\t", usernameEdit);
@@ -73,11 +71,11 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(std::unique_ptr<DataEntryModu
 
     //button area
     QWidget* buttonArea = new QWidget(this);
-    saveButton = new QPushButton("Save", buttonArea);
-    saveButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    saveButton->setFixedSize(saveButton->sizeHint());
-    saveButton->setDefault(true);
-    saveButton->setAutoDefault(true);
+    createButton = new QPushButton("Create", buttonArea);
+    createButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    createButton->setFixedSize(createButton->sizeHint());
+    createButton->setDefault(true);
+    createButton->setAutoDefault(true);
     closeButton = new QPushButton("Close", buttonArea);
     closeButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     closeButton->setFixedSize(closeButton->sizeHint());
@@ -85,31 +83,31 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(std::unique_ptr<DataEntryModu
     closeButton->setAutoDefault(false);
     QHBoxLayout* buttonLayout = new QHBoxLayout();
     buttonLayout->addWidget(closeButton);
-    buttonLayout->addWidget(saveButton);
+    buttonLayout->addWidget(createButton);
 
     buttonArea->setLayout(buttonLayout);
     vbox->addWidget(buttonArea);
 
 
-    this->setWindowTitle(dialogName);
+    this->setWindowTitle("Create new entry");
     this->setLayout(vbox);
 
     connectSignalSlots();
 }
 
-void DataEntryModulatorDialog::connectSignalSlots(){
-    connect(closeButton, &QPushButton::clicked, this, &DataEntryModulatorDialog::cancel);
-    connect(saveButton, &QPushButton::clicked, this, &DataEntryModulatorDialog::save);
+void DataEntryBuilderDialog::connectSignalSlots(){
+    connect(closeButton, &QPushButton::clicked, this, &DataEntryBuilderDialog::cancel);
+    connect(createButton, &QPushButton::clicked, this, &DataEntryBuilderDialog::create);
 }
 
-void DataEntryModulatorDialog::reject(){
+void DataEntryBuilderDialog::reject(){
     QMessageBox::StandardButton resBtn = QMessageBox::Close;
     if(xButtonPressed){
         resBtn = QMessageBox::question(
             this, "Are you sure?",
             tr("Are you sure?\n"),
             QMessageBox::Cancel | QMessageBox::Save | QMessageBox::Yes,
-            QMessageBox::Save);
+            QMessageBox::Cancel);
     }
 
     if (resBtn == QMessageBox::Yes) {
@@ -117,7 +115,7 @@ void DataEntryModulatorDialog::reject(){
     }
 
     if (resBtn == QMessageBox::Save){
-        save();
+        create();
     }
 
     if (resBtn == QMessageBox::Close){
@@ -126,30 +124,14 @@ void DataEntryModulatorDialog::reject(){
     }
 }
 
-void DataEntryModulatorDialog::save(){
-    mod->changeName(nameEdit->text());
-    mod->changeWebsite(websiteEdit->text());
-    mod->changeUsername(usernameEdit->text());
-    mod->changeEmail(emailEdit->text());
-    mod->changePassword(passwordEdit->text());
-    mod->changeDetails(detailsEdit->toPlainText());
-    mod->saveChanges();
-
-
-    nameEdit->clear();
-    websiteEdit->clear();
-    usernameEdit->clear();
-    emailEdit->clear();
-    passwordEdit->clear();
-    detailsEdit->clear();
-
-    xButtonPressed = false;
-    this->close();
-    emit closing();
-}
-
-void DataEntryModulatorDialog::cancel(){
-    mod->cancelChanges();
+void DataEntryBuilderDialog::create(){
+    builder->addName(nameEdit->text());
+    builder->addWebsite(websiteEdit->text());
+    builder->addUsername(usernameEdit->text());
+    builder->addEmail(emailEdit->text());
+    builder->addPassword(passwordEdit->text());
+    builder->addDetails(detailsEdit->toPlainText());
+    emit built(builder->build());
 
     nameEdit->clear();
     websiteEdit->clear();
@@ -163,15 +145,36 @@ void DataEntryModulatorDialog::cancel(){
     emit closing();
 }
 
-DataEntryModulatorDialog::~DataEntryModulatorDialog(){
-    mod->cancelChanges();
+void DataEntryBuilderDialog::cancel(){
+    //since builder->build() won't have been called,
+    //the dataEntry inside of builder will have ref=1
+    //and therefore on destructor call of builder the dataEntry will be cleared
+    //and also deleted since ref=0
+    builder->deleteMasterPW();
+
+    nameEdit->clear();
+    websiteEdit->clear();
+    usernameEdit->clear();
+    emailEdit->clear();
+    passwordEdit->clear();
+    detailsEdit->clear();
+
+    xButtonPressed = false;
+    this->close();
+    emit closing();
+}
+
+DataEntryBuilderDialog::~DataEntryBuilderDialog(){
+    //same argument as in cancel()
+    builder->deleteMasterPW();
+
     delete nameEdit;
     delete websiteEdit;
     delete usernameEdit;
     delete emailEdit;
     delete passwordEdit;
     delete detailsEdit;
-    delete saveButton;
+    delete createButton;
     delete closeButton;
-}
 
+}

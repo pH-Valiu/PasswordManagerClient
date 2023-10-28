@@ -1,5 +1,6 @@
 #include "passwordmanagerview.h"
 #include "gui/dataentrymodulatordialog.h"
+#include "gui/dataentrybuilderdialog.h"
 
 #include <QCoreApplication>
 #include <QIcon>
@@ -36,7 +37,7 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
     searchLineEdit->setClearButtonEnabled(true);
     searchLineEdit->addAction(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/search.ico")), QLineEdit::LeadingPosition);
     entriesHeaderLayout->addWidget(addEntryButton, 0, Qt::AlignLeft);
-    entriesHeaderLayout->addWidget(searchLineEdit, 0, Qt::AlignBaseline | Qt::AlignRight);
+    entriesHeaderLayout->addWidget(searchLineEdit, 0, Qt::AlignRight);
     entriesHeaderWidget->setLayout(entriesHeaderLayout);
 
     entriesLayout->addWidget(entriesHeaderWidget);
@@ -48,12 +49,20 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
     this->setContentsMargins(10, 10, 10, 10);
     this->setMinimumSize(600, 800);
 
+    connectSignalSlots();
+
 }
 
 PasswordManagerView::~PasswordManagerView(){
+    ///!!!
+    /// incomplete
     delete scrollAreaLayout;
     delete scrollAreaWidget;
     delete scrollArea;
+}
+
+void PasswordManagerView::connectSignalSlots(){
+    connect(addEntryButton, &QPushButton::clicked, this, [&]{emit addEntryButtonClicked();});
 }
 
 void PasswordManagerView::addDataEntryWidget(DataEntryWidget* dataEntryWidget){
@@ -66,6 +75,19 @@ void PasswordManagerView::removeDataEntryWidget(DataEntryWidget* dataEntryWidget
     scrollAreaLayout->removeWidget(dataEntryWidget);
     delete dataEntryWidget;
     scrollArea->update();
+}
+
+void PasswordManagerView::createDataEntry(std::unique_ptr<DataEntryBuilder> builder){
+    if(builder){
+        this->setEnabled(false);
+        DataEntryBuilderDialog* dialog = new DataEntryBuilderDialog(std::move(builder), this);
+        connect(dialog, &DataEntryBuilderDialog::closing, this, [=]{
+            this->setEnabled(true);
+            delete dialog;
+        });
+        connect(dialog, &DataEntryBuilderDialog::built, this, [&](QSharedPointer<DataEntry> dataEntry){emit newEntry(dataEntry);});
+        dialog->show();
+    }
 }
 
 void PasswordManagerView::editDataEntry(std::unique_ptr<DataEntryModulator> modulator, DataEntryWidget* widget){

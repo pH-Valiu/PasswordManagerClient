@@ -33,13 +33,14 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
 
     unprotectMasterPW();
     QSharedPointer<DataEntry> testEntry1;
-    DataEntryBuilder builder("Apple");
+    DataEntryBuilder builder(masterPW->constData());
+    builder.addName("Apple");
     builder.addDetails("Just call up the website² and \"log\" in ?*?");
     builder.addWebsite("https://apple.com/database?query=user-log_on#");
     builder.addUsername("user1");
     builder.addPassword(",~£:1Od33jy+lj");
     builder.addEmail("user1@apple.com");
-    testEntry1 = builder.build(masterPW->constData());
+    testEntry1 = builder.build();
 
     model.addEntry(testEntry1);
 
@@ -47,13 +48,14 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
     DataEntryWidget* dataEntryWidget = new DataEntryWidget(testEntry1);
 
     QSharedPointer<DataEntry> testEntry2;
-    DataEntryBuilder builder2("Amazon");
+    DataEntryBuilder builder2(masterPW->constData());
+    builder2.addName("Amazon");
     builder2.addDetails("Your online shipping service");
     builder2.addWebsite("https://amazon.com/");
     builder2.addUsername("user2");
     builder2.addPassword("passwort stark");
     builder2.addEmail("user2@amazon.com");
-    testEntry2 = builder2.build(masterPW->constData());
+    testEntry2 = builder2.build();
 
     model.addEntry(testEntry2);
 
@@ -84,6 +86,8 @@ PasswordManagerAdapter::~PasswordManagerAdapter(){
 }
 
 void PasswordManagerAdapter::connectSignalSlots(){
+    connect(view, &PasswordManagerView::addEntryButtonClicked, this, &PasswordManagerAdapter::handleCreate);
+    connect(view, &PasswordManagerView::newEntry, this, &PasswordManagerAdapter::handleInsertion);
 
 }
 
@@ -154,6 +158,21 @@ void PasswordManagerAdapter::handleShow(const QByteArray& id, DataEntryWidget* w
     }
     protectMasterPW();
     widget->updateContent();
+}
+
+void PasswordManagerAdapter::handleCreate(){
+    unprotectMasterPW();
+    view->createDataEntry(std::move(model.getBuilder(masterPW)));
+    protectMasterPW();
+}
+
+void PasswordManagerAdapter::handleInsertion(QSharedPointer<DataEntry> dataEntry){
+    model.addEntry(dataEntry);
+    DataEntryWidget* dataEntryWidget = new DataEntryWidget(dataEntry);
+    connect(dataEntryWidget, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
+    connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
+    connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
+    view->addDataEntryWidget(dataEntryWidget);
 }
 
 void PasswordManagerAdapter::handleEdit(const QByteArray& id, DataEntryWidget* widget){

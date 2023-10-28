@@ -94,23 +94,26 @@ private:
     static QString showDiff(DataEntry& d1, DataEntry& d2);
 };
 
-
+/**
+ * @brief The DataEntryBuilder class
+ *
+ * A copy of the masterPW will be temporarily decrypted in the modulator during its lifetime
+ */
 class DataEntryBuilder {
 public:
     /**
      * @brief Creates a new DataEntry and allocates it on the heap
-     * @param name for the DataEntry
+     * @param masterPW for the builder process later on
      */
-    DataEntryBuilder(const QString& name);
+    DataEntryBuilder(const QByteArray& masterPW);
     ~DataEntryBuilder();
     /**
      * @brief Builds the new DataEntry and encrypts its content (email, user, password, details)
-     * @param masterPW to encrypt midKey, has to be exactly 32 byte long
      * @return QSharedPointer to newly created DataEntry with encrypted content
      *
      * Returns nullptr if masterPW is not 32 bytes long
      */
-    QSharedPointer<DataEntry> build(const QByteArray& masterPW);
+    QSharedPointer<DataEntry> build();
     /**
      * @brief Creates a new DataEntry based on a json object and allocates it on the heap
      * @param QJsonObject containing keys: name, id, ivInner, ivMidKey, midKey, content, lastChanged, website
@@ -125,14 +128,17 @@ public:
      * @brief addWebsite
      * @param website must only contain letters: a-z A-Z 0-9 #$-_.+!*'(),/&?=:% or whitespace
      */
+    void addName(const QString& name);
     void addWebsite(const QString& website);
     void addEmail(const QString& email);
     void addUsername(const QString& username);
     void addPassword(const QString& password);
     void addDetails(const QString& details);
+    void deleteMasterPW();
     static QRegularExpression regexNaming;
 private:
     QSharedPointer<DataEntry> dataEntry;
+    QByteArray masterPW;
 
 };
 

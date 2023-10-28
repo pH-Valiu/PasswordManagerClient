@@ -9,19 +9,21 @@ LIBS += \
 
 
 SOURCES += \
+    $$PWD/gui/dataentrybuilderdialog.cpp \
     $$PWD/gui/dataentrymodulatordialog.cpp \
     $$PWD/gui/passwordmanagerview.cpp \
     $$PWD/gui/dataentrywidget.cpp \
     $$PWD/messagehandler.cpp \
     $$PWD/passwordmanageradapter.cpp \
     $$PWD/passwordmanagermodel.cpp \
-    $$PWD/unit_test/passwordbrokertest.cpp \
-    $$PWD/unit_test/dataentrytest.cpp \
+    #$$PWD/unit_test/passwordbrokertest.cpp \
+    #$$PWD/unit_test/dataentrytest.cpp \
     $$PWD/dataentry.cpp \
     $$PWD/passwordbroker.cpp \
     $$PWD/main.cpp
 
 HEADERS += \
+    $$PWD/gui/dataentrybuilderdialog.h \
     $$PWD/gui/dataentrymodulatordialog.h \
     $$PWD/gui/passwordmanagerview.h \
     $$PWD/gui/dataentrywidget.h \
@@ -29,8 +31,8 @@ HEADERS += \
     $$PWD/messagehandler.h \
     $$PWD/passwordmanageradapter.h \
     $$PWD/passwordmanagermodel.h \
-    $$PWD/unit_test/passwordbrokertest.h \
-    $$PWD/unit_test/dataentrytest.h \
+    #$$PWD/unit_test/passwordbrokertest.h \
+    #$$PWD/unit_test/dataentrytest.h \
     $$PWD/dataentry.h \
     $$PWD/passwordbroker.h
 

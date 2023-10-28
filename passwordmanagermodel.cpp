@@ -86,5 +86,8 @@ std::unique_ptr<DataEntryModulator> PasswordManagerModel::getModulator(const QBy
         }
     }
     return nullptr;
+}
 
+std::unique_ptr<DataEntryBuilder> PasswordManagerModel::getBuilder(const QSharedPointer<QByteArray> &masterPW){
+    return std::make_unique<DataEntryBuilder>(DataEntryBuilder(masterPW->constData()));
 }
