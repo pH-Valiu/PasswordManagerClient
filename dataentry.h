@@ -21,11 +21,11 @@ public:
     QString getName() const                                     {return name;}
     QByteArray getID() const                                    {return id;}
     QDateTime getLastChanged() const                            {return lastChanged;}
-    std::optional<QString> getWebsite() const                   {return website;}
-    std::optional<QString> getEMail() const                     {return email;}
-    std::optional<QString> getUsername() const                  {return username;}
-    std::optional<QString> getPassword() const                  {return password;}
-    std::optional<QString> getDetails() const                   {return details;}
+    QString getWebsite() const                   {return website.value_or("");}
+    QString getEMail() const                     {return email.value_or("");}
+    QString getUsername() const                  {return username.value_or("");}
+    QString getPassword() const                  {return password.value_or("");}
+    QString getDetails() const                   {return details.value_or("");}
     void clearData(){
         name.clear();id=0;website.reset();lastChanged=QDateTime();ivInner.clear();ivMidKey.clear(); midKey.clear();
         SecureZeroMemory(encryptedContent.data(), encryptedContent.size());
@@ -53,6 +53,7 @@ public:
     }
     bool operator == (const DataEntry&) const;
     friend class DataEntryBuilder;
+    friend class DataEntryEditor;
     friend class DataEntryModulator;
 #ifdef EXECUTE_UNIT_TESTS
     friend class PasswordBrokerTest;
@@ -94,118 +95,9 @@ private:
     static QString showDiff(DataEntry& d1, DataEntry& d2);
 };
 
-/**
- * @brief The DataEntryBuilder class
- *
- * A copy of the masterPW will be temporarily decrypted in the modulator during its lifetime
- */
-class DataEntryBuilder {
-public:
-    /**
-     * @brief Creates a new DataEntry and allocates it on the heap
-     * @param masterPW for the builder process later on
-     */
-    DataEntryBuilder(const QByteArray& masterPW);
-    ~DataEntryBuilder();
-    /**
-     * @brief Builds the new DataEntry and encrypts its content (email, user, password, details)
-     * @return QSharedPointer to newly created DataEntry with encrypted content
-     *
-     * Returns nullptr if masterPW is not 32 bytes long
-     */
-    QSharedPointer<DataEntry> build();
-    /**
-     * @brief Creates a new DataEntry based on a json object and allocates it on the heap
-     * @param QJsonObject containing keys: name, id, ivInner, ivMidKey, midKey, content, lastChanged, website
-     *
-     * midKey and content should be encoded in Base64, lastChanged should reflect a QDateTime
-     * @return QSharedPointer to newly created DataEntry if the jsonObject contains every key/attribute
-     *
-     * Otherwise it returns nullptr
-     */
-    static QSharedPointer<DataEntry> fromJsonObject(const QJsonObject& jsonObject);
-    /**
-     * @brief addWebsite
-     * @param website must only contain letters: a-z A-Z 0-9 #$-_.+!*'(),/&?=:% or whitespace
-     */
-    void addName(const QString& name);
-    void addWebsite(const QString& website);
-    void addEmail(const QString& email);
-    void addUsername(const QString& username);
-    void addPassword(const QString& password);
-    void addDetails(const QString& details);
-    void deleteMasterPW();
-    static QRegularExpression regexNaming;
-private:
-    QSharedPointer<DataEntry> dataEntry;
-    QByteArray masterPW;
-
-};
 
 
-class DataEntryModulator{
-public:
-    /**
-     * @brief Constructs a DataEntryModulator to change attributes of dataEntry
-     *
-     * Only works when masterPW is 32 bytes long
-     *
-     * A deep copy of the dataEntry will be decrypted in the modulator during its lifetime
-     * A copy of the masterPW will be temporarily decrypted in the modulator during its lifetime
-     *
-     * It is being assumed that the dataEntry is not in plain mode during the usage of DataEntryModulator
-     * @param dataEntry to be altered
-     * @param masterPW to decrypt midKey
-     */
-    DataEntryModulator(const QSharedPointer<DataEntry>& dataEntry, const QByteArray& masterPW);
-    DataEntryModulator(DataEntryModulator&&) = default;
-    DataEntryModulator& operator = (DataEntryModulator&&) = default;
-    ~DataEntryModulator();
-    void changeName(const QString& name);
-    void changeWebsite(const QString& website);
-    void changeEmail(const QString& email);
-    void changeUsername(const QString& username);
-    void changePassword(const QString& password);
-    void changeDetails(const QString& details);
-    /**
-     * @brief changeMasterPassword to newMasterPW, midKey stays the same
-     * @param newMasterPW has to be 32 bytes long
-     * @return true if the change was successfull, false if key sizes were not 32 bytes
-     */
-    bool changeMasterPassword(const QByteArray& newMasterPW);
-    /**
-     * @brief saveChanges() finished the modulator
-     *
-     * The copy of the dataEntry will be encrypted again and its content will be copied back into the original dataEntry
-     */
-    void saveChanges();
-    void cancelChanges();
 
-    QString getName()   {return dataEntryClone->getName();}
-    QString getWebsite()   {return dataEntryClone->getWebsite().value_or("");}
-    QString getUsername()   {return dataEntryClone->getUsername().value_or("");}
-    QString getEmail()   {return dataEntryClone->getEMail().value_or("");}
-    QString getPassword()   {return dataEntryClone->getPassword().value_or("");}
-    QString getDetails()   {return dataEntryClone->getDetails().value_or("");}
-private:
-    QSharedPointer<DataEntry> dataEntry;
-    //the reason for the dataEntryClone here is quite complex
-    /*
-     * It started with trying to optimize it away from plain DataEntry
-     * to sth not so intensive when copying (especially "hidden" copies) dataEntryModulator
-     *
-     * First realization with a simple pointer did not work, since destructor of DataEntryModulator
-     * deleted the space on the heap
-     *
-     * Realization with unique_ptr required some fiddling with default copy constructors and std::move()
-     *
-     * It works now
-     *
-     * Always make sure that when you want to access dataEntryClone, that the content behind it, is not yet deleted
-     */
-    std::unique_ptr<DataEntry> dataEntryClone = nullptr;
-    QByteArray masterPW;
-    bool modified;
-};
+
 
 #endif // DATAENTRY_H

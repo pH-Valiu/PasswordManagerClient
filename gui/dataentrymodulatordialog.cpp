@@ -8,7 +8,7 @@
 #include <QRegularExpressionValidator>
 
 
-DataEntryModulatorDialog::DataEntryModulatorDialog(std::unique_ptr<DataEntryModulator> modulator, QWidget* parent) :
+DataEntryModulatorDialog::DataEntryModulatorDialog(QString headerName, std::unique_ptr<DataEntryModulator> modulator, QWidget* parent) :
     QDialog{parent},
     mod{std::move(modulator)}
 {
@@ -16,7 +16,7 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(std::unique_ptr<DataEntryModu
 
     //name
     QWidget* nameWidget= new QWidget(this);
-    QString dialogName = "Edit Entry: "+mod->getName();
+    QString dialogName = headerName.append(mod->getName());
     QLabel* topLabel = new QLabel(dialogName, nameWidget);
     QFont nameFont("Arial", 22, QFont::Bold);
     topLabel->setFont(nameFont);
@@ -41,7 +41,7 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(std::unique_ptr<DataEntryModu
     //form
     QWidget* formWidget = new QWidget(this);
     QFormLayout* form = new QFormLayout();
-    QRegularExpressionValidator* lineEditValidator = new QRegularExpressionValidator(DataEntryBuilder::regexNaming, formWidget);
+    QRegularExpressionValidator* lineEditValidator = new QRegularExpressionValidator(DataEntryModulator::regexNaming, formWidget);
     nameEdit = new QLineEdit(mod->getName(), formWidget);
     nameEdit->setValidator(lineEditValidator);
     websiteEdit = new QLineEdit(mod->getWebsite(), formWidget);
@@ -109,7 +109,7 @@ void DataEntryModulatorDialog::reject(){
             this, "Are you sure?",
             tr("Are you sure?\n"),
             QMessageBox::Cancel | QMessageBox::Save | QMessageBox::Yes,
-            QMessageBox::Save);
+            QMessageBox::Cancel);
     }
 
     if (resBtn == QMessageBox::Yes) {
@@ -127,13 +127,13 @@ void DataEntryModulatorDialog::reject(){
 }
 
 void DataEntryModulatorDialog::save(){
-    mod->changeName(nameEdit->text());
-    mod->changeWebsite(websiteEdit->text());
-    mod->changeUsername(usernameEdit->text());
-    mod->changeEmail(emailEdit->text());
-    mod->changePassword(passwordEdit->text());
-    mod->changeDetails(detailsEdit->toPlainText());
-    mod->saveChanges();
+    mod->modulateName(nameEdit->text());
+    mod->modulateWebsite(websiteEdit->text());
+    mod->modulateUsername(usernameEdit->text());
+    mod->modulateEmail(emailEdit->text());
+    mod->modulatePassword(passwordEdit->text());
+    mod->modulateDetails(detailsEdit->toPlainText());
+    emit modulated(mod->modulate());
 
 
     nameEdit->clear();
@@ -149,7 +149,7 @@ void DataEntryModulatorDialog::save(){
 }
 
 void DataEntryModulatorDialog::cancel(){
-    mod->cancelChanges();
+    mod->cancel();
 
     nameEdit->clear();
     websiteEdit->clear();
@@ -164,7 +164,7 @@ void DataEntryModulatorDialog::cancel(){
 }
 
 DataEntryModulatorDialog::~DataEntryModulatorDialog(){
-    mod->cancelChanges();
+    mod->cancel();
     delete nameEdit;
     delete websiteEdit;
     delete usernameEdit;

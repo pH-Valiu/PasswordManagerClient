@@ -1,6 +1,5 @@
 #include "passwordmanagerview.h"
 #include "gui/dataentrymodulatordialog.h"
-#include "gui/dataentrybuilderdialog.h"
 
 #include <QCoreApplication>
 #include <QIcon>
@@ -56,9 +55,10 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
 PasswordManagerView::~PasswordManagerView(){
     ///!!!
     /// incomplete
-    delete scrollAreaLayout;
-    delete scrollAreaWidget;
-    delete scrollArea;
+    //delete scrollAreaLayout;
+    //delete scrollAreaWidget;
+    //delete scrollArea;
+    delete entriesWidget;
 }
 
 void PasswordManagerView::connectSignalSlots(){
@@ -80,20 +80,20 @@ void PasswordManagerView::removeDataEntryWidget(DataEntryWidget* dataEntryWidget
 void PasswordManagerView::createDataEntry(std::unique_ptr<DataEntryBuilder> builder){
     if(builder){
         this->setEnabled(false);
-        DataEntryBuilderDialog* dialog = new DataEntryBuilderDialog(std::move(builder), this);
-        connect(dialog, &DataEntryBuilderDialog::closing, this, [=]{
+        DataEntryModulatorDialog* dialog = new DataEntryModulatorDialog("Create Entry: ", std::move(builder), this);
+        connect(dialog, &DataEntryModulatorDialog::closing, this, [=]{
             this->setEnabled(true);
             delete dialog;
         });
-        connect(dialog, &DataEntryBuilderDialog::built, this, [&](QSharedPointer<DataEntry> dataEntry){emit newEntry(dataEntry);});
+        connect(dialog, &DataEntryModulatorDialog::modulated,this, [&](QSharedPointer<DataEntry> dataEntry){emit newEntry(dataEntry);});
         dialog->show();
     }
 }
 
-void PasswordManagerView::editDataEntry(std::unique_ptr<DataEntryModulator> modulator, DataEntryWidget* widget){
-    if(modulator){
+void PasswordManagerView::editDataEntry(std::unique_ptr<DataEntryEditor> editor, DataEntryWidget* widget){
+    if(editor){
         this->setEnabled(false);
-        DataEntryModulatorDialog* dialog = new DataEntryModulatorDialog(std::move(modulator), this);
+        DataEntryModulatorDialog* dialog = new DataEntryModulatorDialog("Edit Entry: ", std::move(editor), this);
         connect(dialog, &DataEntryModulatorDialog::closing, this, [=]{
             this->setEnabled(true);
             widget->updateContent();

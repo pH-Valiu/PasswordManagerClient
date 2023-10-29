@@ -8,6 +8,7 @@
 #include <QLineEdit>
 #include <QScrollArea>
 #include "gui/dataentrywidget.h"
+#include "dataentrymodulator.h"
 
 class PasswordManagerView : public QMainWindow
 {
@@ -15,7 +16,7 @@ class PasswordManagerView : public QMainWindow
 public:
     PasswordManagerView(QWidget *parent = nullptr);
     ~PasswordManagerView();
-    void editDataEntry(std::unique_ptr<DataEntryModulator>, DataEntryWidget* widget);
+    void editDataEntry(std::unique_ptr<DataEntryEditor>, DataEntryWidget*);
     void createDataEntry(std::unique_ptr<DataEntryBuilder>);
 public slots:
     void addDataEntryWidget(DataEntryWidget*);

@@ -301,13 +301,13 @@ bool PasswordBroker::decryptData(const QByteArray& masterPW){
 bool PasswordBroker::changerMasterPW(const QByteArray& oldMasterPW, const QByteArray& newMasterPW){
 
     for(qsizetype i=0; i<vector.size(); i++){
-        DataEntryModulator modulator(vector.at(i), oldMasterPW);
-        if(!modulator.changeMasterPassword(newMasterPW)){
-            modulator.saveChanges();
+        DataEntryEditor editor(vector.at(i), oldMasterPW);
+        if(!editor.changeMasterPassword(newMasterPW)){
+            editor.cancel();
             MessageHandler::critical("Changing master password failed at: " +vector.at(i)->getName(), "Password Error:");
             return false;
         }
-        modulator.saveChanges();
+        editor.modulate();
     }
     return true;
 }

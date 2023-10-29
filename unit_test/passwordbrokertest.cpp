@@ -5,25 +5,28 @@ void PasswordBrokerTest::initTestCase(){
     QDir dirDatabase(QCoreApplication::applicationDirPath() + "/database");
     dirDatabase.removeRecursively();
 
-    DataEntryBuilder builder("apple");
-    builder.addDetails("Just call up the website² and \"log\" in ?*?");
-    builder.addWebsite("https://apple.com/?query=user-log_on#");
-    builder.addUsername("user1");
-    builder.addPassword(",~£:1Od33jy+lj");
-    builder.addEmail("user1@apple.com");
-    testEntry1 = builder.build(masterPW);
+    DataEntryBuilder builder(masterPW);
+    builder.modulateName("apple");
+    builder.modulateDetails("Just call up the website² and \"log\" in ?*?");
+    builder.modulateWebsite("https://apple.com/?query=user-log_on#");
+    builder.modulateUsername("user1");
+    builder.modulatePassword(",~£:1Od33jy+lj");
+    builder.modulateEmail("user1@apple.com");
+    testEntry1 = builder.modulate();
 
-    DataEntryBuilder builder2("amazon");
-    builder2.addDetails("Details regarding this amazon account");
-    builder2.addEmail("user2@amazon.com");
-    builder2.addPassword("AmazonPassword");
-    testEntry2 = builder2.build(masterPW);
+    DataEntryBuilder builder2(masterPW);
+    builder2.modulateName("amazon");
+    builder2.modulateDetails("Details regarding this amazon account");
+    builder2.modulateEmail("user2@amazon.com");
+    builder2.modulatePassword("AmazonPassword");
+    testEntry2 = builder2.modulate();
 
-    DataEntryBuilder builder3("twitter");
-    builder3.addUsername("dumb_user");
-    builder3.addPassword("EvenDumberPassword");
-    builder3.addWebsite("x.com");
-    testEntry3 = builder3.build(masterPW);
+    DataEntryBuilder builder3(masterPW);
+    builder3.modulateName("twitter");
+    builder3.modulateUsername("dumb_user");
+    builder3.modulatePassword("EvenDumberPassword");
+    builder3.modulateWebsite("x.com");
+    testEntry3 = builder3.modulate();
 }
 
 void PasswordBrokerTest::testSingleton(){

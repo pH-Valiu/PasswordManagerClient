@@ -34,13 +34,13 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
     unprotectMasterPW();
     QSharedPointer<DataEntry> testEntry1;
     DataEntryBuilder builder(masterPW->constData());
-    builder.addName("Apple");
-    builder.addDetails("Just call up the website² and \"log\" in ?*?");
-    builder.addWebsite("https://apple.com/database?query=user-log_on#");
-    builder.addUsername("user1");
-    builder.addPassword(",~£:1Od33jy+lj");
-    builder.addEmail("user1@apple.com");
-    testEntry1 = builder.build();
+    builder.modulateName("Apple");
+    builder.modulateDetails("Just call up the website² and \"log\" in ?*?");
+    builder.modulateWebsite("https://apple.com/database?query=user-log_on#");
+    builder.modulateUsername("user1");
+    builder.modulatePassword(",~£:1Od33jy+lj");
+    builder.modulateEmail("user1@apple.com");
+    testEntry1 = builder.modulate();
 
     model.addEntry(testEntry1);
 
@@ -49,13 +49,13 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
 
     QSharedPointer<DataEntry> testEntry2;
     DataEntryBuilder builder2(masterPW->constData());
-    builder2.addName("Amazon");
-    builder2.addDetails("Your online shipping service");
-    builder2.addWebsite("https://amazon.com/");
-    builder2.addUsername("user2");
-    builder2.addPassword("passwort stark");
-    builder2.addEmail("user2@amazon.com");
-    testEntry2 = builder2.build();
+    builder2.modulateName("Amazon");
+    builder2.modulateDetails("Your online shipping service");
+    builder2.modulateWebsite("https://amazon.com/");
+    builder2.modulateUsername("user2");
+    builder2.modulatePassword("passwort stark");
+    builder2.modulateEmail("user2@amazon.com");
+    testEntry2 = builder2.modulate();
 
     model.addEntry(testEntry2);
 
@@ -191,7 +191,7 @@ void PasswordManagerAdapter::handleEdit(const QByteArray& id, DataEntryWidget* w
         //id was not findable
         break;
     }
-    view->editDataEntry(std::move(model.getModulator(id, masterPW)), widget);
+    view->editDataEntry(std::move(model.getEditor(id, masterPW)), widget);
     protectMasterPW();
 }
 

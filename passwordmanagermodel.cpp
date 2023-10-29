@@ -76,18 +76,23 @@ bool PasswordManagerModel::removeEntry(const QByteArray& id){
 }
 
 //effb748
-std::unique_ptr<DataEntryModulator> PasswordManagerModel::getModulator(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
+std::unique_ptr<DataEntryEditor> PasswordManagerModel::getEditor(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
     QSharedPointer<DataEntry> entry = broker.getEntryFromId(id);
     if(entry){
         if(masterPW){
             if(!masterPW.isNull()){
-                return std::make_unique<DataEntryModulator>(DataEntryModulator(entry, masterPW->constData()));
+                return std::make_unique<DataEntryEditor>(DataEntryEditor(entry, masterPW->constData()));
             }
         }
     }
     return nullptr;
 }
 
-std::unique_ptr<DataEntryBuilder> PasswordManagerModel::getBuilder(const QSharedPointer<QByteArray> &masterPW){
-    return std::make_unique<DataEntryBuilder>(DataEntryBuilder(masterPW->constData()));
+std::unique_ptr<DataEntryBuilder> PasswordManagerModel::getBuilder(const QSharedPointer<QByteArray>& masterPW){
+    if(masterPW){
+        if(!masterPW.isNull()){
+            return std::make_unique<DataEntryBuilder>(DataEntryBuilder(masterPW->constData()));
+        }
+    }
+    return nullptr;
 }

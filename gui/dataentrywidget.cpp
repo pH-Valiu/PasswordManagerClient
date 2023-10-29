@@ -119,7 +119,7 @@ void DataEntryWidget::setupHeaderPanel(QVBoxLayout *entryLayout){
     name->setFont(nameFont);
     headerLayout->addWidget(name);
 
-    QString websiteS = "<a style= color:black href=\"" + dataEntry->getWebsite().value_or("") +"\">"+dataEntry->getWebsite().value_or("")+"</a>";
+    QString websiteS = "<a style= color:black href=\"" + dataEntry->getWebsite() +"\">"+dataEntry->getWebsite()+"</a>";
     website = new QLabel(websiteS, headerWidget);
     website->setAlignment(Qt::AlignHCenter);
     website->setTextInteractionFlags(Qt::TextBrowserInteraction);
@@ -204,10 +204,10 @@ void DataEntryWidget::setupContentPanel(QVBoxLayout *entryLayout){
 }
 
 void DataEntryWidget::connectSignalSlots(){
-    connect(usernameCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getUsername().value_or(""));});
-    connect(emailCopyButton , &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getEMail().value_or(""));});
-    connect(passwordCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getPassword().value_or(""));});
-    connect(detailsCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getDetails().value_or(""));});
+    connect(usernameCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getUsername());});
+    connect(emailCopyButton , &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getEMail());});
+    connect(passwordCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getPassword());});
+    connect(detailsCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getDetails());});
     connect(showButton, &QPushButton::clicked, this, [&]{emit showClicked(dataEntry->getID(), this);});
     connect(editButton, &QPushButton::clicked, this, [&]{emit editClicked(dataEntry->getID(), this);});
     connect(deleteButton, &QPushButton::clicked, this, [&]{emit deleteClicked(dataEntry->getID(), this);});
@@ -223,16 +223,16 @@ void DataEntryWidget::switchShowButtonIcon(bool eyeClosed) const{
 
 void DataEntryWidget::updateContent(){
     name->setText(dataEntry->getName());
-    website->setText("<a style= color:black href=\""+dataEntry->getWebsite().value_or("")+"\">"+dataEntry->getWebsite().value_or("")+"</a>");
+    website->setText("<a style= color:black href=\""+dataEntry->getWebsite()+"\">"+dataEntry->getWebsite()+"</a>");
     lastChanged->setText(dataEntry->getLastChanged().toString());
 
-    QString uText = "Username:\t"+dataEntry->getUsername().value_or("****");
+    QString uText = "Username:\t"+(dataEntry->getUsername().isEmpty() ? ("****") : dataEntry->getUsername());
     username->setText(uText);
-    QString eText = "Email:\t"+dataEntry->getEMail().value_or("****");
+    QString eText = "Email:\t"+(dataEntry->getEMail().isEmpty() ? ("****") : dataEntry->getEMail());
     email->setText(eText);
-    QString pText = "Password:\t"+dataEntry->getPassword().value_or("****");
+    QString pText = "Password:\t"+(dataEntry->getPassword().isEmpty() ? ("****") : dataEntry->getPassword());
     password->setText(pText);
-    QString dText = "Details:\t"+dataEntry->getDetails().value_or("****");
+    QString dText = "Details:\t"+(dataEntry->getDetails().isEmpty() ? ("****") : dataEntry->getDetails());
     details->setText(dText);
 }
 

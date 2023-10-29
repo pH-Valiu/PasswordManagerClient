@@ -1,6 +1,7 @@
 #ifndef PASSWORDBROKER_H
 #define PASSWORDBROKER_H
 #include "dataentry.h"
+#include "dataentrymodulator.h"
 
 
 

@@ -8,12 +8,13 @@
 #include <QLineEdit>
 
 #include "dataentry.h"
+#include "dataentrymodulator.h"
 
 class DataEntryModulatorDialog : public QDialog
 {
     Q_OBJECT
 public:
-    DataEntryModulatorDialog(std::unique_ptr<DataEntryModulator> modulator, QWidget* parent);
+    DataEntryModulatorDialog(QString headerName, std::unique_ptr<DataEntryModulator> modulator, QWidget* parent);
     ~DataEntryModulatorDialog();
     void reject();
 
@@ -35,6 +36,7 @@ private slots:
     void cancel();
 signals:
     void closing();
+    void modulated(QSharedPointer<DataEntry> dataEntry);
 };
 
 #endif // DATAENTRYMODULATORDIALOG_H

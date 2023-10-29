@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QTest>
 #include "dataentry.h"
+#include "dataentrymodulator.h"
 
 class DataEntryTest : public QObject
 {

@@ -3,23 +3,24 @@
 
 void DataEntryTest::initTestCase(){
     masterPW = QCryptographicHash::hash(QString("masterPassword").toUtf8(), QCryptographicHash::Sha256);
-    DataEntryBuilder builder("apple");
-    builder.addDetails("Just call up the website² and \"log\" in ?*?");
-    builder.addWebsite("https://apple.com/?query=user-log_on#");
-    builder.addUsername("user1");
-    builder.addPassword(",~£:1Od33jy+lj");
-    builder.addEmail("user1@apple.com");
-    appleEntry = builder.build(masterPW);
+    DataEntryBuilder builder(masterPW);
+    builder.modulateName("apple");
+    builder.modulateDetails("Just call up the website² and \"log\" in ?*?");
+    builder.modulateWebsite("https://apple.com/?query=user-log_on#");
+    builder.modulateUsername("user1");
+    builder.modulatePassword(",~£:1Od33jy+lj");
+    builder.modulateEmail("user1@apple.com");
+    appleEntry = builder.modulate();
 }
 
 void DataEntryTest::testBuilderFull(){
 
     QDateTime lastChanged = appleEntry->getLastChanged();
     QCOMPARE(appleEntry->getName(), "apple");
-    QCOMPARE(appleEntry->getUsername(), std::nullopt);
-    QCOMPARE(appleEntry->getPassword(), std::nullopt);
-    QCOMPARE(appleEntry->getEMail(), std::nullopt);
-    QCOMPARE(appleEntry->getDetails(), std::nullopt);
+    QCOMPARE(appleEntry->getUsername(), "");
+    QCOMPARE(appleEntry->getPassword(), "");
+    QCOMPARE(appleEntry->getEMail(), "");
+    QCOMPARE(appleEntry->getDetails(), "");
     QCOMPARE(appleEntry->getWebsite(), "https://apple.com/?query=user-log_on#");
     appleEntry->decryptContent(masterPW);
     QCOMPARE(appleEntry->getUsername(), "user1");
@@ -27,34 +28,35 @@ void DataEntryTest::testBuilderFull(){
     QCOMPARE(appleEntry->getEMail(), "user1@apple.com");
     QCOMPARE(appleEntry->getDetails(), "Just call up the website² and \"log\" in ?*?");
     appleEntry->encryptContent(masterPW);
-    QCOMPARE(appleEntry->getUsername(), std::nullopt);
-    QCOMPARE(appleEntry->getPassword(), std::nullopt);
-    QCOMPARE(appleEntry->getEMail(), std::nullopt);
-    QCOMPARE(appleEntry->getDetails(), std::nullopt);
+    QCOMPARE(appleEntry->getUsername(), "");
+    QCOMPARE(appleEntry->getPassword(), "");
+    QCOMPARE(appleEntry->getEMail(), "");
+    QCOMPARE(appleEntry->getDetails(), "");
     QDateTime lastChangedLater = appleEntry->getLastChanged();
     QCOMPARE(lastChanged, lastChangedLater);
 }
 
 void DataEntryTest::testBuilderPartial(){
-    DataEntryBuilder builderAmazon("amazon");
-    builderAmazon.addPassword("PasswordAmazon");
-    QSharedPointer<DataEntry> amazonEntry = builderAmazon.build(masterPW);
+    DataEntryBuilder builderAmazon(masterPW);
+    builderAmazon.modulateName("amazon");
+    builderAmazon.modulatePassword("PasswordAmazon");
+    QSharedPointer<DataEntry> amazonEntry = builderAmazon.modulate();
     QCOMPARE(amazonEntry->getName(), "amazon");
-    QCOMPARE(amazonEntry->getUsername(), std::nullopt);
-    QCOMPARE(amazonEntry->getPassword(), std::nullopt);
-    QCOMPARE(amazonEntry->getEMail(), std::nullopt);
-    QCOMPARE(amazonEntry->getDetails(), std::nullopt);
-    QCOMPARE(amazonEntry->getWebsite(), std::nullopt);
+    QCOMPARE(amazonEntry->getUsername(), "");
+    QCOMPARE(amazonEntry->getPassword(), "");
+    QCOMPARE(amazonEntry->getEMail(), "");
+    QCOMPARE(amazonEntry->getDetails(), "");
+    QCOMPARE(amazonEntry->getWebsite(), "");
     amazonEntry->decryptContent(masterPW);
-    QCOMPARE(amazonEntry->getUsername(), std::nullopt);
+    QCOMPARE(amazonEntry->getUsername(), "");
     QCOMPARE(amazonEntry->getPassword(), "PasswordAmazon");
-    QCOMPARE(amazonEntry->getEMail(), std::nullopt);
-    QCOMPARE(amazonEntry->getDetails(), std::nullopt);
+    QCOMPARE(amazonEntry->getEMail(), "");
+    QCOMPARE(amazonEntry->getDetails(), "");
     amazonEntry->encryptContent(masterPW);
-    QCOMPARE(amazonEntry->getUsername(), std::nullopt);
-    QCOMPARE(amazonEntry->getPassword(), std::nullopt);
-    QCOMPARE(amazonEntry->getEMail(), std::nullopt);
-    QCOMPARE(amazonEntry->getDetails(), std::nullopt);
+    QCOMPARE(amazonEntry->getUsername(), "");
+    QCOMPARE(amazonEntry->getPassword(), "");
+    QCOMPARE(amazonEntry->getEMail(), "");
+    QCOMPARE(amazonEntry->getDetails(), "");
 }
 
 void DataEntryTest::testBuilderJSON(){
@@ -76,10 +78,10 @@ void DataEntryTest::testBuilderJSON(){
     QSharedPointer<DataEntry> entry = DataEntryBuilder::fromJsonObject(QJsonDocument::fromJson(json).object());
     QDateTime lastChanged = appleEntry->getLastChanged();
     QCOMPARE(entry->getName(), "apple");
-    QCOMPARE(entry->getUsername(), std::nullopt);
-    QCOMPARE(entry->getPassword(), std::nullopt);
-    QCOMPARE(entry->getEMail(), std::nullopt);
-    QCOMPARE(entry->getDetails(), std::nullopt);
+    QCOMPARE(entry->getUsername(), "");
+    QCOMPARE(entry->getPassword(), "");
+    QCOMPARE(entry->getEMail(), "");
+    QCOMPARE(entry->getDetails(), "");
     QCOMPARE(entry->getWebsite(), "https://apple.com/?query=user-log_on#");
     entry->decryptContent(masterPW);
     QCOMPARE(entry->getUsername(), "user1");
@@ -87,10 +89,10 @@ void DataEntryTest::testBuilderJSON(){
     QCOMPARE(entry->getEMail(), "user1@apple.com");
     QCOMPARE(entry->getDetails(), "Just call up the website² and \"log\" in ?*?");
     entry->encryptContent(masterPW);
-    QCOMPARE(entry->getUsername(), std::nullopt);
-    QCOMPARE(entry->getPassword(), std::nullopt);
-    QCOMPARE(entry->getEMail(), std::nullopt);
-    QCOMPARE(entry->getDetails(), std::nullopt);
+    QCOMPARE(entry->getUsername(), "");
+    QCOMPARE(entry->getPassword(), "");
+    QCOMPARE(entry->getEMail(), "");
+    QCOMPARE(entry->getDetails(), "");
 
     QCOMPARE(appleEntry->getID(), entry->getID().append(""));
     QDateTime lastChangedLater = entry->getLastChanged();
@@ -110,41 +112,42 @@ void DataEntryTest::testRegex(){
     QCOMPARE(false, DataEntryBuilder::regexNaming.match(testFail2).hasMatch());
     QCOMPARE(false, DataEntryBuilder::regexNaming.match(testFail3).hasMatch());
 
-    DataEntryBuilder failingBuilder("fai~ling");
-    failingBuilder.addWebsite("https://\\//");
-    QSharedPointer<DataEntry> failedEntry = failingBuilder.build(masterPW);
+    DataEntryBuilder failingBuilder(masterPW);
+    failingBuilder.modulateName("fai~ling");
+    failingBuilder.modulateWebsite("https://\\//");
+    QSharedPointer<DataEntry> failedEntry = failingBuilder.modulate();
     QCOMPARE(failedEntry->getName(), failedEntry->getID());
-    QCOMPARE(failedEntry->getWebsite(), std::nullopt);
+    QCOMPARE(failedEntry->getWebsite(), "");
 
 }
 
 void DataEntryTest::testModulator(){
 
-    DataEntryModulator appleMod(appleEntry, masterPW);
+    DataEntryEditor appleMod(appleEntry, masterPW);
     QDateTime preLastChanged = appleEntry->getLastChanged();
-    QCOMPARE(appleEntry->getEMail(), std::nullopt);
-    appleMod.changeEmail("newMail@apple.com");
-    QCOMPARE(appleEntry->getEMail(), std::nullopt);
+    QCOMPARE(appleEntry->getEMail(), "");
+    appleMod.modulateEmail("newMail@apple.com");
+    QCOMPARE(appleEntry->getEMail(), "");
     QThread::currentThread()->sleep(1);
-    appleMod.saveChanges();
+    appleMod.modulate();
     QVERIFY(preLastChanged != appleEntry->getLastChanged());
-    QCOMPARE(appleEntry->getEMail(), std::nullopt);
+    QCOMPARE(appleEntry->getEMail(), "");
     appleEntry->decryptContent(masterPW);
     QCOMPARE(appleEntry->getEMail(), "newMail@apple.com");
     appleEntry->encryptContent(masterPW);
 
-    DataEntryModulator appleMod2(appleEntry, masterPW);
-    appleMod2.changeEmail("user1@apple.com");
-    appleMod2.saveChanges();
+    DataEntryEditor appleMod2(appleEntry, masterPW);
+    appleMod2.modulateEmail("user1@apple.com");
+    appleMod2.modulate();
 
 }
 
 void DataEntryTest::testModulatorChangeMasterPW(){
-    DataEntryModulator appleMod(appleEntry, masterPW);
+    DataEntryEditor appleMod(appleEntry, masterPW);
     QDateTime preLastChanged = appleEntry->getLastChanged();
     appleMod.changeMasterPassword(QString("12345678901234567890123456789012").toUtf8());
     QThread::currentThread()->sleep(1);
-    appleMod.saveChanges();
+    appleMod.modulate();
     QVERIFY(preLastChanged != appleEntry->getLastChanged());
     appleEntry->decryptContent(QString("12345678901234567890123456789012").toUtf8());
     QCOMPARE(appleEntry->getPassword(), ",~£:1Od33jy+lj");
@@ -153,9 +156,9 @@ void DataEntryTest::testModulatorChangeMasterPW(){
     QCOMPARE(appleEntry->getEMail(), "user1@apple.com");
     appleEntry->encryptContent(QString("12345678901234567890123456789012").toUtf8());
 
-    DataEntryModulator appleMod2(appleEntry, QString("12345678901234567890123456789012").toUtf8());
+    DataEntryEditor appleMod2(appleEntry, QString("12345678901234567890123456789012").toUtf8());
     appleMod2.changeMasterPassword(masterPW);
-    appleMod2.saveChanges();
+    appleMod2.modulate();
 }
 
 
