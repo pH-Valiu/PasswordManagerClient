@@ -1,4 +1,5 @@
 #include "passwordmanagermodel.h"
+#include "localbackup.h"
 
 PasswordManagerModel::PasswordManagerModel() :
     QObject(nullptr),
@@ -70,12 +71,9 @@ void PasswordManagerModel::addEntry(QSharedPointer<DataEntry>& entry){
 }
 
 bool PasswordManagerModel::removeEntry(const QByteArray& id){
-    broker.removeEntryById(id);
-
-    return 1;
+    return broker.removeEntryById(id);
 }
 
-//effb748
 std::unique_ptr<DataEntryEditor> PasswordManagerModel::getEditor(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
     QSharedPointer<DataEntry> entry = broker.getEntryFromId(id);
     if(entry){
@@ -95,4 +93,56 @@ std::unique_ptr<DataEntryBuilder> PasswordManagerModel::getBuilder(const QShared
         }
     }
     return nullptr;
+}
+
+QByteArray PasswordManagerModel::searchEntry(const QString& identifier){
+    return broker.searchEntry(identifier);
+}
+
+
+bool PasswordManagerModel::startBroker(const QSharedPointer<QByteArray> &masterPW){
+    if(masterPW){
+        return broker.fetchFileData(masterPW->constData());
+    }
+    return false;
+}
+
+bool PasswordManagerModel::saveBroker(const QSharedPointer<QByteArray> &masterPW){
+    if(masterPW){
+        if(broker.storeFileData(masterPW->constData())){
+            return LocalBackup::newLocalBackup();
+        }
+    }
+    return false;
+}
+
+bool PasswordManagerModel::revertToOlderLocalBackup(const QString& folderName){
+    return LocalBackup::revertToBackup(folderName);
+}
+
+
+
+QByteArray PasswordManagerModel::getUserMasterPWHash(){
+    return broker.getUserMasterPWHash();
+}
+
+bool PasswordManagerModel::validateUserMasterPW(const QString& userMasterPW){
+    return broker.validateUserMasterPW(userMasterPW);
+}
+
+bool PasswordManagerModel::setUserMasterPW(const QString &userMasterPW){
+    return broker.setUserMasterPW(userMasterPW);
+}
+
+bool PasswordManagerModel::changeUserMasterPW(const QString &oldUserMasterPW, const QString &newUserMasterPW, const QSharedPointer<QByteArray> &oldDerivedMasterPW, const QSharedPointer<QByteArray> &newDerivedMasterPW){
+    if(validateUserMasterPW(oldUserMasterPW)){
+        if(setUserMasterPW(newUserMasterPW)){
+            if(oldDerivedMasterPW && newDerivedMasterPW){
+                if(broker.changerMasterPW(oldDerivedMasterPW->constData(), newDerivedMasterPW->constData())){
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }

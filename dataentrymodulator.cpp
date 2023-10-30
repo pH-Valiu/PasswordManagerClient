@@ -11,7 +11,6 @@ DataEntryModulator::DataEntryModulator(){
 DataEntryModulator::~DataEntryModulator(){
     this->dataEntry.clear();
     SecureZeroMemory(masterPW.data(), masterPW.size());
-    masterPW.clear();
 }
 
 
@@ -62,8 +61,6 @@ QSharedPointer<DataEntry> DataEntryBuilder::modulate(){
         contentAsJson.clear();
         plainMidKey.clear();
         dataEntry->clearConfidential();
-        SecureZeroMemory(masterPW.data(), masterPW.size());
-        this->masterPW.clear();
 
         dataEntry->setLastChanged(QDateTime::currentDateTime());
         return dataEntry;
@@ -72,8 +69,7 @@ QSharedPointer<DataEntry> DataEntryBuilder::modulate(){
     }
 }
 void DataEntryBuilder::cancel(){
-    SecureZeroMemory(masterPW.data(), masterPW.size());
-    this->masterPW.clear();
+    dataEntry->clearConfidential();
 }
 
 //static method
@@ -199,17 +195,12 @@ QSharedPointer<DataEntry> DataEntryEditor::modulate(){
     }
 
     this->dataEntryClone->clearData();
-    SecureZeroMemory(masterPW.data(), masterPW.size());
-    this->masterPW.clear();
     this->modified = false;
 
     return returnEntry;
 }
 void DataEntryEditor::cancel(){
     this->dataEntryClone->clearData();
-
-    SecureZeroMemory(masterPW.data(), masterPW.size());
-    this->masterPW.clear();
 }
 
 void DataEntryEditor::modulateName(const QString& name){

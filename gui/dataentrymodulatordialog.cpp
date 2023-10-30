@@ -91,6 +91,7 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(QString headerName, std::uniq
     vbox->addWidget(buttonArea);
 
 
+    this->setAttribute(Qt::WA_DeleteOnClose);
     this->setWindowTitle(dialogName);
     this->setLayout(vbox);
 
@@ -121,8 +122,8 @@ void DataEntryModulatorDialog::reject(){
     }
 
     if (resBtn == QMessageBox::Close){
-        QDialog::reject();
         emit closing();
+        QDialog::reject();
     }
 }
 
@@ -144,8 +145,8 @@ void DataEntryModulatorDialog::save(){
     detailsEdit->clear();
 
     xButtonPressed = false;
-    this->close();
     emit closing();
+    this->close();
 }
 
 void DataEntryModulatorDialog::cancel(){
@@ -159,8 +160,8 @@ void DataEntryModulatorDialog::cancel(){
     detailsEdit->clear();
 
     xButtonPressed = false;
-    this->close();
     emit closing();
+    this->close();
 }
 
 DataEntryModulatorDialog::~DataEntryModulatorDialog(){

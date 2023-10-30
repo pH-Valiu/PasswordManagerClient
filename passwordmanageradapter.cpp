@@ -4,6 +4,8 @@
 #include <dpapi.h>
 #include <wincrypt.h>
 #include <QMessageBox>
+#include <QPasswordDigestor>
+#include "gui/startupdialog.h"
 
 
 PasswordManagerAdapter::PasswordManagerAdapter() :
@@ -12,25 +14,31 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
     view{new PasswordManagerView()}
 {
 
-    QString tempMasterPW = "12345678901234567890123456789012";
+    /*
 
-    masterPW = QSharedPointer<QByteArray>(new QByteArray(tempMasterPW.toUtf8()));
-    protectMasterPW();
+    */
+    model.setUserMasterPW("1234");
+
+    startupDialog = new StartupDialog(view, model.getUserMasterPWHash());
+    connect(startupDialog, &StartupDialog::userAuthenticated, this, &PasswordManagerAdapter::handleAuthenticateCompleted);
+    startupDialog->show();
+
 
     /*
-    qDebug()<<"[u_pr] pw: "<<masterPW.get()->toBase64();
 
-    protectMasterPW();
 
-    qDebug()<<"[pr] pw: "<<masterPW.get()->toBase64();
-
-    unprotectMasterPW();
-
-    qDebug()<<"[u_pr] pw: "<<masterPW.get()->toBase64();
+    const QVector<QSharedPointer<DataEntry>> list = model.getAllEntries();
+    for(qsizetype i=0; i<list.size(); i++){
+        DataEntryWidget* dataEntryWidget = new DataEntryWidget(list.at(i));
+        connect(dataEntryWidget, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
+        connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
+        connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
+        view->addDataEntryWidget(dataEntryWidget);
+    }
     */
 
 
-
+    /*
     unprotectMasterPW();
     QSharedPointer<DataEntry> testEntry1;
     DataEntryBuilder builder(masterPW->constData());
@@ -74,20 +82,55 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
     connect(dataEntryWidget2, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
     connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
     connect(dataEntryWidget2, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
+    */
 
+
+
+    /*
+    unprotectMasterPW();
+    model.saveBroker(masterPW);
+    protectMasterPW();
+    */
+}
+
+PasswordManagerAdapter::~PasswordManagerAdapter(){
+    //QSharedPointer::clear()
+    masterPW.clear();
+    if(!startupDialog.isNull()){
+        delete startupDialog;
+    }
+    if(!view.isNull()){
+        delete view;
+
+    }
+    model.removeAllEntries();
+}
+
+void PasswordManagerAdapter::showMainWindow(){
+    unprotectMasterPW();
+    model.startBroker(masterPW);
+    protectMasterPW();
+
+
+    const QVector<QSharedPointer<DataEntry>> list = model.getAllEntries();
+
+    for(qsizetype i=0; i<list.size(); i++){
+        DataEntryWidget* dataEntryWidget = new DataEntryWidget(list.at(i));
+        connect(dataEntryWidget, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
+        connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
+        connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
+        view->addDataEntryWidget(dataEntryWidget);
+    }
 
     connectSignalSlots();
     view->show();
 }
 
-PasswordManagerAdapter::~PasswordManagerAdapter(){
-    delete view;
-    model.removeAllEntries();
-}
-
 void PasswordManagerAdapter::connectSignalSlots(){
     connect(view, &PasswordManagerView::addEntryButtonClicked, this, &PasswordManagerAdapter::handleCreate);
     connect(view, &PasswordManagerView::newEntry, this, &PasswordManagerAdapter::handleInsertion);
+    connect(view, &PasswordManagerView::searchEntry, this, &PasswordManagerAdapter::handleSearch);
+    connect(view, &PasswordManagerView::saveButtonClicked, this, &PasswordManagerAdapter::handleSave);
 
 }
 
@@ -100,7 +143,7 @@ bool PasswordManagerAdapter::unprotectMasterPW(){
     }
 
     int dMod = 0;
-    if(!(dMod = bPW % CRYPTPROTECTMEMORY_BLOCK_SIZE)){
+    if((dMod = bPW % CRYPTPROTECTMEMORY_BLOCK_SIZE)){
         bPW += (CRYPTPROTECTMEMORY_BLOCK_SIZE - dMod);
     }
 
@@ -135,8 +178,27 @@ bool PasswordManagerAdapter::protectMasterPW(){
     }
 
     pPW = NULL;
+    this->masterPW->resize(32);
     return S_OK;
 
+}
+
+void PasswordManagerAdapter::handleSave(){
+    unprotectMasterPW();
+    model.saveBroker(masterPW);
+    protectMasterPW();
+}
+
+void PasswordManagerAdapter::handleAuthenticateCompleted(const QString& userMasterPW){
+    this->masterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
+                                                            userMasterPW.toUtf8(),
+                                                            "HKRsdn14n8(Sb§$ ,:,3;",
+                                                            10000,
+                                                            32)));
+    this->masterPW->resize(32);
+
+    protectMasterPW();
+    showMainWindow();
 }
 
 void PasswordManagerAdapter::handleShow(const QByteArray& id, DataEntryWidget* widget){
@@ -230,6 +292,13 @@ void PasswordManagerAdapter::handleDelete(const QByteArray& id, DataEntryWidget*
 
     if (resBtn == QMessageBox::No){
         //do nothing
+    }
+}
+
+void PasswordManagerAdapter::handleSearch(const QString& identifier){
+    QByteArray id = model.searchEntry(identifier);
+    if(!id.isEmpty()){
+        view->scrollTo(id);
     }
 }
 

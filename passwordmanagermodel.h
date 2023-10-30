@@ -3,9 +3,11 @@
 
 #include "passwordbroker.h"
 #include <QObject>
-#include <QPointer>
+#include <QSharedPointer>
+#include "dataentry.h"
 
 
+//!!! Maybe remove Q_OBJECT since not needed
 class PasswordManagerModel : public QObject
 {
     Q_OBJECT
@@ -59,7 +61,6 @@ public:
      *
      * 1 if dataEntry got encrypted
      */
-
     int hideEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW);
 
     void addEntry(QSharedPointer<DataEntry>& entry);
@@ -74,10 +75,20 @@ public:
      */
     bool removeEntry(const QByteArray& id);
     void removeAllEntries()     {broker.removeAllEntries();}
+    const QVector<QSharedPointer<DataEntry>> getAllEntries(){return broker.getAllEntries();}
+    QByteArray searchEntry(const QString& identifier);
+
+    bool startBroker(const QSharedPointer<QByteArray>& masterPW);
+    bool saveBroker(const QSharedPointer<QByteArray>& masterPW);
+    bool revertToOlderLocalBackup(const QString& folderName);
+
+    bool validateUserMasterPW(const QString& userMasterPW);
+    QByteArray getUserMasterPWHash();
+    bool setUserMasterPW(const QString& userMasterPW);
+    bool changeUserMasterPW(const QString& oldUserMasterPW, const QString& newUserMasterPW, const QSharedPointer<QByteArray>& oldDerivedMasterPW, const QSharedPointer<QByteArray>& newDerivedMasterPW);
 private:
     PasswordManagerModel();
     PasswordBroker& broker;
-    bool revertToOlderLocalBackup();
 
 
 

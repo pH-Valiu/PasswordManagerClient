@@ -13,6 +13,7 @@ SOURCES += \
     $$PWD/gui/dataentrymodulatordialog.cpp \
     $$PWD/gui/passwordmanagerview.cpp \
     $$PWD/gui/dataentrywidget.cpp \
+    $$PWD/gui/startupdialog.cpp \
     $$PWD/messagehandler.cpp \
     $$PWD/passwordmanageradapter.cpp \
     $$PWD/passwordmanagermodel.cpp \
@@ -27,6 +28,7 @@ HEADERS += \
     $$PWD/gui/dataentrymodulatordialog.h \
     $$PWD/gui/passwordmanagerview.h \
     $$PWD/gui/dataentrywidget.h \
+    $$PWD/gui/startupdialog.h \
     $$PWD/localbackup.h \
     $$PWD/messagehandler.h \
     $$PWD/passwordmanageradapter.h \
@@ -46,4 +48,5 @@ DISTFILES += \
     $$PWD/gui/ico/dont-show.ico \
     $$PWD/gui/ico/delete.ico \
     $$PWD/gui/ico/search.ico \
-    $$PWD/gui/ico/add.ico
+    $$PWD/gui/ico/add.ico \
+    $$PWD/gui/ico/enter.ico

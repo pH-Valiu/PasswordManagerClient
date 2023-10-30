@@ -23,7 +23,7 @@ class LocalBackup
 {
 public:
     /**
-     * @brief newLocalBackup() copies iv, mac, dataEntries files into a new folder with the current time as the folders name
+     * @brief newLocalBackup() copies iv, mac, dataEntries, pw files into a new folder with the current time as the folders name
      * @return whether the creating of the backup was successful or not
      */
     static bool newLocalBackup(){
@@ -34,8 +34,26 @@ public:
             return false;
         }
 
-
         QString databasePath = QCoreApplication::applicationDirPath().append("/database/");
+        QFile filePW(databasePath + "pw");
+        QString pwData;
+        if(!filePW.exists()){
+            //ERROR
+            MessageHandler::warn("PW file doesn't exist");
+            return false;
+        }
+        if(filePW.open(QIODevice::ReadOnly)){
+            QTextStream pwInput(&filePW);
+            pwData = pwInput.readAll();
+            filePW.close();
+        }else{
+            //PW FILE COULD NOT BE OPENED
+            //ABORT
+            MessageHandler::warn("PW file could not be opened: " + filePW.errorString());
+            return false;
+        }
+
+
         QFile fileIv(databasePath + "iv");
         QString ivData;
         if(!fileIv.exists()){
@@ -54,6 +72,7 @@ public:
             return false;
         }
 
+
         QFile fileMAC(databasePath + "mac");
         QString macData;
         if(!fileMAC.exists()){
@@ -65,11 +84,12 @@ public:
             macData = macInput.readAll();
             fileMAC.close();
         }else{
-            //IV FILE COULD NOT BE OPENED
+            //MAC FILE COULD NOT BE OPENED
             //ABORT
             MessageHandler::warn("MAC file could not be opened: " + fileMAC.errorString());
             return false;
         }
+
 
         QFile fileEntries(databasePath + "dataEntries");
         QString dataEntriesData;
@@ -97,6 +117,16 @@ public:
         QString backupPath = QCoreApplication::applicationDirPath().append("/local-backups/").append(backupName).append("/");
         backupDirectory.mkdir(backupName);
 
+        QFile filePWCopy(backupPath + "pw");
+        if(filePWCopy.open(QIODevice::WriteOnly)){
+            QTextStream stream(&filePWCopy);
+            stream << pwData;
+            stream.flush();
+            filePWCopy.close();
+        }else{
+            MessageHandler::warn("PW backup file could not be opened: " + filePWCopy.errorString());
+            return false;
+        }
 
         QFile fileIvCopy(backupPath + "iv");
         if(fileIvCopy.open(QIODevice::WriteOnly)){
@@ -136,10 +166,10 @@ public:
     }
 
     /**
-     * @brief revertToBackup() overwrites the iv, mac, dataEntries file in the database folder
+     * @brief revertToBackup() overwrites the iv, mac, dataEntries, pw file in the database folder
      *
      * with the three corresponding files by the same names in the folder given as parameter
-     * @param the name of the folder containing the iv, mac, dataEntries file to revert to
+     * @param the name of the folder containing the iv, mac, dataEntries, pw file to revert to
      * @return  whether the reversal to the other backup was successful or not
      */
     static bool revertToBackup(const QString& folderName){
@@ -165,7 +195,24 @@ public:
         }
 
 
+
         QString backupPath = QCoreApplication::applicationDirPath().append("/local-backups/").append(folderName).append("/");
+
+        QFile filePWBackup(backupPath + "pw");
+        QString pwDataCopy;
+        if(!filePWBackup.exists()){
+            MessageHandler::warn("PW backup file doesn't exist");
+            return false;
+        }
+        if(filePWBackup.open(QIODevice::ReadOnly)){
+            QTextStream stream(&filePWBackup);
+            pwDataCopy = stream.readAll();
+            filePWBackup.close();
+        }else{
+            MessageHandler::warn("PW backup file could not be opened: " + filePWBackup.errorString());
+            return false;
+        }
+
 
         QFile fileIvBackup(backupPath + "iv");
         QString ivDataCopy;
@@ -182,6 +229,7 @@ public:
             return false;
         }
 
+
         QFile fileMacBackup(backupPath + "mac");
         QString macDataCopy;
         if(!fileMacBackup.exists()){
@@ -196,6 +244,7 @@ public:
             MessageHandler::warn("MAC backup file could not be opened: " + fileMacBackup.errorString());
             return false;
         }
+
 
         QFile fileDataEntriesBackup(backupPath + "dataEntries");
         QString dataEntriesDataCopy;
@@ -216,6 +265,23 @@ public:
         workingDirectory.mkdir("database");
 
         QString databasePath = QCoreApplication::applicationDirPath().append("/database/");
+        QFile filePW(databasePath + "pw");
+        if(filePW.exists()){
+            filePW.resize(0);
+        }
+        if(filePW.open(QIODevice::WriteOnly)){
+            QTextStream pwInput(&filePW);
+            pwInput << pwDataCopy;
+            pwInput.flush();
+            filePW.close();
+        }else{
+            //PW FILE COULD NOT BE OPENED
+            //ABORT
+            MessageHandler::warn("PW file could not be opened: " + filePW.errorString());
+            return false;
+        }
+
+
         QFile fileIv(databasePath + "iv");
         if(fileIv.exists()){
             fileIv.resize(0);
@@ -232,6 +298,7 @@ public:
             return false;
         }
 
+
         QFile fileMAC(databasePath + "mac");
         if(fileMAC.exists()){
             fileMAC.resize(0);
@@ -247,6 +314,7 @@ public:
             MessageHandler::warn("MAC file could not be opened: " + fileMAC.errorString());
             return false;
         }
+
 
         QFile fileEntries(databasePath + "dataEntries");
         if(fileEntries.exists()){

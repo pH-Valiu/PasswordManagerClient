@@ -48,11 +48,17 @@ public:
      * @brief removeAllEntries and deleted their containing data
      */
     void removeAllEntries();
+    QVector<QSharedPointer<DataEntry>> const getAllEntries(){return vector;}
     QSharedPointer<DataEntry> getEntryFromId(const QByteArray& id);
     QSharedPointer<DataEntry> getEntryFromName(const QString& name);
     QSharedPointer<DataEntry> getEntryFromWebsite(const QString& website);
+    QByteArray searchEntry(const QString& identifier);
     qsizetype entryCount() {return vector.size();}
     ~PasswordBroker();
+
+    QByteArray getUserMasterPWHash();
+    bool validateUserMasterPW(const QString& userMasterPW);
+    bool setUserMasterPW(const QString& userMasterPW);
 
     friend class PasswordBrokerTest;
 #ifdef EXECUTE_UNIT_TESTS

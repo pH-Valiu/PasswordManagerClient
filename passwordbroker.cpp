@@ -72,6 +72,7 @@ bool PasswordBroker::fetchFileData(const QByteArray& masterPW){
     }
 
 
+
     QFile fileMAC(applicationDirPath + "/database/mac");
     if(!fileMAC.exists() || fileMAC.size() == 0){
         if(fileMAC.open(QIODevice::WriteOnly)){
@@ -95,6 +96,7 @@ bool PasswordBroker::fetchFileData(const QByteArray& masterPW){
             return false;
         }
     }
+
 
     QFile fileEntries(applicationDirPath + "/database/dataEntries");
     if(!fileEntries.exists() || fileEntries.size() == 0){
@@ -143,31 +145,30 @@ bool PasswordBroker::storeFileData(const QByteArray& masterPW){
     mainDirectory.mkdir("database");
 
 
-    QFile fileIv(applicationDirPath + "/database/iv");
-    if(fileIv.exists()){
-        fileIv.resize(0);
-    }
-    if(fileIv.open(QIODevice::WriteOnly)){
-        QTextStream ivInput(&fileIv);
-        if(fileData.iv.size() != 16){
-            //IV SIZE IS NOT CORRECT
+    if(fetchedFlag){
+        QFile fileIv(applicationDirPath + "/database/iv");
+        if(fileIv.exists()){
+            fileIv.resize(0);
+        }
+        if(fileIv.open(QIODevice::WriteOnly)){
+            QTextStream ivInput(&fileIv);
+            if(fileData.iv.size() != 16){
+                //IV SIZE IS NOT CORRECT
+                //ABORT
+                //IV FILE IS CORRUPTED
+                MessageHandler::critical("IV size is not correct and might be corrupted");
+                return false;
+            }
+            ivInput << QString::fromUtf8(fileData.iv.toBase64());
+            ivInput.flush();
+            fileIv.close();
+        }else{
+            //IV FILE COULD NOT BE OPENED
             //ABORT
-            //IV FILE IS CORRUPTED
-            MessageHandler::critical("IV size is not correct and might be corrupted");
+            MessageHandler::warn("IV file could not be opened: " + fileIv.errorString());
             return false;
         }
-        ivInput << QString::fromUtf8(fileData.iv.toBase64());
-        ivInput.flush();
-        fileIv.close();
-    }else{
-        //IV FILE COULD NOT BE OPENED
-        //ABORT
-        MessageHandler::warn("IV file could not be opened: " + fileIv.errorString());
-        return false;
-    }
 
-
-    if(fetchedFlag){
         if(encryptData(masterPW)){
             QFile fileMAC(applicationDirPath + "/database/mac");
             if(fileMAC.exists()){
@@ -299,7 +300,6 @@ bool PasswordBroker::decryptData(const QByteArray& masterPW){
 }
 
 bool PasswordBroker::changerMasterPW(const QByteArray& oldMasterPW, const QByteArray& newMasterPW){
-
     for(qsizetype i=0; i<vector.size(); i++){
         DataEntryEditor editor(vector.at(i), oldMasterPW);
         if(!editor.changeMasterPassword(newMasterPW)){
@@ -359,5 +359,104 @@ QSharedPointer<DataEntry> PasswordBroker::getEntryFromWebsite(const QString& web
     return nullptr;
 }
 
+QByteArray PasswordBroker::searchEntry(const QString& identifier){
+    for(qsizetype i=0; i<vector.size(); i++){
+        if(vector.at(i)->getName().contains(identifier)){
+            return vector.at(i)->getID();
+        }
+    }
+    for(qsizetype i=0; i<vector.size(); i++){
+        if(vector.at(i)->getWebsite().contains(identifier)){
+            return vector.at(i)->getID();
+        }
+    }
+    return QByteArray();
+}
 
 
+QByteArray PasswordBroker::getUserMasterPWHash(){
+    QString applicationPath = QCoreApplication::applicationDirPath();
+    QDir mainDirectory(applicationPath + "/database");
+
+    if(mainDirectory.exists()){
+
+        QFile hashedPWFile(applicationPath + "/database/pw");
+        if(!hashedPWFile.exists() || hashedPWFile.size() == 0){
+            return QByteArray();
+        }
+        if(hashedPWFile.open(QIODevice::ReadOnly)){
+            QTextStream pwInput(&hashedPWFile);
+            QByteArray storedHashedPW = QByteArray::fromBase64(pwInput.readAll().toUtf8());
+            hashedPWFile.close();
+            return storedHashedPW;
+
+        }else{
+            //PW FILE COULD NOT BE OPENED
+            //ABORT
+            MessageHandler::warn("Password file could not be opened: " + hashedPWFile.errorString());
+            return QByteArray();
+        }
+    }else{
+        return QByteArray();
+    }
+    return QByteArray();
+}
+
+bool PasswordBroker::validateUserMasterPW(const QString& userMasterPW){
+
+    QString applicationPath = QCoreApplication::applicationDirPath();
+    QDir mainDirectory(applicationPath + "/database");
+
+    if(mainDirectory.exists()){
+
+        QFile hashedPWFile(applicationPath + "/database/pw");
+        if(!hashedPWFile.exists() || hashedPWFile.size() == 0){
+            return false;
+        }
+        if(hashedPWFile.open(QIODevice::ReadOnly)){
+            QTextStream pwInput(&hashedPWFile);
+            QByteArray storedHashedPW = QByteArray::fromBase64(pwInput.readAll().toUtf8());
+            hashedPWFile.close();
+            QByteArray hashedPW = QCryptographicHash::hash(userMasterPW.toUtf8(), QCryptographicHash::Blake2b_512);
+
+            if(storedHashedPW == hashedPW){
+                return true;
+            }
+
+        }else{
+            //PW FILE COULD NOT BE OPENED
+            //ABORT
+            MessageHandler::warn("Password file could not be opened: " + hashedPWFile.errorString());
+            return false;
+        }
+    }else{
+        return false;
+    }
+    return false;
+}
+
+bool PasswordBroker::setUserMasterPW(const QString& userMasterPW){
+    QString applicationDirPath = QCoreApplication::applicationDirPath();
+    QDir mainDirectory(applicationDirPath);
+
+    mainDirectory.mkdir("database");
+
+    QFile hashedPWFile(applicationDirPath + "/database/pw");
+    if(hashedPWFile.exists()){
+        hashedPWFile.resize(0);
+    }
+    if(hashedPWFile.open(QIODevice::WriteOnly)){
+        QTextStream pwInput(&hashedPWFile);
+        QByteArray hashedPW = QCryptographicHash::hash(userMasterPW.toUtf8(), QCryptographicHash::Blake2b_512);
+
+        pwInput << QString::fromUtf8(hashedPW.toBase64());
+        pwInput.flush();
+        hashedPWFile.close();
+        return true;
+    }else{
+        //PW FILE COULD NOT BE OPENED
+        //ABORT
+        MessageHandler::warn("Password file could not be opened: " + hashedPWFile.errorString());
+        return false;
+    }
+}

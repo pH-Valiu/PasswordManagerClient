@@ -18,6 +18,7 @@ public:
     ~PasswordManagerView();
     void editDataEntry(std::unique_ptr<DataEntryEditor>, DataEntryWidget*);
     void createDataEntry(std::unique_ptr<DataEntryBuilder>);
+    void scrollTo(const QByteArray& entryID);
 public slots:
     void addDataEntryWidget(DataEntryWidget*);
     /**
@@ -33,6 +34,7 @@ private:
     QWidget* entriesHeaderWidget;
     QHBoxLayout* entriesHeaderLayout;
     QPushButton* addEntryButton;
+    QPushButton* saveButton;
     QLineEdit* searchLineEdit;
 
 
@@ -41,7 +43,9 @@ private:
 
 signals:
     void addEntryButtonClicked();
+    void searchEntry(QString identifier);
     void newEntry(QSharedPointer<DataEntry>);
+    void saveButtonClicked();
 };
 
 #endif // PASSWORDMANAGERVIEW_H
