@@ -102,11 +102,18 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(QString headerName, std::uniq
 void DataEntryModulatorDialog::connectSignalSlots(){
     connect(closeButton, &QPushButton::clicked, this, &DataEntryModulatorDialog::cancel);
     connect(saveButton, &QPushButton::clicked, this, &DataEntryModulatorDialog::save);
+
+    connect(nameEdit, &QLineEdit::textEdited, this, [&]{changed=true;});
+    connect(websiteEdit, &QLineEdit::textEdited, this, [&]{changed=true;});
+    connect(usernameEdit, &QLineEdit::textEdited, this, [&]{changed=true;});
+    connect(passwordEdit, &QLineEdit::textEdited, this, [&]{changed=true;});
+    connect(emailEdit, &QLineEdit::textEdited, this, [&]{changed=true;});
+    connect(passwordEdit, &QLineEdit::textEdited, this, [&]{changed=true;});
 }
 
 void DataEntryModulatorDialog::reject(){
     QMessageBox::StandardButton resBtn = QMessageBox::Close;
-    if(xButtonPressed){
+    if(changed && xButtonPressed){
         resBtn = QMessageBox::question(
             this, "Are you sure?",
             tr("Are you sure?\n"),

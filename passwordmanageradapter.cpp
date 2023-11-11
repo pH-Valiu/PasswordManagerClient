@@ -101,7 +101,6 @@ PasswordManagerAdapter::~PasswordManagerAdapter(){
 }
 
 int PasswordManagerAdapter::start(){
-    //model.setUserMasterPW("1234");
     QByteArray storedHashedUserPW = model.getUserMasterPWHash();
 
     if(!storedHashedUserPW.isEmpty()){

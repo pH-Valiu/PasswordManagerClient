@@ -53,7 +53,8 @@ InitialSetupDialog::InitialSetupDialog(QWidget* parent) :
     connect(passwordLineEdit, &QLineEdit::returnPressed, this, [&]{handleSignIn(passwordLineEdit->text());});
     connect(signInButton, &QPushButton::clicked, this, [&]{handleSignIn(passwordLineEdit->text());});
 
-    //this->setFixedSize(300, 220);
+    this->setMinimumSize(QSize(400, 300));
+    this->setMaximumSize(QSize(400, 450));
     this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     this->setLayout(mainLayout);
 }

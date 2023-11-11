@@ -29,6 +29,7 @@ private:
     QPushButton* saveButton;
     QPushButton* closeButton;
     bool xButtonPressed = true;
+    bool changed = false;
 
     void connectSignalSlots();
 private slots:
