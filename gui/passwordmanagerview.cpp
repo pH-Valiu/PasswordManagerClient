@@ -11,22 +11,8 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
     entriesWidget = new QWidget(this);
     entriesLayout = new QVBoxLayout();
 
-
-
-    scrollArea = new QScrollArea(entriesWidget);
-    scrollAreaWidget = new QWidget(scrollArea);
-    scrollAreaLayout = new QVBoxLayout();
-    scrollAreaLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
-
-    scrollAreaWidget->setLayout(scrollAreaLayout);
-
-    scrollArea->setWidget(scrollAreaWidget);
-
-
-
     entriesHeaderWidget = new QWidget(entriesWidget);
     entriesHeaderLayout = new QHBoxLayout();
-
 
 
     addEntryButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/add.ico")),"",entriesHeaderWidget);
@@ -45,6 +31,18 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
     entriesHeaderLayout->addWidget(searchLineEdit, 0, Qt::AlignRight);
     entriesHeaderLayout->setSpacing(0);
     entriesHeaderWidget->setLayout(entriesHeaderLayout);
+
+
+
+    scrollArea = new QScrollArea(entriesWidget);
+    scrollAreaWidget = new QWidget(scrollArea);
+    scrollAreaLayout = new QVBoxLayout();
+    scrollAreaLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+
+    scrollAreaWidget->setLayout(scrollAreaLayout);
+
+    scrollArea->setWidget(scrollAreaWidget);
+
 
     entriesLayout->addWidget(entriesHeaderWidget);
     entriesLayout->addWidget(scrollArea);

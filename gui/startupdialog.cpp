@@ -2,6 +2,7 @@
 #include <QBoxLayout>
 #include <QFont>
 #include <QCryptographicHash>
+#include <QPasswordDigestor>
 #include <QCoreApplication>
 
 StartupDialog::StartupDialog(QWidget* parent, const QByteArray& hashedUserPW) :
@@ -53,14 +54,18 @@ StartupDialog::~StartupDialog(){
 }
 
 void StartupDialog::authenticateUser(const QString &masterPW){
-    QByteArray hashedPW = QCryptographicHash::hash(masterPW.toUtf8(), QCryptographicHash::Blake2b_512);
+    QByteArray hashedPW = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
+                                                             masterPW.toUtf8(),
+                                                             "1dn9vm-sadm4t§$:F;$§§f3)&46²€af",
+                                                             50,
+                                                             64);
 
     if(this->storedHashedUserPW == hashedPW){
         emit userAuthenticated(masterPW);
         passwordLineEdit->clear();
         this->close();
     }else{
-        informationLabel->setText("<a style= color:red>password incorrect</a>");
+        informationLabel->setText("<a style= color:red>Password incorrect!</a>");
     }
 }
 

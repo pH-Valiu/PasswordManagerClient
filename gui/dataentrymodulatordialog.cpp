@@ -24,6 +24,7 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(QString headerName, std::uniq
     QHBoxLayout* hboxName = new QHBoxLayout();
     hboxName->addWidget(topLabel);
 
+
     nameWidget->setLayout(hboxName);
 
     vbox->addWidget(nameWidget);

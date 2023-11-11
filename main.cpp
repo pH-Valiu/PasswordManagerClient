@@ -27,7 +27,19 @@ int main(int argc, char *argv[])
     return 0;
 #else
     PasswordManagerAdapter adapter;
-
+    int retCode = adapter.start();
+    switch(retCode){
+    case 0:
+        //all fine
+        break;
+    case 1:
+        //new user -> all fine
+        break;
+    case 2:
+        //error -> quit
+        return 2;
+    }
     return a.exec();
+
 #endif
 }

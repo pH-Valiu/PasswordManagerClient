@@ -11,6 +11,7 @@ LIBS += \
 SOURCES += \
     $$PWD/dataentrymodulator.cpp \
     $$PWD/gui/dataentrymodulatordialog.cpp \
+    $$PWD/gui/initialsetupdialog.cpp \
     $$PWD/gui/passwordmanagerview.cpp \
     $$PWD/gui/dataentrywidget.cpp \
     $$PWD/gui/startupdialog.cpp \
@@ -26,6 +27,7 @@ SOURCES += \
 HEADERS += \
     $$PWD/dataentrymodulator.h \
     $$PWD/gui/dataentrymodulatordialog.h \
+    $$PWD/gui/initialsetupdialog.h \
     $$PWD/gui/passwordmanagerview.h \
     $$PWD/gui/dataentrywidget.h \
     $$PWD/gui/startupdialog.h \

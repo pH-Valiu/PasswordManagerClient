@@ -7,6 +7,7 @@
 #include "gui/passwordmanagerview.h"
 #include "gui/dataentrywidget.h"
 #include "gui/startupdialog.h"
+#include "gui/initialsetupdialog.h"
 
 
 class PasswordManagerAdapter : public QObject
@@ -15,10 +16,12 @@ class PasswordManagerAdapter : public QObject
 public:
     PasswordManagerAdapter();
     ~PasswordManagerAdapter();
+    int start();
 private:
     PasswordManagerModel& model;
-    QPointer<PasswordManagerView> view;
-    QPointer<StartupDialog> startupDialog;
+    std::unique_ptr<PasswordManagerView> view;
+    std::unique_ptr<StartupDialog> startupDialog;
+    std::unique_ptr<InitialSetupDialog> initialSetupDialg;
     QSharedPointer<QByteArray> masterPW;
 
     void showMainWindow();
@@ -27,6 +30,7 @@ private:
     bool protectMasterPW();
 private slots:
     void handleSave();
+    void handleNewUser(const QString& userMasterPW);
     void handleAuthenticateCompleted(const QString& userMasterPW);
     void handleShow(const QByteArray& id, DataEntryWidget* widget);
     void handleEdit(const QByteArray& id, DataEntryWidget* widget);
@@ -34,6 +38,7 @@ private slots:
     void handleCreate();
     void handleInsertion(QSharedPointer<DataEntry>);
     void handleSearch(const QString& identifier);
+signals:
 };
 
 #endif // PASSWORDMANAGERADAPTER_H

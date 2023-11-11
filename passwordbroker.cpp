@@ -382,9 +382,10 @@ QByteArray PasswordBroker::getUserMasterPWHash(){
 
         QFile hashedPWFile(applicationPath + "/database/pw");
         if(!hashedPWFile.exists() || hashedPWFile.size() == 0){
-            return QByteArray();
+            //PW FILE DOES NOT EXIST
+            //MessageHandler::critical("Password file does not yet exist!");
         }
-        if(hashedPWFile.open(QIODevice::ReadOnly)){
+        else if(hashedPWFile.open(QIODevice::ReadOnly)){
             QTextStream pwInput(&hashedPWFile);
             QByteArray storedHashedPW = QByteArray::fromBase64(pwInput.readAll().toUtf8());
             hashedPWFile.close();
@@ -394,10 +395,7 @@ QByteArray PasswordBroker::getUserMasterPWHash(){
             //PW FILE COULD NOT BE OPENED
             //ABORT
             MessageHandler::warn("Password file could not be opened: " + hashedPWFile.errorString());
-            return QByteArray();
         }
-    }else{
-        return QByteArray();
     }
     return QByteArray();
 }
@@ -411,13 +409,19 @@ bool PasswordBroker::validateUserMasterPW(const QString& userMasterPW){
 
         QFile hashedPWFile(applicationPath + "/database/pw");
         if(!hashedPWFile.exists() || hashedPWFile.size() == 0){
+            //PW FILE DOES NOT EXIST
+            MessageHandler::critical("Password file does not yet exist!");
             return false;
         }
-        if(hashedPWFile.open(QIODevice::ReadOnly)){
+        else if(hashedPWFile.open(QIODevice::ReadOnly)){
             QTextStream pwInput(&hashedPWFile);
             QByteArray storedHashedPW = QByteArray::fromBase64(pwInput.readAll().toUtf8());
             hashedPWFile.close();
-            QByteArray hashedPW = QCryptographicHash::hash(userMasterPW.toUtf8(), QCryptographicHash::Blake2b_512);
+            QByteArray hashedPW = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
+                                                                      userMasterPW.toUtf8(),
+                                                                      "1dn9vm-sadm4t§$:F;$§§f3)&46²€af",
+                                                                      50,
+                                                                      64);
 
             if(storedHashedPW == hashedPW){
                 return true;
@@ -447,7 +451,11 @@ bool PasswordBroker::setUserMasterPW(const QString& userMasterPW){
     }
     if(hashedPWFile.open(QIODevice::WriteOnly)){
         QTextStream pwInput(&hashedPWFile);
-        QByteArray hashedPW = QCryptographicHash::hash(userMasterPW.toUtf8(), QCryptographicHash::Blake2b_512);
+        QByteArray hashedPW = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
+                                                                 userMasterPW.toUtf8(),
+                                                                 "1dn9vm-sadm4t§$:F;$§§f3)&46²€af",
+                                                                 50,
+                                                                 64);
 
         pwInput << QString::fromUtf8(hashedPW.toBase64());
         pwInput.flush();

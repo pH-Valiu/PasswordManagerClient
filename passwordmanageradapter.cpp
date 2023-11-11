@@ -4,26 +4,15 @@
 #include <dpapi.h>
 #include <wincrypt.h>
 #include <QMessageBox>
+#include <QApplication>
 #include <QPasswordDigestor>
 #include "gui/startupdialog.h"
 
 
 PasswordManagerAdapter::PasswordManagerAdapter() :
     QObject(nullptr),
-    model{PasswordManagerModel::getInstance()},
-    view{new PasswordManagerView()}
+    model{PasswordManagerModel::getInstance()}
 {
-
-    /*
-
-    */
-    model.setUserMasterPW("1234");
-
-    startupDialog = new StartupDialog(view, model.getUserMasterPWHash());
-    connect(startupDialog, &StartupDialog::userAuthenticated, this, &PasswordManagerAdapter::handleAuthenticateCompleted);
-    startupDialog->show();
-
-
     /*
 
 
@@ -96,20 +85,51 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
 PasswordManagerAdapter::~PasswordManagerAdapter(){
     //QSharedPointer::clear()
     masterPW.clear();
+
+    /*
     if(!startupDialog.isNull()){
-        delete startupDialog;
+        startupDialog.reset();
+    }
+    if(!initialSetupDialg.isNull()){
+        initialSetupDialg.reset();
     }
     if(!view.isNull()){
-        delete view;
-
+        view.reset();
     }
+    */
     model.removeAllEntries();
 }
 
+int PasswordManagerAdapter::start(){
+    //model.setUserMasterPW("1234");
+    QByteArray storedHashedUserPW = model.getUserMasterPWHash();
+
+    if(!storedHashedUserPW.isEmpty()){
+        //Show StartupDialog
+        startupDialog = std::unique_ptr<StartupDialog>(new StartupDialog(nullptr, model.getUserMasterPWHash()));
+        connect(startupDialog.get(), &StartupDialog::userAuthenticated, this, &PasswordManagerAdapter::handleAuthenticateCompleted);
+        startupDialog->show();
+        return 0;
+    }else{
+        //Show InitialSetupDialog
+        initialSetupDialg = std::unique_ptr<InitialSetupDialog>(new InitialSetupDialog(nullptr));
+        connect(initialSetupDialg.get(), &InitialSetupDialog::newUser, this, &PasswordManagerAdapter::handleNewUser);
+        initialSetupDialg->show();
+        return 1;
+    }
+}
+
 void PasswordManagerAdapter::showMainWindow(){
+    view = std::unique_ptr<PasswordManagerView>(new PasswordManagerView(nullptr));
+
     unprotectMasterPW();
-    model.startBroker(masterPW);
+    if(!model.startBroker(masterPW)){
+        protectMasterPW();
+        QApplication::exit(-1);
+        return;
+    }
     protectMasterPW();
+
 
 
     const QVector<QSharedPointer<DataEntry>> list = model.getAllEntries();
@@ -127,10 +147,10 @@ void PasswordManagerAdapter::showMainWindow(){
 }
 
 void PasswordManagerAdapter::connectSignalSlots(){
-    connect(view, &PasswordManagerView::addEntryButtonClicked, this, &PasswordManagerAdapter::handleCreate);
-    connect(view, &PasswordManagerView::newEntry, this, &PasswordManagerAdapter::handleInsertion);
-    connect(view, &PasswordManagerView::searchEntry, this, &PasswordManagerAdapter::handleSearch);
-    connect(view, &PasswordManagerView::saveButtonClicked, this, &PasswordManagerAdapter::handleSave);
+    connect(view.get(), &PasswordManagerView::addEntryButtonClicked, this, &PasswordManagerAdapter::handleCreate);
+    connect(view.get(), &PasswordManagerView::newEntry, this, &PasswordManagerAdapter::handleInsertion);
+    connect(view.get(), &PasswordManagerView::searchEntry, this, &PasswordManagerAdapter::handleSearch);
+    connect(view.get(), &PasswordManagerView::saveButtonClicked, this, &PasswordManagerAdapter::handleSave);
 
 }
 
@@ -187,6 +207,20 @@ void PasswordManagerAdapter::handleSave(){
     unprotectMasterPW();
     model.saveBroker(masterPW);
     protectMasterPW();
+}
+
+void PasswordManagerAdapter::handleNewUser(const QString &userMasterPW){
+    this->masterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
+                                                                                                  userMasterPW.toUtf8(),
+                                                                                                  "HKRsdn14n8(Sb§$ ,:,3;",
+                                                                                                  10000,
+                                                                                                  32)));
+    this->masterPW->resize(32);
+
+    model.setUserMasterPW(userMasterPW);
+
+    protectMasterPW();
+    showMainWindow();
 }
 
 void PasswordManagerAdapter::handleAuthenticateCompleted(const QString& userMasterPW){
