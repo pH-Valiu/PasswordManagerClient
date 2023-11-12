@@ -38,6 +38,8 @@ private slots:
     void handleCreate();
     void handleInsertion(QSharedPointer<DataEntry>);
     void handleSearch(const QString& identifier);
+    void handleNewLocalBackup();
+    void handleRevertToLocalBackup(const QString& backup);
 signals:
 };
 

@@ -27,11 +27,6 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
     leftPanelLayout->addWidget(backupListName);
 
     backupList = new QListView(leftPanelWidget);
-    //backupList->setViewMode(QListView::ListMode);
-    //backupList->setFlow(QListView::TopToBottom);
-    //backupList->setWrapping(true);
-    //backupList->setLayoutMode(QListView::SinglePass);
-    //backupList->setMovement(QListView::Static);
     backupList->setSpacing(5);
     backupList->setMinimumSize(QSize(200, 300));
     backupList->setMaximumSize(QSize(200, 900));
@@ -44,14 +39,16 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
     QWidget* leftPanelBackupButtonWidget = new QWidget(leftPanelWidget);
     QHBoxLayout* leftPanelBackupButtonLayout = new QHBoxLayout();
 
-    saveButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/save.ico")), "", entriesHeaderWidget);
-    saveButton->setIconSize(QSize(64, 64));
-    saveButton->setFixedSize(72, 72);
-    remoteSynchronizeBackupButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/remote.ico")),"", leftPanelBackupButtonWidget);
+    newLocalBackupButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/new-backup.ico")), "", leftPanelBackupButtonWidget);
+    newLocalBackupButton->setIconSize(QSize(64, 64));
+    newLocalBackupButton->setFixedSize(72, 72);
+    newLocalBackupButton->setToolTip("New local backup");
+    remoteSynchronizeBackupButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/remote.ico")), "", leftPanelBackupButtonWidget);
     remoteSynchronizeBackupButton->setIconSize(QSize(64, 64));
     remoteSynchronizeBackupButton->setFixedSize(72, 72);
+    remoteSynchronizeBackupButton->setToolTip("Synchronize with cloud");
 
-    leftPanelBackupButtonLayout->addWidget(saveButton, 0 ,Qt::AlignLeft);
+    leftPanelBackupButtonLayout->addWidget(newLocalBackupButton, 0 ,Qt::AlignLeft);
     leftPanelBackupButtonLayout->addSpacing(5);
     leftPanelBackupButtonLayout->addWidget(remoteSynchronizeBackupButton, 0 ,Qt::AlignLeft);
     leftPanelBackupButtonLayout->addStretch();
@@ -64,6 +61,7 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
     settingsButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/settings.ico")),"", leftPanelWidget);
     settingsButton->setIconSize(QSize(64, 64));
     settingsButton->setFixedSize(72, 72);
+    settingsButton->setToolTip("Settings");
     leftPanelLayout->addWidget(settingsButton);
     //leftPanelLayout->addStretch();
     leftPanelLayout->addStretch();
@@ -77,9 +75,14 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
     entriesHeaderLayout = new QHBoxLayout();
 
 
-    addEntryButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/add.ico")),"",entriesHeaderWidget);
+    addEntryButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/add.ico")), "", entriesHeaderWidget);
     addEntryButton->setIconSize(QSize(32, 32));
     addEntryButton->setFixedSize(48, 48);
+    addEntryButton->setToolTip("Add new data entry");
+    saveButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/save.ico")), "", entriesHeaderWidget);
+    saveButton->setIconSize(QSize(32, 32));
+    saveButton->setFixedSize(48, 48);
+    saveButton->setToolTip("Save to disk");
 
 
     searchLineEdit = new QLineEdit(entriesHeaderWidget);
@@ -87,6 +90,9 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
     searchLineEdit->setClearButtonEnabled(true);
     searchLineEdit->addAction(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/search.ico")), QLineEdit::LeadingPosition);
     entriesHeaderLayout->addWidget(addEntryButton, 0, Qt::AlignLeft);
+    entriesHeaderLayout->addSpacing(5);
+    entriesHeaderLayout->addWidget(saveButton, 0, Qt::AlignLeft);
+    entriesHeaderLayout->addStretch();
     entriesHeaderLayout->addWidget(searchLineEdit, 0, Qt::AlignRight);
     entriesHeaderLayout->setSpacing(0);
     entriesHeaderWidget->setLayout(entriesHeaderLayout);
@@ -134,12 +140,14 @@ void PasswordManagerView::connectSignalSlots(){
     connect(addEntryButton, &QPushButton::clicked, this, [&]{emit addEntryButtonClicked();});
     connect(saveButton, &QPushButton::clicked, this, [&]{emit saveButtonClicked();});
     connect(searchLineEdit, &QLineEdit::editingFinished, this, [&]{emit searchEntry(searchLineEdit->text());});
+    connect(newLocalBackupButton, &QPushButton::clicked, this, [&]{emit newLocalBackupButtonClicked();});
     connect(backupList, &QAbstractItemView::activated, this, &PasswordManagerView::handleBackupClicked);
 }
 
 void PasswordManagerView::addDataEntryWidget(DataEntryWidget* dataEntryWidget){
     scrollAreaLayout->addWidget(dataEntryWidget);
     dataEntryWidget->setParent(scrollAreaWidget);
+    dataEntryWidget->setObjectName("dataEntryWidget");
     scrollArea->update();
 }
 
@@ -147,6 +155,31 @@ void PasswordManagerView::removeDataEntryWidget(DataEntryWidget* dataEntryWidget
     scrollAreaLayout->removeWidget(dataEntryWidget);
     delete dataEntryWidget;
     scrollArea->update();
+}
+
+void PasswordManagerView::removeAllDataEntryWidgets(){
+    //deletes all of its children as well
+    //and removes itself from the children list of his parent scrollArea
+    delete scrollAreaWidget;
+
+    //reinstantiate scrollareaWidget and scrollAreaLayout
+    scrollAreaWidget = new QWidget(scrollArea);
+    scrollAreaLayout = new QVBoxLayout();
+    scrollAreaLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+
+    scrollAreaWidget->setLayout(scrollAreaLayout);
+
+    //re-set parent/child relationship between scrollArea and scrollAreaWidget
+    scrollArea->setWidget(scrollAreaWidget);
+}
+
+void PasswordManagerView::hideAllDataEntryWidgets(){
+    foreach(DataEntryWidget* object, scrollArea->findChildren<DataEntryWidget *>("dataEntryWidget")){
+        if(object){
+            object->updateContent();
+            object->switchShowButtonIcon(false);
+        }
+    }
 }
 
 void PasswordManagerView::createDataEntry(std::unique_ptr<DataEntryBuilder> builder){
@@ -193,21 +226,36 @@ void PasswordManagerView::setLocalBackups(const QList<QStandardItem* > &backupLi
     }
 }
 
+void PasswordManagerView::addLocalBackup(QStandardItem *backupItem){
+    backupListModel->insertRow(0, backupItem);
+}
+
 void PasswordManagerView::handleBackupClicked(const QModelIndex &backupIndex){
     QString backup = backupListModel->item(backupIndex.row())->text();
 
-    QMessageBox::StandardButton resBtn = QMessageBox::Cancel;
-    QString text = "Are your sure you want to revert to backup: ";
+    QMessageBox msgBox;
+    QString text = "Do you want to revert to backup:\n";
     text.append(backup).append("?\n");
-    resBtn = QMessageBox::question(
-        this, "Are you sure?",
-        text,
-        QMessageBox::Yes | QMessageBox::Cancel,
-        QMessageBox::Cancel);
+    msgBox.setText(text);
+    QAbstractButton* onlyRevert = msgBox.addButton("Only revert", QMessageBox::YesRole);
+    QAbstractButton* backupAndRevert = msgBox.addButton("New backup and revert", QMessageBox::AcceptRole);
+    msgBox.addButton(QMessageBox::Cancel);
+    msgBox.setWindowTitle("Are you sure?");
+    msgBox.setIcon(QMessageBox::Question);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
 
-
-    if (resBtn == QMessageBox::Yes) {
+    msgBox.exec();
+    if(msgBox.clickedButton() == onlyRevert){
+        //only revert
         emit revertToLocalBackup(backup);
+
+    }else if(msgBox.clickedButton() == backupAndRevert){
+        //new backup and revert
+        emit newLocalBackupButtonClicked();
+        emit revertToLocalBackup(backup);
+
+    }else{
+        //cancel
     }
 
 }

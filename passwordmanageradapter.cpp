@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QApplication>
 #include <QPasswordDigestor>
+#include "messagehandler.h"
 #include "gui/startupdialog.h"
 
 
@@ -97,7 +98,8 @@ void PasswordManagerAdapter::connectSignalSlots(){
     connect(view.get(), &PasswordManagerView::newEntry, this, &PasswordManagerAdapter::handleInsertion);
     connect(view.get(), &PasswordManagerView::searchEntry, this, &PasswordManagerAdapter::handleSearch);
     connect(view.get(), &PasswordManagerView::saveButtonClicked, this, &PasswordManagerAdapter::handleSave);
-    connect(view.get(), &PasswordManagerView::revertToLocalBackup, this, [&](const QString& backup){qDebug()<<"Backup: "<<backup;});
+    connect(view.get(), &PasswordManagerView::revertToLocalBackup, this, &PasswordManagerAdapter::handleRevertToLocalBackup);
+    connect(view.get(), &PasswordManagerView::newLocalBackupButtonClicked, this, &PasswordManagerAdapter::handleNewLocalBackup);
 
 }
 
@@ -152,8 +154,14 @@ bool PasswordManagerAdapter::protectMasterPW(){
 
 void PasswordManagerAdapter::handleSave(){
     unprotectMasterPW();
-    model.saveBroker(masterPW);
+    bool flag = model.saveBroker(masterPW);
     protectMasterPW();
+
+    if(flag){
+        MessageHandler::inform("Successfully saved the data entries to the disk.");
+    }else{
+        MessageHandler::warn("Saving of PasswordManagerModel failed!");
+    }
 }
 
 void PasswordManagerAdapter::handleNewUser(const QString &userMasterPW){
@@ -241,7 +249,7 @@ void PasswordManagerAdapter::handleEdit(const QByteArray& id, DataEntryWidget* w
 void PasswordManagerAdapter::handleDelete(const QByteArray& id, DataEntryWidget* widget){
     QMessageBox::StandardButton resBtn =  QMessageBox::question(
             widget, "Are you sure?",
-            "Do you really want to delete data entry: "+widget->getName()+"?\n",
+            "Do you really want to delete data entry:\n"+widget->getName()+"?\n",
             QMessageBox::Yes | QMessageBox::No,
             QMessageBox::No);
 
@@ -283,3 +291,83 @@ void PasswordManagerAdapter::handleSearch(const QString& identifier){
     }
 }
 
+void PasswordManagerAdapter::handleNewLocalBackup(){
+    //block user input
+    view->setEnabled(false);
+
+    //hide all DataEntries as well as DataEntryWidgets
+    //save brokers fileData into database directory
+    unprotectMasterPW();
+    model.hideAllEntries(masterPW);
+    bool retFlag = model.saveBroker(masterPW);
+    protectMasterPW();
+    view->hideAllDataEntryWidgets();
+
+    //create new local backup
+    QString currentBackupName;
+    if(retFlag){
+        currentBackupName = model.newLocalBackup();
+
+        //add new local backup to localBackupList in PasswordManagerView
+        if(!currentBackupName.isNull() && !currentBackupName.isEmpty()){
+            QStandardItem* newListItem = new QStandardItem(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/backup.ico")), currentBackupName);
+            newListItem->setEditable(false);
+            view->addLocalBackup(newListItem);
+        }else{
+            MessageHandler::inform("Could not create a new local backup");
+        }
+    }else{
+        MessageHandler::warn("Could not create a new local backup because saving of PasswordBroker failed.");
+    }
+
+
+    //reenable user input
+    view->setEnabled(true);
+}
+
+void PasswordManagerAdapter::handleRevertToLocalBackup(const QString &backup){
+    //block input from user
+    view->setEnabled(false);
+
+    //hide all DataEntries as well as DataEntryWidgets
+    unprotectMasterPW();
+    model.hideAllEntries(masterPW);
+    protectMasterPW();
+    view->hideAllDataEntryWidgets();
+
+
+    //clear model/broker and view of any "old" DataEntries as well as DataEntryWidgets
+    model.removeAllEntries();
+    view->removeAllDataEntryWidgets();
+
+    //revert to older local backup
+    if(model.revertToOlderLocalBackup(backup)){
+        MessageHandler::inform("Successfully reverted to backup:\n"+backup);
+    }else{
+        MessageHandler::warn("Reversal to backup: "+backup+" failed");
+    }
+
+    //restart broker (fetchFileData)
+    unprotectMasterPW();
+    if(!model.startBroker(masterPW)){
+        protectMasterPW();
+        MessageHandler::critical("Restarting broker did not work. Exiting application");
+        QApplication::exit(-1);
+        return;
+    }
+    protectMasterPW();
+
+    //refill PasswordManagerView with "new" DataEntryWidgets
+    const QVector<QSharedPointer<DataEntry>> list = model.getAllEntries();
+
+    for(qsizetype i=0; i<list.size(); i++){
+        DataEntryWidget* dataEntryWidget = new DataEntryWidget(list.at(i));
+        connect(dataEntryWidget, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
+        connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
+        connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
+        view->addDataEntryWidget(dataEntryWidget);
+    }
+
+    //reenable user input
+    view->setEnabled(true);
+}

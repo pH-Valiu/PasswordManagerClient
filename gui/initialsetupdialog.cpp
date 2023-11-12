@@ -97,6 +97,7 @@ void InitialSetupDialog::handleSignIn(const QString& userMasterPW){
     }
 
 
+
     if(regexFine){
         emit newUser(userMasterPW);
         passwordLineEdit->clear();

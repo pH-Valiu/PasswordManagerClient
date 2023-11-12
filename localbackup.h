@@ -49,14 +49,14 @@ public:
     }
     /**
      * @brief newLocalBackup() copies iv, mac, dataEntries, pw files into a new folder with the current time as the folders name
-     * @return whether the creating of the backup was successful or not
+     * @return if the creation of the backup was successful, it returns the name of the backup, otherwise it returns an empty QString
      */
-    static bool newLocalBackup(){
+    static QString newLocalBackup(){
         QDir workingDirectory = QDir(QCoreApplication::applicationDirPath());
         if(!workingDirectory.exists()){
             //ERROR
             MessageHandler::critical("Working Directory does not exist?", "Critical Error:");
-            return false;
+            return "";
         }
 
         QString databasePath = QCoreApplication::applicationDirPath().append("/database/");
@@ -65,7 +65,7 @@ public:
         if(!filePW.exists()){
             //ERROR
             MessageHandler::warn("PW file doesn't exist");
-            return false;
+            return "";
         }
         if(filePW.open(QIODevice::ReadOnly)){
             QTextStream pwInput(&filePW);
@@ -75,7 +75,7 @@ public:
             //PW FILE COULD NOT BE OPENED
             //ABORT
             MessageHandler::warn("PW file could not be opened: " + filePW.errorString());
-            return false;
+            return "";
         }
 
 
@@ -84,7 +84,7 @@ public:
         if(!fileIv.exists()){
             //ERROR
             MessageHandler::warn("IV file doesn't exist");
-            return false;
+            return "";
         }
         if(fileIv.open(QIODevice::ReadOnly)){
             QTextStream ivInput(&fileIv);
@@ -94,7 +94,7 @@ public:
             //IV FILE COULD NOT BE OPENED
             //ABORT
             MessageHandler::warn("IV file could not be opened: " + fileIv.errorString());
-            return false;
+            return "";
         }
 
 
@@ -102,7 +102,7 @@ public:
         QString macData;
         if(!fileMAC.exists()){
             MessageHandler::warn("MAC file doesn't exist");
-            return false;
+            return "";
         }
         if(fileMAC.open(QIODevice::ReadOnly)){
             QTextStream macInput(&fileMAC);
@@ -112,7 +112,7 @@ public:
             //MAC FILE COULD NOT BE OPENED
             //ABORT
             MessageHandler::warn("MAC file could not be opened: " + fileMAC.errorString());
-            return false;
+            return "";
         }
 
 
@@ -120,7 +120,7 @@ public:
         QString dataEntriesData;
         if(!fileEntries.exists()){
             MessageHandler::warn("DataEntries file doesn't exist");
-            return false;
+            return "";
         }
         if(fileEntries.open(QIODevice::ReadOnly)){
             QTextStream entriesInput(&fileEntries);
@@ -130,7 +130,7 @@ public:
             //DATAENTRIES FILE COULD NOT BE OPENEND
             //ABORT
             MessageHandler::warn("DataEntries file could not be opened: " + fileEntries.errorString());
-            return false;
+            return "";
         }
 
 
@@ -150,7 +150,7 @@ public:
             filePWCopy.close();
         }else{
             MessageHandler::warn("PW backup file could not be opened: " + filePWCopy.errorString());
-            return false;
+            return "";
         }
 
         QFile fileIvCopy(backupPath + "iv");
@@ -161,7 +161,7 @@ public:
             fileIvCopy.close();
         }else{
             MessageHandler::warn("IV backup file could not be opened: " + fileIvCopy.errorString());
-            return false;
+            return "";
         }
 
         QFile fileMacCopy(backupPath + "mac");
@@ -172,7 +172,7 @@ public:
             fileMacCopy.close();
         }else{
             MessageHandler::warn("MAC backup file could not be opened: " + fileMacCopy.errorString());
-            return false;
+            return "";
         }
 
         QFile fileDataEntriesCopy(backupPath + "dataEntries");
@@ -183,11 +183,11 @@ public:
             fileDataEntriesCopy.close();
         }else{
             MessageHandler::warn("DataEntries backup file could not be opened: " + fileDataEntriesCopy.errorString());
-            return false;
+            return "";
         }
 
 
-        return true;
+        return backupName;
     }
 
     /**

@@ -23,16 +23,20 @@ public:
     void scrollTo(const QByteArray& entryID);
 public slots:
     void setLocalBackups(const QList<QStandardItem* >& backupList);
+    void addLocalBackup(QStandardItem* backupItem);
     void addDataEntryWidget(DataEntryWidget*);
     /**
      * @brief removeDataEntryWidget removes the widget from the layout and deletes it afterwards
      */
     void removeDataEntryWidget(DataEntryWidget*);
+    void removeAllDataEntryWidgets();
+    void hideAllDataEntryWidgets();
 private:
     QWidget* mainWidget;
     QListView* backupList;
     QStandardItemModel* backupListModel;
     QPushButton* settingsButton;
+    QPushButton* newLocalBackupButton;
     QPushButton* remoteSynchronizeBackupButton;
     QWidget* scrollAreaWidget;
     QVBoxLayout* scrollAreaLayout;
@@ -56,6 +60,7 @@ signals:
     void newEntry(QSharedPointer<DataEntry>);
     void saveButtonClicked();
     void revertToLocalBackup(QString backup);
+    void newLocalBackupButtonClicked();
 };
 
 #endif // PASSWORDMANAGERVIEW_H

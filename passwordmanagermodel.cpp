@@ -66,6 +66,18 @@ int PasswordManagerModel::hideEntry(const QByteArray& id, const QSharedPointer<Q
     return 0;
 }
 
+int PasswordManagerModel::hideAllEntries(const QSharedPointer<QByteArray> &masterPW){
+    int i=0;
+    if(masterPW){
+        foreach(const QSharedPointer<DataEntry>& entry, broker.getAllEntries()){
+            if(entry->encryptContent(masterPW->constData())){
+                i++;
+            }
+        }
+    }
+    return i;
+}
+
 void PasswordManagerModel::addEntry(QSharedPointer<DataEntry>& entry){
     broker.addEntry(entry);
 }
@@ -113,11 +125,13 @@ QList<QString> PasswordManagerModel::getlAllLocalBackups(){
 
 bool PasswordManagerModel::saveBroker(const QSharedPointer<QByteArray> &masterPW){
     if(masterPW){
-        if(broker.storeFileData(masterPW->constData())){
-            return LocalBackup::newLocalBackup();
-        }
+        return broker.storeFileData(masterPW->constData());
     }
     return false;
+}
+
+QString PasswordManagerModel::newLocalBackup(){
+    return LocalBackup::newLocalBackup();
 }
 
 bool PasswordManagerModel::revertToOlderLocalBackup(const QString& folderName){

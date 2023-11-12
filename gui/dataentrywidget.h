@@ -17,7 +17,11 @@ public:
     QString getName()       {return name->text();}
     QByteArray getID()      {return dataEntry->getID();}
 public slots:
-    void switchShowButtonIcon(bool eyeClosed) const;
+    /**
+     * @brief switchShowButtonIcon calls updateContent() internally
+     * @param eyeClosed
+     */
+    void switchShowButtonIcon(bool eyeClosed);
     void updateContent();
 private:
     QSharedPointer<const DataEntry> dataEntry;

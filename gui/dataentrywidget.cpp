@@ -86,15 +86,21 @@ void DataEntryWidget::setupButtonPanel(QVBoxLayout* entryLayout){
     editButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/edit.ico")), "", buttonPanel);
     editButton->setIconSize(QSize(32, 32));
     editButton->setFixedSize(48, 48);
+    editButton->setToolTip("Edit data entry");
     showButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/show.ico")), "", buttonPanel);
     showButton->setIconSize(QSize(32, 32));
     showButton->setFixedSize(48, 48);
+    showButton->setToolTip("Show data entry");
     deleteButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/delete.ico")), "", buttonPanel);
     deleteButton->setIconSize(QSize(32, 32));
     deleteButton->setFixedSize(48, 48);
-    topButtonLayout->addWidget(editButton);
-    topButtonLayout->addWidget(showButton);
-    topButtonLayout->addWidget(deleteButton);
+    deleteButton->setToolTip("Delete data entry");
+
+    topButtonLayout->addWidget(editButton, 0, Qt::AlignLeft);
+    topButtonLayout->addStretch();
+    topButtonLayout->addWidget(showButton, 0, Qt::AlignHCenter);
+    topButtonLayout->addStretch();
+    topButtonLayout->addWidget(deleteButton, 0, Qt::AlignRight);
 
     buttonPanel->setLayout(topButtonLayout);
     buttonPanel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -163,16 +169,16 @@ void DataEntryWidget::setupContentPanel(QVBoxLayout *entryLayout){
     QIcon copyIcon(QCoreApplication::applicationDirPath().append("/gui/ico/copy.ico"));
     usernameCopyButton = new QPushButton(copyIcon, "", t1rWid);
     usernameCopyButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    usernameCopyButton->setToolTip("copy username");
+    usernameCopyButton->setToolTip("Copy username");
     emailCopyButton = new QPushButton(copyIcon, "", t1rWid);
     emailCopyButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    emailCopyButton->setToolTip("copy email");
+    emailCopyButton->setToolTip("Copy email");
     passwordCopyButton = new QPushButton(copyIcon, "", t1rWid);
     passwordCopyButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    passwordCopyButton->setToolTip("copy password");
+    passwordCopyButton->setToolTip("Copy password");
     detailsCopyButton = new QPushButton(copyIcon, "", t1rWid);
     detailsCopyButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    detailsCopyButton->setToolTip("copy details");
+    detailsCopyButton->setToolTip("Copy details");
 
     QHBoxLayout* contentLayout = new QHBoxLayout();
     QVBoxLayout* t1l = new QVBoxLayout();
@@ -213,12 +219,13 @@ void DataEntryWidget::connectSignalSlots(){
     connect(deleteButton, &QPushButton::clicked, this, [&]{emit deleteClicked(dataEntry->getID(), this);});
 }
 
-void DataEntryWidget::switchShowButtonIcon(bool eyeClosed) const{
+void DataEntryWidget::switchShowButtonIcon(bool eyeClosed) {
     if(eyeClosed){
         showButton->setIcon(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/dont-show.ico")));
     }else{
         showButton->setIcon(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/show.ico")));
     }
+    updateContent();
 }
 
 void DataEntryWidget::updateContent(){

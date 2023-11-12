@@ -52,7 +52,7 @@ public:
      */
     int showEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW);
     /**
-     * @brief showEntry encrypts secret content of dataEntry using its id as the identifier
+     * @brief hideEntry encrypts secret content of dataEntry using its id as the identifier
      * @param id of the dataEntry
      * @param pointer to the masterPW
      * @return 0 if id was not findable
@@ -64,6 +64,13 @@ public:
      * 1 if dataEntry got encrypted
      */
     int hideEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW);
+
+    /**
+     * @brief hideAllEntries tries to perform encryptData() on each entry inside of PasswordManagerBroker
+     * @param pointer to the mastePW
+     * @return number of entries encrypted, can be different from all entries count
+     */
+    int hideAllEntries(const QSharedPointer<QByteArray>& masterPW);
 
     void addEntry(QSharedPointer<DataEntry>& entry);
     /**
@@ -80,9 +87,33 @@ public:
     const QVector<QSharedPointer<DataEntry>> getAllEntries(){return broker.getAllEntries();}
     QByteArray searchEntry(const QString& identifier);
 
+    /**
+     * @brief startBroker performs broker.fetchFileData()
+     * @param pointer to the masterPW
+     * @return false if masterPW is nullptr and otherwise broker.fetchFileData()
+     */
     bool startBroker(const QSharedPointer<QByteArray>& masterPW);
+    /**
+     * @brief saveBroker performs broker.storeFileData()
+     * @param pointer to the masterPW
+     * @return false if masterPW is nullptr and otherwise broker.storeFileData()
+     */
     bool saveBroker(const QSharedPointer<QByteArray>& masterPW);
+    /**
+     * @brief newLocalBackup performs LocalBackup::newLocalBackup()
+     * @return return value of LocalBackup::newLocalBackup()
+     */
+    QString newLocalBackup();
+    /**
+     * @brief revertToOlderLocalBackup performs LocalBackup::reverToBackup(folderName)
+     * @param folderName of the local backup
+     * @return return value of LocalBackup::reverToBackup()
+     */
     bool revertToOlderLocalBackup(const QString& folderName);
+    /**
+     * @brief getlAllLocalBackups performs LocalBackup::getAllLocalBackups()
+     * @return return value of LocalBackup::getAllLocalBackups()
+     */
     QList<QString> getlAllLocalBackups();
 
     bool validateUserMasterPW(const QString& userMasterPW);
