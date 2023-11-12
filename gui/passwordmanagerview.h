@@ -6,6 +6,8 @@
 #include <QLayout>
 #include <QPushButton>
 #include <QLineEdit>
+#include <QListView>
+#include <QStandardItemModel>
 #include <QScrollArea>
 #include "gui/dataentrywidget.h"
 #include "dataentrymodulator.h"
@@ -20,12 +22,18 @@ public:
     void createDataEntry(std::unique_ptr<DataEntryBuilder>);
     void scrollTo(const QByteArray& entryID);
 public slots:
+    void setLocalBackups(const QList<QStandardItem* >& backupList);
     void addDataEntryWidget(DataEntryWidget*);
     /**
      * @brief removeDataEntryWidget removes the widget from the layout and deletes it afterwards
      */
     void removeDataEntryWidget(DataEntryWidget*);
 private:
+    QWidget* mainWidget;
+    QListView* backupList;
+    QStandardItemModel* backupListModel;
+    QPushButton* settingsButton;
+    QPushButton* remoteSynchronizeBackupButton;
     QWidget* scrollAreaWidget;
     QVBoxLayout* scrollAreaLayout;
     QScrollArea* scrollArea;
@@ -39,6 +47,7 @@ private:
 
 
     void connectSignalSlots();
+    void handleBackupClicked(const QModelIndex& backupIndex);
 
 
 signals:
@@ -46,6 +55,7 @@ signals:
     void searchEntry(QString identifier);
     void newEntry(QSharedPointer<DataEntry>);
     void saveButtonClicked();
+    void revertToLocalBackup(QString backup);
 };
 
 #endif // PASSWORDMANAGERVIEW_H

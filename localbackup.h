@@ -23,6 +23,31 @@ class LocalBackup
 {
 public:
     /**
+     * @brief getAllLocalBackups reads from localbackup folder
+     * @return QList containing each backups name (timestamp of the backup) or empty directory in error cases
+     */
+    static QList<QString> getAllLocalBackups(){
+        QDir workingDirectory = QDir(QCoreApplication::applicationDirPath());
+        if(!workingDirectory.exists()){
+            //ERROR
+            MessageHandler::critical("Working Directory does not exist?", "Critical Error:");
+            return QList<QString>();
+        }
+
+        workingDirectory.mkdir("local-backups");
+        QDir localBackupDirectory = QDir(QCoreApplication::applicationDirPath().append("/local-backups/"));
+
+        if(!localBackupDirectory.exists()){
+            //ERROR
+            return QList<QString>();
+        }
+
+        QStringList nameFilters;
+        nameFilters << "*";
+        return localBackupDirectory.entryList(nameFilters, QDir::Dirs, QDir::Time);
+
+    }
+    /**
      * @brief newLocalBackup() copies iv, mac, dataEntries, pw files into a new folder with the current time as the folders name
      * @return whether the creating of the backup was successful or not
      */

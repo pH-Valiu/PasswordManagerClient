@@ -117,7 +117,7 @@ void DataEntryModulatorDialog::reject(){
         resBtn = QMessageBox::question(
             this, "Are you sure?",
             tr("Are you sure?\n"),
-            QMessageBox::Cancel | QMessageBox::Save | QMessageBox::Yes,
+            QMessageBox::Yes | QMessageBox::Save | QMessageBox::Cancel,
             QMessageBox::Cancel);
     }
 

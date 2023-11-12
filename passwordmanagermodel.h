@@ -3,6 +3,8 @@
 
 #include "passwordbroker.h"
 #include <QObject>
+#include <QList>
+#include <QString>
 #include <QSharedPointer>
 #include "dataentry.h"
 
@@ -81,6 +83,7 @@ public:
     bool startBroker(const QSharedPointer<QByteArray>& masterPW);
     bool saveBroker(const QSharedPointer<QByteArray>& masterPW);
     bool revertToOlderLocalBackup(const QString& folderName);
+    QList<QString> getlAllLocalBackups();
 
     bool validateUserMasterPW(const QString& userMasterPW);
     QByteArray getUserMasterPWHash();

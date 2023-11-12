@@ -107,6 +107,10 @@ bool PasswordManagerModel::startBroker(const QSharedPointer<QByteArray> &masterP
     return false;
 }
 
+QList<QString> PasswordManagerModel::getlAllLocalBackups(){
+    return LocalBackup::getAllLocalBackups();
+}
+
 bool PasswordManagerModel::saveBroker(const QSharedPointer<QByteArray> &masterPW){
     if(masterPW){
         if(broker.storeFileData(masterPW->constData())){

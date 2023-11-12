@@ -69,6 +69,7 @@ void InitialSetupDialog::handleSignIn(const QString& userMasterPW){
     QString endTag = "</a>";
     QString errorHeader = "Password must contain:<br>";
 
+
     if(!QRegularExpression("^.{10,}$").match(userMasterPW).hasMatch()){
         QString errorNum = " - At least 10 characters";
         errorHeader.append(startTag).append(errorNum).append(endTag).append("<br>");
@@ -94,6 +95,7 @@ void InitialSetupDialog::handleSignIn(const QString& userMasterPW){
         errorHeader.append(startTag).append(errorSpecial).append(endTag).append("<br>");
         regexFine = false;
     }
+
 
     if(regexFine){
         emit newUser(userMasterPW);

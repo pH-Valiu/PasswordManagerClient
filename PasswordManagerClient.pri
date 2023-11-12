@@ -51,4 +51,7 @@ DISTFILES += \
     $$PWD/gui/ico/delete.ico \
     $$PWD/gui/ico/search.ico \
     $$PWD/gui/ico/add.ico \
-    $$PWD/gui/ico/enter.ico
+    $$PWD/gui/ico/enter.ico \
+    $$PWD/gui/ico/backup.ico \
+    $$PWD/gui/ico/settings.ico \
+    $$PWD/gui/ico/remote.ico

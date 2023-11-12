@@ -13,73 +13,6 @@ PasswordManagerAdapter::PasswordManagerAdapter() :
     QObject(nullptr),
     model{PasswordManagerModel::getInstance()}
 {
-    /*
-
-
-    const QVector<QSharedPointer<DataEntry>> list = model.getAllEntries();
-    for(qsizetype i=0; i<list.size(); i++){
-        DataEntryWidget* dataEntryWidget = new DataEntryWidget(list.at(i));
-        connect(dataEntryWidget, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
-        connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
-        connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
-        view->addDataEntryWidget(dataEntryWidget);
-    }
-    */
-
-
-    /*
-    unprotectMasterPW();
-    QSharedPointer<DataEntry> testEntry1;
-    DataEntryBuilder builder(masterPW->constData());
-    builder.modulateName("Apple");
-    builder.modulateDetails("Just call up the website² and \"log\" in ?*?");
-    builder.modulateWebsite("https://apple.com/database?query=user-log_on#");
-    builder.modulateUsername("user1");
-    builder.modulatePassword(",~£:1Od33jy+lj");
-    builder.modulateEmail("user1@apple.com");
-    testEntry1 = builder.modulate();
-
-    model.addEntry(testEntry1);
-
-
-    DataEntryWidget* dataEntryWidget = new DataEntryWidget(testEntry1);
-
-    QSharedPointer<DataEntry> testEntry2;
-    DataEntryBuilder builder2(masterPW->constData());
-    builder2.modulateName("Amazon");
-    builder2.modulateDetails("Your online shipping service");
-    builder2.modulateWebsite("https://amazon.com/");
-    builder2.modulateUsername("user2");
-    builder2.modulatePassword("passwort stark");
-    builder2.modulateEmail("user2@amazon.com");
-    testEntry2 = builder2.modulate();
-
-    model.addEntry(testEntry2);
-
-    protectMasterPW();
-
-
-    DataEntryWidget* dataEntryWidget2 = new DataEntryWidget(testEntry2);
-    view->addDataEntryWidget(dataEntryWidget);
-    view->addDataEntryWidget(dataEntryWidget2);
-
-
-
-    connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
-    connect(dataEntryWidget2, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
-    connect(dataEntryWidget, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
-    connect(dataEntryWidget2, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
-    connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
-    connect(dataEntryWidget2, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
-    */
-
-
-
-    /*
-    unprotectMasterPW();
-    model.saveBroker(masterPW);
-    protectMasterPW();
-    */
 }
 
 PasswordManagerAdapter::~PasswordManagerAdapter(){
@@ -131,6 +64,7 @@ void PasswordManagerAdapter::showMainWindow(){
 
 
 
+    //add each DataEntry intp PasswordManagerView after creation of DataEntryWidget
     const QVector<QSharedPointer<DataEntry>> list = model.getAllEntries();
 
     for(qsizetype i=0; i<list.size(); i++){
@@ -141,6 +75,19 @@ void PasswordManagerAdapter::showMainWindow(){
         view->addDataEntryWidget(dataEntryWidget);
     }
 
+    //set local backups in PasswordManagerView
+    QList<QStandardItem*> localBackupList;
+    QIcon backupIcon(QCoreApplication::applicationDirPath().append("/gui/ico/backup.ico"));
+    foreach(const QString& backup, model.getlAllLocalBackups()){
+        if(backup != "." && backup != ".."){
+            QStandardItem* item = new QStandardItem(backupIcon, backup);
+            item->setEditable(false);
+            localBackupList.append(item);
+        }
+    }
+    view->setLocalBackups(localBackupList);
+
+
     connectSignalSlots();
     view->show();
 }
@@ -150,6 +97,7 @@ void PasswordManagerAdapter::connectSignalSlots(){
     connect(view.get(), &PasswordManagerView::newEntry, this, &PasswordManagerAdapter::handleInsertion);
     connect(view.get(), &PasswordManagerView::searchEntry, this, &PasswordManagerAdapter::handleSearch);
     connect(view.get(), &PasswordManagerView::saveButtonClicked, this, &PasswordManagerAdapter::handleSave);
+    connect(view.get(), &PasswordManagerView::revertToLocalBackup, this, [&](const QString& backup){qDebug()<<"Backup: "<<backup;});
 
 }
 
