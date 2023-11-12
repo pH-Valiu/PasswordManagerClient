@@ -20,17 +20,17 @@ PasswordManagerAdapter::~PasswordManagerAdapter(){
     //QSharedPointer::clear()
     masterPW.clear();
 
-    /*
-    if(!startupDialog.isNull()){
+
+    if(startupDialog){
         startupDialog.reset();
     }
-    if(!initialSetupDialg.isNull()){
+    if(initialSetupDialg){
         initialSetupDialg.reset();
     }
-    if(!view.isNull()){
+    if(view){
         view.reset();
     }
-    */
+
     model.removeAllEntries();
 }
 
