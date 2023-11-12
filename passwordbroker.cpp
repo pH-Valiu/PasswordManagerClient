@@ -361,12 +361,12 @@ QSharedPointer<DataEntry> PasswordBroker::getEntryFromWebsite(const QString& web
 
 QByteArray PasswordBroker::searchEntry(const QString& identifier){
     for(qsizetype i=0; i<vector.size(); i++){
-        if(vector.at(i)->getName().contains(identifier)){
+        if(vector.at(i)->getName().toLower().contains(identifier.toLower())){
             return vector.at(i)->getID();
         }
     }
     for(qsizetype i=0; i<vector.size(); i++){
-        if(vector.at(i)->getWebsite().contains(identifier)){
+        if(vector.at(i)->getWebsite().toLower().contains(identifier.toLower())){
             return vector.at(i)->getID();
         }
     }
