@@ -123,6 +123,10 @@ QList<QString> PasswordManagerModel::getlAllLocalBackups(){
     return LocalBackup::getAllLocalBackups();
 }
 
+QString PasswordManagerModel::getOneBackupNewer(const QString &currentBackup){
+    return LocalBackup::getOneBackupNewer(currentBackup);
+}
+
 bool PasswordManagerModel::saveBroker(const QSharedPointer<QByteArray> &masterPW){
     if(masterPW){
         return broker.storeFileData(masterPW->constData());

@@ -7,7 +7,7 @@
 #include <QApplication>
 #include <QPasswordDigestor>
 #include "messagehandler.h"
-#include "gui/startupdialog.h"
+#include "startupdialog.h"
 
 
 PasswordManagerAdapter::PasswordManagerAdapter() :
@@ -100,7 +100,7 @@ void PasswordManagerAdapter::connectSignalSlots(){
     connect(view.get(), &PasswordManagerView::saveButtonClicked, this, &PasswordManagerAdapter::handleSave);
     connect(view.get(), &PasswordManagerView::revertToLocalBackup, this, &PasswordManagerAdapter::handleRevertToLocalBackup);
     connect(view.get(), &PasswordManagerView::newLocalBackupButtonClicked, this, &PasswordManagerAdapter::handleNewLocalBackup);
-
+    connect(view.get(), &PasswordManagerView::onClose, this, &PasswordManagerAdapter::handleMainWindowClose);
 }
 
 bool PasswordManagerAdapter::unprotectMasterPW(){
@@ -335,27 +335,44 @@ void PasswordManagerAdapter::handleRevertToLocalBackup(const QString &backup){
     protectMasterPW();
     view->hideAllDataEntryWidgets();
 
-
-    //clear model/broker and view of any "old" DataEntries as well as DataEntryWidgets
-    model.removeAllEntries();
+    //clear view of any "old" DataEntries and DataEntryWidgets
     view->removeAllDataEntryWidgets();
 
-    //revert to older local backup
-    if(model.revertToOlderLocalBackup(backup)){
-        MessageHandler::inform("Successfully reverted to backup:\n"+backup);
-    }else{
-        MessageHandler::warn("Reversal to backup: "+backup+" failed");
-    }
 
-    //restart broker (fetchFileData)
-    unprotectMasterPW();
-    if(!model.startBroker(masterPW)){
-        protectMasterPW();
-        MessageHandler::critical("Restarting broker did not work. Exiting application");
-        QApplication::exit(-1);
-        return;
-    }
-    protectMasterPW();
+    bool restartDidntWorkFlag = false;
+    QString backupToRevertTo = backup;
+    do{
+        //clear model/broker of any "old" DataEntries
+        model.removeAllEntries();
+
+        //revert to older local backup
+        if(!model.revertToOlderLocalBackup(backupToRevertTo)){
+            MessageHandler::critical("Reverting to backup: "+backupToRevertTo+" failed.\nPlease approach an administrator and try reverting to an even older backup.", "Password-Loss-Probability Error:");
+        }
+
+        //restart broker (fetchFileData)
+        unprotectMasterPW();
+        if(!model.startBroker(masterPW)){
+            protectMasterPW();
+            restartDidntWorkFlag = true;
+
+            //go one backup newer until restart works
+            //OR CRASH INDEFINATELY!!!
+            QString newerBackup = model.getOneBackupNewer(backupToRevertTo);
+            if(!newerBackup.isEmpty()){
+                MessageHandler::warn("Reverting to backup: "+backupToRevertTo+" failed.\nTrying to revert to newer backup: "+newerBackup);
+                backupToRevertTo = newerBackup;
+            }else{
+                MessageHandler::critical("Reverting to backup: "+backupToRevertTo+" failed.\nNo more newer backups available to revert to.\nPlease consult an administrator.\nIf you have changed your master password lately, restart the password manager and use your old master password to log in.\nThen change your master password back to your current one and create a new backup.\nExiting application now.", "Password-Loss-Probability Error:");
+                QApplication::exit(-1);
+                return;
+            }
+        }else{
+            protectMasterPW();
+            restartDidntWorkFlag = false;
+        }
+    }while(restartDidntWorkFlag);
+
 
     //refill PasswordManagerView with "new" DataEntryWidgets
     const QVector<QSharedPointer<DataEntry>> list = model.getAllEntries();
@@ -367,7 +384,18 @@ void PasswordManagerAdapter::handleRevertToLocalBackup(const QString &backup){
         connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
         view->addDataEntryWidget(dataEntryWidget);
     }
+    MessageHandler::inform("Successfully reverted to backup:\n"+backupToRevertTo);
 
     //reenable user input
     view->setEnabled(true);
+}
+
+void PasswordManagerAdapter::handleMainWindowClose(){
+    unprotectMasterPW();
+    bool flag = model.saveBroker(masterPW);
+    protectMasterPW();
+
+    if(!flag){
+        MessageHandler::warn("Saving of PasswordManagerModel failed!");
+    }
 }

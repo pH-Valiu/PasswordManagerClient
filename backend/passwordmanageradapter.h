@@ -4,10 +4,10 @@
 #include <QObject>
 #include <QPointer>
 #include "passwordmanagermodel.h"
-#include "gui/passwordmanagerview.h"
-#include "gui/dataentrywidget.h"
-#include "gui/startupdialog.h"
-#include "gui/initialsetupdialog.h"
+#include "passwordmanagerview.h"
+#include "dataentrywidget.h"
+#include "startupdialog.h"
+#include "initialsetupdialog.h"
 
 
 class PasswordManagerAdapter : public QObject
@@ -40,6 +40,7 @@ private slots:
     void handleSearch(const QString& identifier);
     void handleNewLocalBackup();
     void handleRevertToLocalBackup(const QString& backup);
+    void handleMainWindowClose();
 signals:
 };
 

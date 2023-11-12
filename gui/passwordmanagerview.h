@@ -9,7 +9,7 @@
 #include <QListView>
 #include <QStandardItemModel>
 #include <QScrollArea>
-#include "gui/dataentrywidget.h"
+#include "dataentrywidget.h"
 #include "dataentrymodulator.h"
 
 class PasswordManagerView : public QMainWindow
@@ -21,7 +21,6 @@ public:
     void editDataEntry(std::unique_ptr<DataEntryEditor>, DataEntryWidget*);
     void createDataEntry(std::unique_ptr<DataEntryBuilder>);
     void scrollTo(const QByteArray& entryID);
-public slots:
     void setLocalBackups(const QList<QStandardItem* >& backupList);
     void addLocalBackup(QStandardItem* backupItem);
     void addDataEntryWidget(DataEntryWidget*);
@@ -31,6 +30,7 @@ public slots:
     void removeDataEntryWidget(DataEntryWidget*);
     void removeAllDataEntryWidgets();
     void hideAllDataEntryWidgets();
+    void closeEvent(QCloseEvent* event);
 private:
     QWidget* mainWidget;
     QListView* backupList;
@@ -61,6 +61,7 @@ signals:
     void saveButtonClicked();
     void revertToLocalBackup(QString backup);
     void newLocalBackupButtonClicked();
+    void onClose();
 };
 
 #endif // PASSWORDMANAGERVIEW_H

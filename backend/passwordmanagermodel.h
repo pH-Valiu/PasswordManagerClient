@@ -115,6 +115,7 @@ public:
      * @return return value of LocalBackup::getAllLocalBackups()
      */
     QList<QString> getlAllLocalBackups();
+    QString getOneBackupNewer(const QString& currentBackup);
 
     bool validateUserMasterPW(const QString& userMasterPW);
     QByteArray getUserMasterPWHash();

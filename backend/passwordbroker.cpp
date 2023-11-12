@@ -169,6 +169,7 @@ bool PasswordBroker::storeFileData(const QByteArray& masterPW){
             return false;
         }
 
+
         if(encryptData(masterPW)){
             QFile fileMAC(applicationDirPath + "/database/mac");
             if(fileMAC.exists()){

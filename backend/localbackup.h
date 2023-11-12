@@ -5,6 +5,7 @@
 #include <QCoreApplication>
 #include <QString>
 #include <QFile>
+#include <QStringList>
 #include <QDir>
 
 
@@ -44,8 +45,41 @@ public:
 
         QStringList nameFilters;
         nameFilters << "*";
-        return localBackupDirectory.entryList(nameFilters, QDir::Dirs, QDir::Time);
+        return localBackupDirectory.entryList(nameFilters, QDir::Dirs | QDir::NoDotAndDotDot, QDir::Time);
 
+    }
+
+    /**
+     * @brief getOneBackupNewer searches for the next newer/younger backup than the one given
+     * @param folderName representing the base backup that is 'one' older than the backup being searched for
+     * @return empty QString if there is no newer backup or the name of the one newer/younger backup
+     */
+    static QString getOneBackupNewer(const QString& folderName){
+        QDir workingDirectory = QDir(QCoreApplication::applicationDirPath());
+        if(!workingDirectory.exists()){
+            //ERROR
+            MessageHandler::critical("Working Directory does not exist?", "Critical Error:");
+            return "";
+        }
+
+        workingDirectory.mkdir("local-backups");
+        QDir localBackupDirectory = QDir(QCoreApplication::applicationDirPath().append("/local-backups/"));
+
+        if(!localBackupDirectory.exists()){
+            //ERROR
+            MessageHandler::warn("There do not exist any local backups?");
+            return "";
+        }
+        QStringList nameFilters;
+        nameFilters << "*";
+
+        QList<QString> allBackups = localBackupDirectory.entryList(nameFilters, QDir::Dirs | QDir::NoDotAndDotDot, QDir::Time);
+        int currentIndex = allBackups.indexOf(folderName);
+        if(--currentIndex >= 0){
+            return allBackups.at(currentIndex);
+        }else{
+            return "";
+        }
     }
     /**
      * @brief newLocalBackup() copies iv, mac, dataEntries, pw files into a new folder with the current time as the folders name

@@ -1,5 +1,5 @@
 #include "passwordmanagerview.h"
-#include "gui/dataentrymodulatordialog.h"
+#include "dataentrymodulatordialog.h"
 
 #include <QCoreApplication>
 #include <QMessageBox>
@@ -237,7 +237,7 @@ void PasswordManagerView::handleBackupClicked(const QModelIndex &backupIndex){
     QString text = "Do you want to revert to backup:\n";
     text.append(backup).append("?\n");
     msgBox.setText(text);
-    QAbstractButton* onlyRevert = msgBox.addButton("Only revert", QMessageBox::YesRole);
+    QAbstractButton* onlyRevert = msgBox.addButton("Revert", QMessageBox::YesRole);
     QAbstractButton* backupAndRevert = msgBox.addButton("New backup and revert", QMessageBox::AcceptRole);
     msgBox.addButton(QMessageBox::Cancel);
     msgBox.setWindowTitle("Are you sure?");
@@ -258,4 +258,9 @@ void PasswordManagerView::handleBackupClicked(const QModelIndex &backupIndex){
         //cancel
     }
 
+}
+
+void PasswordManagerView::closeEvent(QCloseEvent *event){
+    emit onClose();
+    QMainWindow::closeEvent(event);
 }

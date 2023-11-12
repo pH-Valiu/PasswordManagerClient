@@ -1,7 +1,9 @@
 # Important so that I can just type '#inlcude "qaesencryption.h' without specifying the folder the header file is in
 INCLUDEPATH += \
     $$PWD/libraries/QAES \
-    $$PWD/libraries/WinCrypt
+    $$PWD/libraries/WinCrypt\
+    $$PWD/backend \
+    $$PWD/gui
 
 LIBS += \
     "-L$$PWD/libraries/QAES" -lqaesencryption \
@@ -9,36 +11,36 @@ LIBS += \
 
 
 SOURCES += \
-    $$PWD/dataentrymodulator.cpp \
+    $$PWD/backend/dataentrymodulator.cpp \
     $$PWD/gui/dataentrymodulatordialog.cpp \
     $$PWD/gui/initialsetupdialog.cpp \
     $$PWD/gui/passwordmanagerview.cpp \
     $$PWD/gui/dataentrywidget.cpp \
     $$PWD/gui/startupdialog.cpp \
-    $$PWD/messagehandler.cpp \
-    $$PWD/passwordmanageradapter.cpp \
-    $$PWD/passwordmanagermodel.cpp \
+    $$PWD/backend/messagehandler.cpp \
+    $$PWD/backend/passwordmanageradapter.cpp \
+    $$PWD/backend/passwordmanagermodel.cpp \
     $$PWD/unit_test/passwordbrokertest.cpp \
     $$PWD/unit_test/dataentrytest.cpp \
-    $$PWD/dataentry.cpp \
-    $$PWD/passwordbroker.cpp \
+    $$PWD/backend/dataentry.cpp \
+    $$PWD/backend/passwordbroker.cpp \
     $$PWD/main.cpp
 
 HEADERS += \
-    $$PWD/dataentrymodulator.h \
+    $$PWD/backend/dataentrymodulator.h \
     $$PWD/gui/dataentrymodulatordialog.h \
     $$PWD/gui/initialsetupdialog.h \
     $$PWD/gui/passwordmanagerview.h \
     $$PWD/gui/dataentrywidget.h \
     $$PWD/gui/startupdialog.h \
-    $$PWD/localbackup.h \
-    $$PWD/messagehandler.h \
-    $$PWD/passwordmanageradapter.h \
-    $$PWD/passwordmanagermodel.h \
+    $$PWD/backend/localbackup.h \
+    $$PWD/backend/messagehandler.h \
+    $$PWD/backend/passwordmanageradapter.h \
+    $$PWD/backend/passwordmanagermodel.h \
     $$PWD/unit_test/passwordbrokertest.h \
     $$PWD/unit_test/dataentrytest.h \
-    $$PWD/dataentry.h \
-    $$PWD/passwordbroker.h
+    $$PWD/backend/dataentry.h \
+    $$PWD/backend/passwordbroker.h
 
 FORMS +=
 
