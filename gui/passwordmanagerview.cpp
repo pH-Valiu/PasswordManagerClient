@@ -133,6 +133,9 @@ PasswordManagerView::~PasswordManagerView(){
     //delete scrollAreaLayout;
     //delete scrollAreaWidget;
     //delete scrollArea;
+    if(settingsDialog){
+        settingsDialog.reset();
+    }
     delete entriesWidget;
 }
 
@@ -142,6 +145,7 @@ void PasswordManagerView::connectSignalSlots(){
     connect(searchLineEdit, &QLineEdit::editingFinished, this, [&]{emit searchEntry(searchLineEdit->text());});
     connect(newLocalBackupButton, &QPushButton::clicked, this, [&]{emit newLocalBackupButtonClicked();});
     connect(backupList, &QAbstractItemView::activated, this, &PasswordManagerView::handleBackupClicked);
+    connect(settingsButton, &QPushButton::clicked, this, &PasswordManagerView::handleSettingsClicked);
 }
 
 void PasswordManagerView::addDataEntryWidget(DataEntryWidget* dataEntryWidget){
@@ -258,6 +262,11 @@ void PasswordManagerView::handleBackupClicked(const QModelIndex &backupIndex){
         //cancel
     }
 
+}
+
+void PasswordManagerView::handleSettingsClicked(){
+    settingsDialog = std::unique_ptr<SettingsDialog>(new SettingsDialog(this));
+    settingsDialog->show();
 }
 
 void PasswordManagerView::closeEvent(QCloseEvent *event){

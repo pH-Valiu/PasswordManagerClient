@@ -11,6 +11,7 @@
 #include <QScrollArea>
 #include "dataentrywidget.h"
 #include "dataentrymodulator.h"
+#include "settingsdialog.h"
 
 class PasswordManagerView : public QMainWindow
 {
@@ -49,9 +50,14 @@ private:
     QPushButton* saveButton;
     QLineEdit* searchLineEdit;
 
+    std::unique_ptr<SettingsDialog> settingsDialog;
+
 
     void connectSignalSlots();
+private slots:
     void handleBackupClicked(const QModelIndex& backupIndex);
+    void handleSettingsClicked();
+
 
 
 signals:

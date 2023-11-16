@@ -16,6 +16,7 @@ SOURCES += \
     $$PWD/gui/initialsetupdialog.cpp \
     $$PWD/gui/passwordmanagerview.cpp \
     $$PWD/gui/dataentrywidget.cpp \
+    $$PWD/gui/settingsdialog.cpp \
     $$PWD/gui/startupdialog.cpp \
     $$PWD/backend/messagehandler.cpp \
     $$PWD/backend/passwordmanageradapter.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     $$PWD/gui/initialsetupdialog.h \
     $$PWD/gui/passwordmanagerview.h \
     $$PWD/gui/dataentrywidget.h \
+    $$PWD/gui/settingsdialog.h \
     $$PWD/gui/startupdialog.h \
     $$PWD/backend/localbackup.h \
     $$PWD/backend/messagehandler.h \
