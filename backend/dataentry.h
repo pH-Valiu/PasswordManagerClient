@@ -16,7 +16,30 @@ class DataEntry {
 public:
     ~DataEntry();
     QJsonObject toJsonObject() const;//done
+    /**
+     * @brief decryptContent decrypts midKey with the masterPW, derives its hash (midKeySalt) and compares it with midKeyHash
+     *
+     * If not successfull -> return false, otherwise
+     *
+     * Decrypt encryptedContent using plainMidKey and try to parse it as QJSonDocument
+     *
+     * If not successfull (parse error) -> return false, otherwise
+     *
+     * Fill DataEntry::confidentialData with data from decrypted json-content
+     * @param masterPW already derived from the user masterPW
+     * @return true if everything worked as planned, false if hashes did not align, or parse error occurred, or masterPW had the wrong size
+     */
     bool decryptContent(const QSharedPointer<QByteArray>& masterPW); //done
+    /**
+     * @brief encryptContent decrypts midKey with the masterPW, derives its hash (midKeySalt) and compares it with midKeyHash
+     *
+     * If not successfull -> return false, otherwise
+     *
+     * Create QJsonDocument from DataEntry::confidentialData and encrypt it with plainMidKey
+     * Update encryptedContent to that result
+     * @param masterPW already derived from the user masterPW
+     * @return true if everything worked as planned, false if hashes did not align, or masterPW had the wrong size
+     */
     bool encryptContent(const QSharedPointer<QByteArray>& masterPW); //done
     bool isPlain() const                                        {return plain;}
     QString getName() const                                     {return name;}
@@ -28,7 +51,8 @@ public:
     QString getPassword() const                  {return password.value_or("");}
     QString getDetails() const                   {return details.value_or("");}
     void clearData(){
-        name.clear();id=0;website.reset();lastChanged=QDateTime();ivInner.clear();ivMidKey.clear(); midKey.clear();
+        name.clear();id=0;website.reset();lastChanged=QDateTime();ivInner.clear();
+        ivMidKey.clear();midKey.clear();midKeyHash.clear();midKeySalt.clear();
         SecureZeroMemory(encryptedContent.data(), encryptedContent.size());
         encryptedContent.clear();
         clearConfidential();
@@ -69,6 +93,8 @@ private:
     QByteArray ivInner;     //auto.
     QByteArray ivMidKey;    //auto.
     QByteArray midKey;      //auto.
+    QByteArray midKeyHash;  //auto.
+    QByteArray midKeySalt;  //auto.
     std::optional<QString> website;        //opt.
     QByteArray encryptedContent;
     std::optional<QString> email;          //opt.
@@ -85,11 +111,15 @@ private:
     void setDetails(const std::optional<QString>& details)      {this->details=details;}
     void setLastChanged(const QDateTime& lastChanged)           {this->lastChanged=lastChanged;}
     void setMidKey(const QByteArray& midKey)                    {this->midKey=midKey;}
+    void setMidKeyHash(const QByteArray& midKeyHash)            {this->midKeyHash=midKeyHash;}
+    void setMidKeySalt(const QByteArray& midKeySalt)            {this->midKeySalt=midKeySalt;}
     void setIvInner(const QByteArray& ivInner)                  {this->ivInner=ivInner;}
     void setIvMidKey(const QByteArray& ivMidKey)                {this->ivMidKey=ivMidKey;}
     void setID(const QByteArray& id)                            {this->id=id;}
     void setContent(const QByteArray& content)                  {this->encryptedContent=content;}
     QByteArray getMidKey() const                                {return midKey;}
+    QByteArray getMidKeyHash() const                            {return midKeyHash;}
+    QByteArray getMidKeySalt() const                            {return midKeySalt;}
     QByteArray getContent() const                               {return encryptedContent;}
     QByteArray getIvInner() const                               {return ivInner;}
     QByteArray getIvMidKey() const                              {return ivMidKey;}

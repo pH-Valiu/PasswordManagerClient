@@ -24,15 +24,20 @@ DataEntryBuilder::DataEntryBuilder(const QSharedPointer<QByteArray> &masterPW){
 
 
     srand(QTime::currentTime().minute());
-    QByteArray ivInner, ivMidKey;
+    QByteArray ivInner, ivMidKey, midKeySalt;
     int rnd = rand();
     ivInner.append((unsigned char*) &rnd);
     rnd = rand();
     ivMidKey.append((unsigned char*) &rnd);
+    rnd = rand();
+    midKeySalt.append((unsigned char*) &rnd);
+
+    midKeySalt.resize(16);
     ivInner.resize(16);
     ivMidKey.resize(16);
     dataEntry->setIvInner(ivInner);
     dataEntry->setIvMidKey(ivMidKey);
+    dataEntry->setMidKeySalt(midKeySalt);
 }
 DataEntryBuilder::~DataEntryBuilder(){
 }
@@ -49,6 +54,16 @@ QSharedPointer<DataEntry> DataEntryBuilder::modulate(){
         QByteArray encryptedMidKey = crypter.encode(plainMidKey, *masterPW, dataEntry->getIvMidKey());
         dataEntry->setMidKey(encryptedMidKey);
 
+        QByteArray plainMidKeyHash = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
+                                                                        plainMidKey,
+                                                                        dataEntry->getMidKeySalt(),
+                                                                        SECURITY_CONSTANTS::DATA_ENTRY_MID_KEY_HASH_ITERATIONS,
+                                                                        64);
+        dataEntry->setMidKeyHash(plainMidKeyHash);
+
+
+
+
         QMap<QString, QVariant> map;
         map.insert("username", dataEntry->getUsername());
         map.insert("email", dataEntry->getEMail());
@@ -62,6 +77,7 @@ QSharedPointer<DataEntry> DataEntryBuilder::modulate(){
 
         contentAsJson.clear();
         plainMidKey.clear();
+        plainMidKeyHash.clear();
         dataEntry->clearConfidential();
 
         dataEntry->setLastChanged(QDateTime::currentDateTime());
@@ -78,7 +94,9 @@ void DataEntryBuilder::cancel(){
 QSharedPointer<DataEntry> DataEntryBuilder::fromJsonObject(const QJsonObject &jsonObject){
     QMap<QString, QVariant> map = jsonObject.toVariantMap();
     if(map.contains("name") && map.contains("id") && map.contains("ivInner")
-        && map.contains("ivMidKey") && map.contains("midKey") && map.contains("content")
+        && map.contains("ivMidKey") && map.contains("midKey")
+        && map.contains("midKeyHash") && map.contains("midKeySalt")
+        && map.contains("content")
         && map.contains("lastChanged") && map.contains("website"))
     {
         QSharedPointer<DataEntry> entry = QSharedPointer<DataEntry>(new DataEntry());
@@ -87,6 +105,8 @@ QSharedPointer<DataEntry> DataEntryBuilder::fromJsonObject(const QJsonObject &js
         entry->setIvInner(QByteArray::fromBase64(map.value("ivInner", "").toString().toUtf8()));
         entry->setIvMidKey(QByteArray::fromBase64(map.value("ivMidKey", "").toString().toUtf8()));
         entry->setMidKey(QByteArray::fromBase64(map.value("midKey", "").toString().toUtf8()));
+        entry->setMidKeyHash(QByteArray::fromBase64(map.value("midKeyHash", "").toString().toUtf8()));
+        entry->setMidKeySalt(QByteArray::fromBase64(map.value("midKeySalt", "").toString().toUtf8()));
         entry->setContent(QByteArray::fromBase64(map.value("content", "").toString().toUtf8()));
         entry->setLastChanged(map.value("lastChanged", "").toDateTime());
         if(map.value("website", "").toString().isEmpty()){
@@ -177,7 +197,10 @@ DataEntryEditor::DataEntryEditor(const QSharedPointer<DataEntry> &dataEntry, con
         //deep copy of masterPW (new heap allocation)
         this->masterPW = QSharedPointer<QByteArray>(new QByteArray(*masterPW));
         this->modified = false;
-        dataEntryClone->decryptContent(masterPW);
+        this->passwordOk = true;
+        if(!dataEntryClone->decryptContent(masterPW)){
+            this->passwordOk = false;
+        }
     }
 }
 DataEntryEditor::~DataEntryEditor(){
@@ -186,19 +209,23 @@ DataEntryEditor::~DataEntryEditor(){
 
 QSharedPointer<DataEntry> DataEntryEditor::modulate(){
     QSharedPointer<DataEntry> returnEntry = nullptr;
-    bool encryptionWorked = this->dataEntryClone->encryptContent(masterPW);
-    if(encryptionWorked && modified){
-        dataEntry->setName(dataEntryClone->getName());
-        dataEntry->setWebsite(dataEntryClone->getWebsite());
-        dataEntry->setLastChanged(QDateTime::currentDateTime());
-        dataEntry->setMidKey(dataEntryClone->getMidKey());
-        dataEntry->setContent(dataEntryClone->getContent());
+    if(passwordOk){
+        bool encryptionWorked = this->dataEntryClone->encryptContent(masterPW);
+        if(encryptionWorked && modified){
+            dataEntry->setName(dataEntryClone->getName());
+            dataEntry->setWebsite(dataEntryClone->getWebsite());
+            dataEntry->setLastChanged(QDateTime::currentDateTime());
+            dataEntry->setMidKey(dataEntryClone->getMidKey());
+            dataEntry->setMidKeyHash(dataEntryClone->getMidKeyHash());
+            dataEntry->setMidKeySalt(dataEntryClone->getMidKeySalt());
+            dataEntry->setContent(dataEntryClone->getContent());
 
-        returnEntry = dataEntry;
+            returnEntry = dataEntry;
+        }
+        this->dataEntryClone->clearData();
+        this->modified = false;
+
     }
-
-    this->dataEntryClone->clearData();
-    this->modified = false;
 
     return returnEntry;
 }
@@ -251,17 +278,35 @@ QString DataEntryEditor::getDetails(){
 }
 
 bool DataEntryEditor::changeMasterPassword(const QSharedPointer<QByteArray>& newMasterPW){
-    //if oldMasterPW is incorrect this function will not notify you
-    //it will appear as if everything worked correctly
-    if(this->masterPW && this->masterPW->size() == 32 && newMasterPW && newMasterPW->size() == 32){
-        QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-        QByteArray oldDecryptedMidKey = crypter.removePadding(crypter.decode(dataEntryClone->getMidKey(), *masterPW, dataEntryClone->getIvMidKey()));
-        QByteArray newEncryptedMidKey = crypter.encode(oldDecryptedMidKey, *newMasterPW, dataEntryClone->getIvMidKey());
+    if(passwordOk){
+        if(this->masterPW && this->masterPW->size() == 32 && newMasterPW && newMasterPW->size() == 32){
+            QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
+            QByteArray oldDecryptedMidKey = crypter.removePadding(crypter.decode(dataEntryClone->getMidKey(), *masterPW, dataEntryClone->getIvMidKey()));
+            QByteArray oldDecryptedMidKeyHash = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
+                                                                                   oldDecryptedMidKey,
+                                                                                   dataEntryClone->getMidKeySalt(),
+                                                                                   SECURITY_CONSTANTS::DATA_ENTRY_MID_KEY_HASH_ITERATIONS,
+                                                                                   64);
+            if(oldDecryptedMidKeyHash != dataEntryClone->getMidKeyHash()){
+                //derived hash != stored hash
+                //return false
+                oldDecryptedMidKey.clear();
+                oldDecryptedMidKeyHash.clear();
+                return false;
+            }
+            QByteArray newEncryptedMidKey = crypter.encode(oldDecryptedMidKey, *newMasterPW, dataEntryClone->getIvMidKey());
+            dataEntryClone->setMidKey(newEncryptedMidKey);
 
-        dataEntryClone->setMidKey(newEncryptedMidKey);
-        this->masterPW = newMasterPW;
-        modified = true;
-        return true;
+            oldDecryptedMidKey.clear();
+            oldDecryptedMidKeyHash.clear();
+            newEncryptedMidKey.clear();
+
+            this->masterPW = newMasterPW;
+            modified = true;
+            return true;
+        }else{
+            return false;
+        }
     }else{
         return false;
     }

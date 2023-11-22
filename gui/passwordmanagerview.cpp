@@ -136,7 +136,7 @@ PasswordManagerView::~PasswordManagerView(){
     if(settingsDialog){
         settingsDialog.reset();
     }
-    delete entriesWidget;
+    delete mainWidget;
 }
 
 void PasswordManagerView::connectSignalSlots(){
@@ -265,7 +265,14 @@ void PasswordManagerView::handleBackupClicked(const QModelIndex &backupIndex){
 }
 
 void PasswordManagerView::handleSettingsClicked(){
+    //this->setEnabled(false);
     settingsDialog = std::unique_ptr<SettingsDialog>(new SettingsDialog(this));
+    /*connect(settingsDialog, &SettingsDialog::closing, this, [&]{
+        this->setEnabled(true);
+        //do stuff, you know what to do...
+        this->update();
+    });
+    */
     settingsDialog->show();
 }
 

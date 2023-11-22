@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
     PasswordBrokerTest passwordBrokerTest;
     QTest::qExec(&dataEntryTest);
     QTest::qExec(&passwordBrokerTest);
+    qDebug()<<"FINISHED";
     // :)
     return 0;
 #else

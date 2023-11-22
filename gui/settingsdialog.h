@@ -17,8 +17,14 @@ private:
     QLineEdit* newMasterPWLineEdit;
     QLineEdit* newMasterPWRepeatLineEdit;
     QPushButton* changeMasterPWButton;
+
+    void setupChangeMasterPW();
 public:
     SettingsDialog(QWidget* parent);
+    ~SettingsDialog();
+signals:
+    void passwordChanged(const QByteArray& newMasterPWPlain);
+    void closing();
 };
 
 #endif // SETTINGSDIALOG_H

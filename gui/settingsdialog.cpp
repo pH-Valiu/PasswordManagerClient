@@ -7,6 +7,21 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 {
     mainLayout = new QVBoxLayout();
 
+
+    setupChangeMasterPW();
+
+    this->setWindowTitle("Settings");
+    this->setLayout(mainLayout);
+}
+
+SettingsDialog::~SettingsDialog(){
+    oldMasterPWLineEdit->clear();
+    newMasterPWLineEdit->clear();
+    newMasterPWRepeatLineEdit->clear();
+}
+
+void SettingsDialog::setupChangeMasterPW(){
+
     QWidget* chMasterPWWidget = new QWidget(this);
     QVBoxLayout* chMasterPWLayout = new QVBoxLayout();
     QLabel* chMasterPWLabel = new QLabel("Change master password:", chMasterPWWidget);
@@ -32,8 +47,14 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     chMasterPWLayout->addWidget(newMasterPWRepeatLineEdit);
 
 
+    changeMasterPWButton = new QPushButton("Save", chMasterPWWidget);
+    changeMasterPWButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    chMasterPWLayout->addWidget(changeMasterPWButton);
 
-    //Missing Save Button!!!
+    /*
+    connect(changeMasterPWButton, &QPushButton::clicked, this, [&]{
+    })*/
+
 
     chMasterPWWidget->setLayout(chMasterPWLayout);
     mainLayout->addWidget(chMasterPWWidget);
@@ -48,7 +69,4 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
     mainLayout->addStretch();
     mainLayout->addStretch();
 
-
-    this->setWindowTitle("Settings");
-    this->setLayout(mainLayout);
 }

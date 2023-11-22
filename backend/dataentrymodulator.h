@@ -77,6 +77,10 @@ public:
     DataEntryEditor& operator = (DataEntryEditor&&) = default;
     ~DataEntryEditor();
 
+    /**
+     * @brief modulate
+     * @return nullptr if masterPW passed in constructor was wrong, QSharedPointer<DataEntry> pointing to the modified dataEntry if everything worked
+     */
     QSharedPointer<DataEntry> modulate();
     void cancel();
 
@@ -93,10 +97,21 @@ public:
     QString getPassword();
     QString getDetails();
 
+    /**
+     * @brief changeMasterPassword decrypts midKey and compares its dervied hash value (midKeySalt) with midKeyHash
+     *
+     * If the comparision was unsuccessfull -> return false, otherwise
+     *
+     * Enrypt plainMidKey with newMasterPW and set it in dataEntryClone
+     *
+     * @param newMasterPW already derived from the user masterPW
+     * @return true if the change was successfull, false if it wasn't (hashes did not align) or masterPW passed in constructor was wrong
+     */
     bool changeMasterPassword(const QSharedPointer<QByteArray> &newMasterPW);
 private:
     std::unique_ptr<DataEntry> dataEntryClone = nullptr;
     bool modified;
+    bool passwordOk;
 };
 
 #endif // DATAENTRYMODULATOR_H

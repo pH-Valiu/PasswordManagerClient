@@ -14,6 +14,8 @@ QJsonObject DataEntry::toJsonObject() const{
     map.insert("ivInner", QString::fromUtf8(getIvInner().toBase64()));
     map.insert("ivMidKey", QString::fromUtf8(getIvMidKey().toBase64()));
     map.insert("midKey", QString::fromUtf8(getMidKey().toBase64()));
+    map.insert("midKeyHash", QString::fromUtf8(getMidKeyHash().toBase64()));
+    map.insert("midKeySalt", QString::fromUtf8(getMidKeySalt().toBase64()));
     map.insert("lastChanged", getLastChanged());
     map.insert("website", getWebsite());
     map.insert("content", QString::fromUtf8(getContent().toBase64()));
@@ -22,12 +24,36 @@ QJsonObject DataEntry::toJsonObject() const{
 }
 
 bool DataEntry::decryptContent(const QSharedPointer<QByteArray>& masterPW){
-    //function won't notify you about wrong masterPW
     if(!this->encryptedContent.isNull() && !this->encryptedContent.isEmpty() && masterPW && masterPW->size() == 32 && !plain){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, *masterPW, this->ivMidKey));
+
+        //check decryptedMidKey with midKeyHash
+        QByteArray decryptedMidKeyHash = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
+                                                                            decryptedMidKey,
+                                                                            this->midKeySalt,
+                                                                            SECURITY_CONSTANTS::DATA_ENTRY_MID_KEY_HASH_ITERATIONS,
+                                                                            64);
+        if(decryptedMidKeyHash != this->midKeyHash){
+            //hashes do not align
+            //return false
+            decryptedMidKey.clear();
+            decryptedMidKeyHash.clear();
+            return false;
+        }
+
+
         QByteArray decryptedJson = crypter.removePadding(crypter.decode(this->encryptedContent, decryptedMidKey, this->ivInner));
-        QMap<QString, QVariant> map = QJsonDocument::fromJson(decryptedJson).object().toVariantMap();
+
+        QJsonParseError* parseError;
+        QJsonDocument contentAsJsonDoc = QJsonDocument::fromJson(decryptedJson, parseError);
+        if(parseError && parseError->error != QJsonParseError::NoError){
+            //ERROR while parsing
+            //return false
+            decryptedMidKey.clear();
+            return false;
+        }
+        QMap<QString, QVariant> map = contentAsJsonDoc.object().toVariantMap();
 
         QString username = map.value("username", "").toString();
         if(username.isEmpty()){this->username = std::nullopt;}else{this->username = username;}
@@ -43,6 +69,7 @@ bool DataEntry::decryptContent(const QSharedPointer<QByteArray>& masterPW){
 
         this->encryptedContent.clear();
         decryptedMidKey.clear();
+        decryptedMidKeyHash.clear();
         plain = true;
         return true;
     }else{
@@ -51,10 +78,24 @@ bool DataEntry::decryptContent(const QSharedPointer<QByteArray>& masterPW){
 }
 
 bool DataEntry::encryptContent(const QSharedPointer<QByteArray>& masterPW){
-    //this function won't notify you about wrong masterPW
     if((this->encryptedContent.isNull() || this->encryptedContent.isEmpty()) && masterPW && masterPW->size() == 32 && plain){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, *masterPW, this->ivMidKey));
+
+        //check decryptedMidKey with midKeyHash
+        QByteArray decryptedMidKeyHash = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
+                                                                            decryptedMidKey,
+                                                                            this->midKeySalt,
+                                                                            SECURITY_CONSTANTS::DATA_ENTRY_MID_KEY_HASH_ITERATIONS,
+                                                                            64);
+        if(decryptedMidKeyHash != this->midKeyHash){
+            //hashes did not align
+            //return false
+            decryptedMidKey.clear();
+            decryptedMidKeyHash.clear();
+            return false;
+        }
+
 
         QMap<QString, QVariant> map;
         map.insert("username", this->username.value_or(QString("")));
@@ -66,6 +107,7 @@ bool DataEntry::encryptContent(const QSharedPointer<QByteArray>& masterPW){
         this->setContent(encryptedContent);
         this->clearConfidential();
         decryptedMidKey.clear();
+        decryptedMidKeyHash.clear();
         plain = false;
         return true;
     }else{
@@ -80,6 +122,8 @@ bool DataEntry::operator==(const DataEntry& other) const{
     if(this->ivInner != other.ivInner) return false;
     if(this->ivMidKey != other.ivMidKey) return false;
     if(this->midKey != other.midKey) return false;
+    if(this->midKeyHash != other.midKeyHash) return false;
+    if(this->midKeySalt != other.midKeySalt) return false;
     if(this->website != other.website) return false;
     if(this->encryptedContent != other.encryptedContent) return false;
     if(this->email != other.email) return false;
@@ -108,6 +152,12 @@ QString DataEntry::showDiff(DataEntry& d1, DataEntry& d2){
     }
     if(d1.getMidKey() != d2.getMidKey()){
         string+= "midKey: " + d1.getMidKey().toBase64() + " vs "+d2.getMidKey().toBase64()+"\n";
+    }
+    if(d1.getMidKeyHash() != d2.getMidKeyHash()){
+        string+= "midKeyHash: " + d1.getMidKeyHash().toBase64() + " vs "+d2.getMidKeyHash().toBase64()+"\n";
+    }
+    if(d1.getMidKeySalt() != d2.getMidKeySalt()){
+        string+= "midKeySalt: " + d1.getMidKeySalt().toBase64() + " vs "+d2.getMidKeySalt().toBase64()+"\n";
     }
     if(d1.getWebsite() != d2.getWebsite()){
         string+= "website: " + d1.getWebsite()+ " vs "+d2.getWebsite()+"\n";
