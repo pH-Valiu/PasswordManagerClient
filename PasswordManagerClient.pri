@@ -29,6 +29,7 @@ SOURCES += \
 
 HEADERS += \
     $$PWD/backend/dataentrymodulator.h \
+    $$PWD/constants.h \
     $$PWD/gui/dataentrymodulatordialog.h \
     $$PWD/gui/initialsetupdialog.h \
     $$PWD/gui/passwordmanagerview.h \

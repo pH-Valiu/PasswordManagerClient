@@ -31,7 +31,9 @@ public:
     static QRegularExpression regexNaming;
 protected:
     QSharedPointer<DataEntry> dataEntry;
-    QByteArray masterPW;
+    //This masterPW (although it's a shared pointer) does not point to the same QByteArray object as the masterPW in
+    //the PasswordManagerAdapter
+    QSharedPointer<QByteArray> masterPW;
 };
 
 
@@ -40,7 +42,7 @@ protected:
 class DataEntryBuilder : public DataEntryModulator
 {
 public:
-    DataEntryBuilder(const QByteArray &masterPW);
+    DataEntryBuilder(const QSharedPointer<QByteArray> &masterPW);
     DataEntryBuilder(DataEntryBuilder&&) = default;
     DataEntryBuilder& operator = (DataEntryBuilder&&) = default;
     ~DataEntryBuilder();
@@ -70,7 +72,7 @@ public:
 class DataEntryEditor : public DataEntryModulator
 {
 public:
-    DataEntryEditor(const QSharedPointer<DataEntry>& dataEntry, const QByteArray& masterPW);
+    DataEntryEditor(const QSharedPointer<DataEntry>& dataEntry, const QSharedPointer<QByteArray>& masterPW);
     DataEntryEditor(DataEntryEditor&&) = default;
     DataEntryEditor& operator = (DataEntryEditor&&) = default;
     ~DataEntryEditor();
@@ -91,7 +93,7 @@ public:
     QString getPassword();
     QString getDetails();
 
-    bool changeMasterPassword(const QByteArray &newMasterPW);
+    bool changeMasterPassword(const QSharedPointer<QByteArray> &newMasterPW);
 private:
     std::unique_ptr<DataEntry> dataEntryClone = nullptr;
     bool modified;

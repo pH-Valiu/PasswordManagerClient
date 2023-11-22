@@ -21,7 +21,7 @@ private slots:
     void testWrongMasterPW();
     void cleanupTestCase(){}
 private:
-    QByteArray masterPW;
+    QSharedPointer<QByteArray> masterPW;
     QSharedPointer<DataEntry> testEntry1;
     QSharedPointer<DataEntry> testEntry2;
     QSharedPointer<DataEntry> testEntry3;

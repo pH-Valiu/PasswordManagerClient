@@ -10,13 +10,14 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <windows.h>
+#include "constants.h"
 
 class DataEntry {
 public:
     ~DataEntry();
     QJsonObject toJsonObject() const;//done
-    bool decryptContent(const QByteArray& masterPW); //done
-    bool encryptContent(const QByteArray& masterPW); //done
+    bool decryptContent(const QSharedPointer<QByteArray>& masterPW); //done
+    bool encryptContent(const QSharedPointer<QByteArray>& masterPW); //done
     bool isPlain() const                                        {return plain;}
     QString getName() const                                     {return name;}
     QByteArray getID() const                                    {return id;}

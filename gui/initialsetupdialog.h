@@ -20,7 +20,7 @@ private:
 private slots:
     void handleSignIn(const QString& userMasterPW);
 signals:
-    void newUser(const QString& userMasterPW);
+    void newUser(const QByteArray& userMasterPW);
 };
 
 #endif // INITIALSETUPDIALOG_H

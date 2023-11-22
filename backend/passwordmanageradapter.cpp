@@ -39,7 +39,7 @@ int PasswordManagerAdapter::start(){
 
     if(!storedHashedUserPW.isEmpty()){
         //Show StartupDialog
-        startupDialog = std::unique_ptr<StartupDialog>(new StartupDialog(nullptr, model.getUserMasterPWHash()));
+        startupDialog = std::unique_ptr<StartupDialog>(new StartupDialog(nullptr, storedHashedUserPW));
         connect(startupDialog.get(), &StartupDialog::userAuthenticated, this, &PasswordManagerAdapter::handleAuthenticateCompleted);
         startupDialog->show();
         return 0;
@@ -164,11 +164,11 @@ void PasswordManagerAdapter::handleSave(){
     }
 }
 
-void PasswordManagerAdapter::handleNewUser(const QString &userMasterPW){
+void PasswordManagerAdapter::handleNewUser(const QByteArray &userMasterPW){
     this->masterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
-                                                                                                  userMasterPW.toUtf8(),
-                                                                                                  "HKRsdn14n8(Sb§$ ,:,3;",
-                                                                                                  10000,
+                                                                                                  userMasterPW,
+                                                                                                  SECURITY_CONSTANTS::MASTER_PW_PBKDF_SALT,
+                                                                                                  SECURITY_CONSTANTS::MASTER_PW_PBKDF_ITERATIONS,
                                                                                                   32)));
     this->masterPW->resize(32);
 
@@ -178,11 +178,11 @@ void PasswordManagerAdapter::handleNewUser(const QString &userMasterPW){
     showMainWindow();
 }
 
-void PasswordManagerAdapter::handleAuthenticateCompleted(const QString& userMasterPW){
+void PasswordManagerAdapter::handleAuthenticateCompleted(const QByteArray& userMasterPW){
     this->masterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
-                                                            userMasterPW.toUtf8(),
-                                                            "HKRsdn14n8(Sb§$ ,:,3;",
-                                                            10000,
+                                                            userMasterPW,
+                                                            SECURITY_CONSTANTS::MASTER_PW_PBKDF_SALT,
+                                                            SECURITY_CONSTANTS::MASTER_PW_PBKDF_ITERATIONS,
                                                             32)));
     this->masterPW->resize(32);
 

@@ -30,7 +30,7 @@ PasswordBroker& PasswordBroker::getInstance(){
     return broker;
 }
 
-bool PasswordBroker::fetchFileData(const QByteArray& masterPW){
+bool PasswordBroker::fetchFileData(const QSharedPointer<QByteArray>& masterPW){
     QString applicationDirPath = QCoreApplication::applicationDirPath();
     QDir mainDirectory(applicationDirPath);
     mainDirectory.mkdir("database");
@@ -131,7 +131,7 @@ bool PasswordBroker::fetchFileData(const QByteArray& masterPW){
             }
         }
     }
-    if(decryptData(masterPW)){
+    if(this->decryptData(masterPW)){
         fetchedFlag = true;
         return true;
     }else{
@@ -139,7 +139,7 @@ bool PasswordBroker::fetchFileData(const QByteArray& masterPW){
     }
 }
 
-bool PasswordBroker::storeFileData(const QByteArray& masterPW){
+bool PasswordBroker::storeFileData(const QSharedPointer<QByteArray>& masterPW){
     QString applicationDirPath = QCoreApplication::applicationDirPath();
     QDir mainDirectory(applicationDirPath);
     mainDirectory.mkdir("database");
@@ -170,7 +170,7 @@ bool PasswordBroker::storeFileData(const QByteArray& masterPW){
         }
 
 
-        if(encryptData(masterPW)){
+        if(this->encryptData(masterPW)){
             QFile fileMAC(applicationDirPath + "/database/mac");
             if(fileMAC.exists()){
                 fileMAC.resize(0);
@@ -212,7 +212,7 @@ bool PasswordBroker::storeFileData(const QByteArray& masterPW){
     }
 }
 
-bool PasswordBroker::encryptData(const QByteArray& masterPW){
+bool PasswordBroker::encryptData(const QSharedPointer<QByteArray>& masterPW){
     if(fileData.iv.isNull() || fileData.iv.isEmpty()){
         MessageHandler::warn("No IV available to encrypt data");
         return false;
@@ -225,7 +225,7 @@ bool PasswordBroker::encryptData(const QByteArray& masterPW){
     QByteArray jsonDoc = QJsonDocument(jsonArray).toJson(QJsonDocument::Indented);
 
     QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-    QByteArray encryptedDoc = crypter.encode(jsonDoc, masterPW, fileData.iv);
+    QByteArray encryptedDoc = crypter.encode(jsonDoc, *masterPW, fileData.iv);
     if(encryptedDoc.isNull() || encryptedDoc.isEmpty()){
         MessageHandler::warn("Encryption of json data failed");
         return false;
@@ -233,12 +233,12 @@ bool PasswordBroker::encryptData(const QByteArray& masterPW){
 
     fileData.encryptedEntries = encryptedDoc;
 
-    fileData.mac = QMessageAuthenticationCode::hash(encryptedDoc, masterPW, QCryptographicHash::Sha256);
+    fileData.mac = QMessageAuthenticationCode::hash(encryptedDoc, *masterPW, QCryptographicHash::Sha256);
 
     return true;
 }
 
-bool PasswordBroker::decryptData(const QByteArray& masterPW){
+bool PasswordBroker::decryptData(const QSharedPointer<QByteArray>& masterPW){
     if(fileData.encryptedEntries.isNull()){
         MessageHandler::warn("Encrypted entries variable hasn't been initialized");
         return false;
@@ -254,7 +254,7 @@ bool PasswordBroker::decryptData(const QByteArray& masterPW){
 
     //No decryption if encryptedEntries is empty
     if(!fileData.encryptedEntries.isEmpty()){
-        QByteArray computedMAC = QMessageAuthenticationCode::hash(fileData.encryptedEntries, masterPW, QCryptographicHash::Sha256);
+        QByteArray computedMAC = QMessageAuthenticationCode::hash(fileData.encryptedEntries, *masterPW, QCryptographicHash::Sha256);
 
         if(computedMAC != fileData.mac){
             MessageHandler::critical("Computed MAC unequal to fetched MAC from file");
@@ -264,7 +264,7 @@ bool PasswordBroker::decryptData(const QByteArray& masterPW){
         //MACs are equal
 
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-        QByteArray decryptedEntries = crypter.removePadding(crypter.decode(fileData.encryptedEntries, masterPW, fileData.iv));
+        QByteArray decryptedEntries = crypter.removePadding(crypter.decode(fileData.encryptedEntries, *masterPW, fileData.iv));
 
         if(decryptedEntries.isNull() || decryptedEntries.isEmpty()){
             MessageHandler::warn("Decryption of encrypted data entries failed");
@@ -300,7 +300,7 @@ bool PasswordBroker::decryptData(const QByteArray& masterPW){
     return true;
 }
 
-bool PasswordBroker::changerMasterPW(const QByteArray& oldMasterPW, const QByteArray& newMasterPW){
+bool PasswordBroker::changerMasterPW(const QSharedPointer<QByteArray>& oldMasterPW, const QSharedPointer<QByteArray>& newMasterPW){
     for(qsizetype i=0; i<vector.size(); i++){
         DataEntryEditor editor(vector.at(i), oldMasterPW);
         if(!editor.changeMasterPassword(newMasterPW)){
@@ -320,6 +320,15 @@ void PasswordBroker::addEntry(QSharedPointer<DataEntry>& dataEntry){
 bool PasswordBroker::removeEntryById(const QByteArray& id){
     for(qsizetype i=0; i<vector.size(); i++){
         if(vector.at(i)->getID() == id){
+            vector.remove(i);
+            return true;
+        }
+    }
+    return false;
+}
+bool PasswordBroker::removeEntryByName(const QString& name){
+    for(qsizetype i=0; i<vector.size(); i++){
+        if(vector.at(i)->getName() == name){
             vector.remove(i);
             return true;
         }
@@ -401,7 +410,7 @@ QByteArray PasswordBroker::getUserMasterPWHash(){
     return QByteArray();
 }
 
-bool PasswordBroker::validateUserMasterPW(const QString& userMasterPW){
+bool PasswordBroker::validateUserMasterPW(const QByteArray& userMasterPW){
 
     QString applicationPath = QCoreApplication::applicationDirPath();
     QDir mainDirectory(applicationPath + "/database");
@@ -419,9 +428,9 @@ bool PasswordBroker::validateUserMasterPW(const QString& userMasterPW){
             QByteArray storedHashedPW = QByteArray::fromBase64(pwInput.readAll().toUtf8());
             hashedPWFile.close();
             QByteArray hashedPW = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
-                                                                      userMasterPW.toUtf8(),
-                                                                      "1dn9vm-sadm4t§$:F;$§§f3)&46²€af",
-                                                                      50,
+                                                                      userMasterPW,
+                                                                      SECURITY_CONSTANTS::USER_MASTER_PW_HASH_SALT,
+                                                                      SECURITY_CONSTANTS::USER_MASTER_PW_HASH_ITERATIONS,
                                                                       64);
 
             if(storedHashedPW == hashedPW){
@@ -440,7 +449,7 @@ bool PasswordBroker::validateUserMasterPW(const QString& userMasterPW){
     return false;
 }
 
-bool PasswordBroker::setUserMasterPW(const QString& userMasterPW){
+bool PasswordBroker::setUserMasterPW(const QByteArray& userMasterPW){
     QString applicationDirPath = QCoreApplication::applicationDirPath();
     QDir mainDirectory(applicationDirPath);
 
@@ -453,9 +462,9 @@ bool PasswordBroker::setUserMasterPW(const QString& userMasterPW){
     if(hashedPWFile.open(QIODevice::WriteOnly)){
         QTextStream pwInput(&hashedPWFile);
         QByteArray hashedPW = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
-                                                                 userMasterPW.toUtf8(),
-                                                                 "1dn9vm-sadm4t§$:F;$§§f3)&46²€af",
-                                                                 50,
+                                                                 userMasterPW,
+                                                                 SECURITY_CONSTANTS::USER_MASTER_PW_HASH_SALT,
+                                                                 SECURITY_CONSTANTS::USER_MASTER_PW_HASH_ITERATIONS,
                                                                  64);
 
         pwInput << QString::fromUtf8(hashedPW.toBase64());

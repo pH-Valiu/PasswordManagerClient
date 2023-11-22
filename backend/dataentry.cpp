@@ -21,11 +21,11 @@ QJsonObject DataEntry::toJsonObject() const{
     return QJsonObject::fromVariantMap(map);
 }
 
-bool DataEntry::decryptContent(const QByteArray& masterPW){
+bool DataEntry::decryptContent(const QSharedPointer<QByteArray>& masterPW){
     //function won't notify you about wrong masterPW
-    if(!this->encryptedContent.isNull() && !this->encryptedContent.isEmpty() && masterPW.size() == 32 && !plain){
+    if(!this->encryptedContent.isNull() && !this->encryptedContent.isEmpty() && masterPW && masterPW->size() == 32 && !plain){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-        QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
+        QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, *masterPW, this->ivMidKey));
         QByteArray decryptedJson = crypter.removePadding(crypter.decode(this->encryptedContent, decryptedMidKey, this->ivInner));
         QMap<QString, QVariant> map = QJsonDocument::fromJson(decryptedJson).object().toVariantMap();
 
@@ -50,11 +50,11 @@ bool DataEntry::decryptContent(const QByteArray& masterPW){
     }
 }
 
-bool DataEntry::encryptContent(const QByteArray& masterPW){
+bool DataEntry::encryptContent(const QSharedPointer<QByteArray>& masterPW){
     //this function won't notify you about wrong masterPW
-    if((this->encryptedContent.isNull() || this->encryptedContent.isEmpty()) && masterPW.size() == 32 && plain){
+    if((this->encryptedContent.isNull() || this->encryptedContent.isEmpty()) && masterPW && masterPW->size() == 32 && plain){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-        QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
+        QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, *masterPW, this->ivMidKey));
 
         QMap<QString, QVariant> map;
         map.insert("username", this->username.value_or(QString("")));

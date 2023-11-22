@@ -30,8 +30,8 @@ private:
     bool protectMasterPW();
 private slots:
     void handleSave();
-    void handleNewUser(const QString& userMasterPW);
-    void handleAuthenticateCompleted(const QString& userMasterPW);
+    void handleNewUser(const QByteArray& userMasterPW);
+    void handleAuthenticateCompleted(const QByteArray& userMasterPW);
     void handleShow(const QByteArray& id, DataEntryWidget* widget);
     void handleEdit(const QByteArray& id, DataEntryWidget* widget);
     void handleDelete(const QByteArray& id, DataEntryWidget* widget);

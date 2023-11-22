@@ -2,7 +2,7 @@
 
 
 void DataEntryTest::initTestCase(){
-    masterPW = QCryptographicHash::hash(QString("masterPassword").toUtf8(), QCryptographicHash::Sha256);
+    masterPW = QSharedPointer<QByteArray>(new QByteArray(QCryptographicHash::hash(QString("masterPassword").toUtf8(), QCryptographicHash::Sha256)));
     DataEntryBuilder builder(masterPW);
     builder.modulateName("apple");
     builder.modulateDetails("Just call up the website² and \"log\" in ?*?");
@@ -145,18 +145,19 @@ void DataEntryTest::testModulator(){
 void DataEntryTest::testModulatorChangeMasterPW(){
     DataEntryEditor appleMod(appleEntry, masterPW);
     QDateTime preLastChanged = appleEntry->getLastChanged();
-    appleMod.changeMasterPassword(QString("12345678901234567890123456789012").toUtf8());
+    QSharedPointer<QByteArray> newMasterPW = QSharedPointer<QByteArray>(new QByteArray("12345678901234567890123456789012"));
+    appleMod.changeMasterPassword(newMasterPW);
     QThread::currentThread()->sleep(1);
     appleMod.modulate();
     QVERIFY(preLastChanged != appleEntry->getLastChanged());
-    appleEntry->decryptContent(QString("12345678901234567890123456789012").toUtf8());
+    appleEntry->decryptContent(newMasterPW);
     QCOMPARE(appleEntry->getPassword(), ",~£:1Od33jy+lj");
-    appleEntry->encryptContent(QString("12345678901234567890123456789012").toUtf8());
-    appleEntry->decryptContent(QString("12345678901234567890123456789012").toUtf8());
+    appleEntry->encryptContent(newMasterPW);
+    appleEntry->decryptContent(newMasterPW);
     QCOMPARE(appleEntry->getEMail(), "user1@apple.com");
-    appleEntry->encryptContent(QString("12345678901234567890123456789012").toUtf8());
+    appleEntry->encryptContent(newMasterPW);
 
-    DataEntryEditor appleMod2(appleEntry, QString("12345678901234567890123456789012").toUtf8());
+    DataEntryEditor appleMod2(appleEntry, newMasterPW);
     appleMod2.changeMasterPassword(masterPW);
     appleMod2.modulate();
 }

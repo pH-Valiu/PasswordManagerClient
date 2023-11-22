@@ -117,10 +117,10 @@ public:
     QList<QString> getlAllLocalBackups();
     QString getOneBackupNewer(const QString& currentBackup);
 
-    bool validateUserMasterPW(const QString& userMasterPW);
+    bool validateUserMasterPW(const QByteArray& userMasterPW);
     QByteArray getUserMasterPWHash();
-    bool setUserMasterPW(const QString& userMasterPW);
-    bool changeUserMasterPW(const QString& oldUserMasterPW, const QString& newUserMasterPW, const QSharedPointer<QByteArray>& oldDerivedMasterPW, const QSharedPointer<QByteArray>& newDerivedMasterPW);
+    bool setUserMasterPW(const QByteArray& userMasterPW);
+    bool changeUserMasterPW(const QByteArray& oldUserMasterPW, const QByteArray& newUserMasterPW, const QSharedPointer<QByteArray>& oldDerivedMasterPW, const QSharedPointer<QByteArray>& newDerivedMasterPW);
 private:
     PasswordManagerModel();
     PasswordBroker& broker;

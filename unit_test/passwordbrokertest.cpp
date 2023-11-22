@@ -1,7 +1,7 @@
 #include "passwordbrokertest.h"
 
 void PasswordBrokerTest::initTestCase(){
-    masterPW = QCryptographicHash::hash(QString("masterPassword").toUtf8(), QCryptographicHash::Sha256);
+    masterPW = QSharedPointer<QByteArray>(new QByteArray(QCryptographicHash::hash(QString("masterPassword").toUtf8(), QCryptographicHash::Sha256)));
     QDir dirDatabase(QCoreApplication::applicationDirPath() + "/database");
     dirDatabase.removeRecursively();
 
@@ -119,9 +119,9 @@ void PasswordBrokerTest::testMultipleStoreFetch(){
     QCOMPARE(*broker2.getEntryFromName("apple").data(), *testEntry1.data());
     QCOMPARE(*broker2.getEntryFromName("amazon").data(), *testEntry2.data());
     QCOMPARE(*broker2.getEntryFromName("twitter").data(), *testEntry3.data());
-    DataEntryModulator mod(broker2.getEntryFromName("apple"), masterPW);
-    mod.changeUsername("appleUser");
-    mod.saveChanges();
+    DataEntryEditor mod(broker2.getEntryFromName("apple"), masterPW);
+    mod.modulateUsername("appleUser");
+    mod.modulate();
     //broker2.encryptData(masterPW);
     broker2.storeFileData(masterPW);
 
@@ -151,7 +151,7 @@ void PasswordBrokerTest::testChangeMasterPW(){
     broker.addEntry(testEntry1);
     broker.addEntry(testEntry2);
     broker.addEntry(testEntry3);
-    QByteArray newMasterPW = QString("12345678901234567890123456789012").toUtf8();
+    QSharedPointer<QByteArray> newMasterPW = QSharedPointer<QByteArray>(new QByteArray("12345678901234567890123456789012"));
     QVERIFY(broker.changerMasterPW(masterPW, newMasterPW));
     //QVERIFY(broker.encryptData(newMasterPW));
     QVERIFY(broker.storeFileData(newMasterPW));
@@ -201,7 +201,7 @@ void PasswordBrokerTest::testWrongMasterPW(){
     QVERIFY(!broker.removeEntryByName("amazon"));
     QVERIFY(broker.removeEntryByName("twitter"));
 
-    QByteArray wrongMasterPW("12345678901234567890123456789012");
+    QSharedPointer<QByteArray> wrongMasterPW = QSharedPointer<QByteArray>(new QByteArray("12345678901234567890123456789012"));
     PasswordBroker broker2;
     QVERIFY(!broker2.fetchFileData(wrongMasterPW));
     //QVERIFY(!broker2.decryptData(wrongMasterPW));

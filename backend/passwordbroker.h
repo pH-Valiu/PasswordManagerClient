@@ -29,14 +29,14 @@ public:
      * @param masterPW to decrypt fetched data
      * @return whether the operation was successful or not
      */
-    bool fetchFileData(const QByteArray& masterPW);
+    bool fetchFileData(const QSharedPointer<QByteArray>& masterPW);
     /**
      * @brief storeFileData can be called multiple times but only after fetchFileData() has been called once and returned true
      * @param masterPW to encrypt data
      * @return whether the operation was successful or not
      */
-    bool storeFileData(const QByteArray& masterPW);
-    bool changerMasterPW(const QByteArray& oldMasterPW, const QByteArray& newMasterPW);
+    bool storeFileData(const QSharedPointer<QByteArray>& masterPW);
+    bool changerMasterPW(const QSharedPointer<QByteArray>& oldMasterPW, const QSharedPointer<QByteArray>& newMasterPW);
     void addEntry(QSharedPointer<DataEntry>& dataEntry);
     /**
      * @brief removeEntryById
@@ -44,6 +44,7 @@ public:
      * @return true if one or more entries were removed, false if none
      */
     bool removeEntryById(const QByteArray& id);
+    bool removeEntryByName(const QString& name);
     /**
      * @brief removeAllEntries and deleted their containing data
      */
@@ -57,8 +58,8 @@ public:
     ~PasswordBroker();
 
     QByteArray getUserMasterPWHash();
-    bool validateUserMasterPW(const QString& userMasterPW);
-    bool setUserMasterPW(const QString& userMasterPW);
+    bool validateUserMasterPW(const QByteArray& userMasterPW);
+    bool setUserMasterPW(const QByteArray& userMasterPW);
 
     friend class PasswordBrokerTest;
 #ifdef EXECUTE_UNIT_TESTS
@@ -67,8 +68,8 @@ public:
 private:
     PasswordBroker();
     QVector<QSharedPointer<DataEntry>> vector;
-    bool encryptData(const QByteArray& masterPW);
-    bool decryptData(const QByteArray& masterPW);
+    bool encryptData(const QSharedPointer<QByteArray>& masterPW);
+    bool decryptData(const QSharedPointer<QByteArray>& masterPW);
     bool fetchedFlag = false;
     struct FileData{
         QByteArray encryptedEntries;

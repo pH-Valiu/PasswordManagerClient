@@ -1,4 +1,5 @@
 #include "startupdialog.h"
+#include "constants.h"
 #include <QBoxLayout>
 #include <QFont>
 #include <QCryptographicHash>
@@ -53,15 +54,15 @@ StartupDialog::~StartupDialog(){
     passwordLineEdit->clear();
 }
 
-void StartupDialog::authenticateUser(const QString &masterPW){
+void StartupDialog::authenticateUser(const QString &userMasterPW){
     QByteArray hashedPW = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
-                                                             masterPW.toUtf8(),
-                                                             "1dn9vm-sadm4t§$:F;$§§f3)&46²€af",
-                                                             50,
+                                                             userMasterPW.toUtf8(),
+                                                             SECURITY_CONSTANTS::USER_MASTER_PW_HASH_SALT,
+                                                             SECURITY_CONSTANTS::USER_MASTER_PW_HASH_ITERATIONS,
                                                              64);
 
     if(this->storedHashedUserPW == hashedPW){
-        emit userAuthenticated(masterPW);
+        emit userAuthenticated(userMasterPW.toUtf8());
         passwordLineEdit->clear();
         this->close();
     }else{

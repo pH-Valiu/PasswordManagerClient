@@ -20,8 +20,8 @@ int main(int argc, char *argv[])
     //Executing this code deletes the current database folder
     DataEntryTest dataEntryTest;
     PasswordBrokerTest passwordBrokerTest;
-    QTest::qExec(&passwordBrokerTest);
     QTest::qExec(&dataEntryTest);
+    QTest::qExec(&passwordBrokerTest);
     // :)
     return 0;
 #else

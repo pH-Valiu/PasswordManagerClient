@@ -1,21 +1,23 @@
 #include "dataentrymodulator.h"
 #include "qaesencryption.h"
+#include <QSharedPointer>
 
 QRegularExpression DataEntryModulator::regexNaming = QRegularExpression(R"(^([a-z]|[A-Z]|[0-9]| |\$|\#|\-|\_|\.|\+|\!|\*|\'|\(|\)|\,|\/|\&|\?|\=|\:|\%)+$)");
 
 DataEntryModulator::DataEntryModulator(){
-    dataEntry = nullptr;
-    masterPW.clear();
+    this->dataEntry = QSharedPointer<DataEntry>(nullptr);
+    this->masterPW = QSharedPointer<QByteArray>(nullptr);
 }
 
 DataEntryModulator::~DataEntryModulator(){
     this->dataEntry.clear();
-    SecureZeroMemory(masterPW.data(), masterPW.size());
+    this->masterPW.clear();
 }
 
 
-DataEntryBuilder::DataEntryBuilder(const QByteArray &masterPW){
-    this->masterPW = masterPW;
+DataEntryBuilder::DataEntryBuilder(const QSharedPointer<QByteArray> &masterPW){
+    //deep copy of the masterPW (new heap allocation)
+    this->masterPW = QSharedPointer<QByteArray>(new QByteArray(*masterPW));
 
     dataEntry = QSharedPointer<DataEntry>(new DataEntry());
     dataEntry->setID(QUuid::createUuid().toByteArray());
@@ -36,15 +38,15 @@ DataEntryBuilder::~DataEntryBuilder(){
 }
 
 QSharedPointer<DataEntry> DataEntryBuilder::modulate(){
-    if(this->masterPW.size() == 32){
+    if(this->masterPW && this->masterPW->size() == 32){
         QByteArray plainMidKey = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
                                                                     QByteArray::number(QRandomGenerator::global()->generate64()),
                                                                     QString("some ineteresting salt").toUtf8(),
-                                                                    10000,
+                                                                    SECURITY_CONSTANTS::DATA_ENTRY_MID_KEY_PBKDF_ITERATIONS,
                                                                     32);
 
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-        QByteArray encryptedMidKey = crypter.encode(plainMidKey, this->masterPW, dataEntry->getIvMidKey());
+        QByteArray encryptedMidKey = crypter.encode(plainMidKey, *masterPW, dataEntry->getIvMidKey());
         dataEntry->setMidKey(encryptedMidKey);
 
         QMap<QString, QVariant> map;
@@ -165,14 +167,15 @@ QString DataEntryBuilder::getDetails(){
 
 
 
-DataEntryEditor::DataEntryEditor(const QSharedPointer<DataEntry> &dataEntry, const QByteArray &masterPW){
+DataEntryEditor::DataEntryEditor(const QSharedPointer<DataEntry> &dataEntry, const QSharedPointer<QByteArray> &masterPW){
     if(!dataEntry.isNull()){
         this->dataEntry = dataEntry;
 
         //deep copy of dataEntry
         dataEntryClone = std::make_unique<DataEntry>(*dataEntry.get());
 
-        this->masterPW = masterPW;
+        //deep copy of masterPW (new heap allocation)
+        this->masterPW = QSharedPointer<QByteArray>(new QByteArray(*masterPW));
         this->modified = false;
         dataEntryClone->decryptContent(masterPW);
     }
@@ -247,13 +250,13 @@ QString DataEntryEditor::getDetails(){
     return dataEntryClone->getDetails();
 }
 
-bool DataEntryEditor::changeMasterPassword(const QByteArray& newMasterPW){
+bool DataEntryEditor::changeMasterPassword(const QSharedPointer<QByteArray>& newMasterPW){
     //if oldMasterPW is incorrect this function will not notify you
     //it will appear as if everything worked correctly
-    if(this->masterPW.size() == 32 && newMasterPW.size() == 32){
+    if(this->masterPW && this->masterPW->size() == 32 && newMasterPW && newMasterPW->size() == 32){
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-        QByteArray oldDecryptedMidKey = crypter.removePadding(crypter.decode(dataEntryClone->getMidKey(), this->masterPW, dataEntryClone->getIvMidKey()));
-        QByteArray newEncryptedMidKey = crypter.encode(oldDecryptedMidKey, newMasterPW, dataEntryClone->getIvMidKey());
+        QByteArray oldDecryptedMidKey = crypter.removePadding(crypter.decode(dataEntryClone->getMidKey(), *masterPW, dataEntryClone->getIvMidKey()));
+        QByteArray newEncryptedMidKey = crypter.encode(oldDecryptedMidKey, *newMasterPW, dataEntryClone->getIvMidKey());
 
         dataEntryClone->setMidKey(newEncryptedMidKey);
         this->masterPW = newMasterPW;

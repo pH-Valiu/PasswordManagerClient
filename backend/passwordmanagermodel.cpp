@@ -13,15 +13,15 @@ PasswordManagerModel& PasswordManagerModel::getInstance(){
 int PasswordManagerModel::showHideEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
     QSharedPointer<DataEntry> dataEntry = broker.getEntryFromId(id);
     if(dataEntry){
-        if(!masterPW.isNull()){
+        if(masterPW){
             if(dataEntry->isPlain()){
-                if(dataEntry->encryptContent(masterPW->constData())){
+                if(dataEntry->encryptContent(masterPW)){
                     return 1;
                 }else{
                     return -1;
                 }
             }else{
-                if(dataEntry->decryptContent(masterPW->constData())){
+                if(dataEntry->decryptContent(masterPW)){
                     return 2;
                 }else{
                     return -1;
@@ -37,8 +37,8 @@ int PasswordManagerModel::showHideEntry(const QByteArray& id, const QSharedPoint
 int PasswordManagerModel::showEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
     QSharedPointer<DataEntry> dataEntry = broker.getEntryFromId(id);
     if(dataEntry){
-        if(!masterPW.isNull()){
-            if(dataEntry->decryptContent(masterPW->constData())){
+        if(masterPW){
+            if(dataEntry->decryptContent(masterPW)){
                 return 1;
             }else{
                 return -1;
@@ -53,8 +53,8 @@ int PasswordManagerModel::showEntry(const QByteArray& id, const QSharedPointer<Q
 int PasswordManagerModel::hideEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
     QSharedPointer<DataEntry> dataEntry = broker.getEntryFromId(id);
     if(dataEntry){
-        if(!masterPW.isNull()){
-            if(dataEntry->encryptContent(masterPW->constData())){
+        if(masterPW){
+            if(dataEntry->encryptContent(masterPW)){
                 return 1;
             }else{
                 return -1;
@@ -70,7 +70,7 @@ int PasswordManagerModel::hideAllEntries(const QSharedPointer<QByteArray> &maste
     int i=0;
     if(masterPW){
         foreach(const QSharedPointer<DataEntry>& entry, broker.getAllEntries()){
-            if(entry->encryptContent(masterPW->constData())){
+            if(entry->encryptContent(masterPW)){
                 i++;
             }
         }
@@ -89,20 +89,16 @@ bool PasswordManagerModel::removeEntry(const QByteArray& id){
 std::unique_ptr<DataEntryEditor> PasswordManagerModel::getEditor(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
     QSharedPointer<DataEntry> entry = broker.getEntryFromId(id);
     if(entry){
-        if(masterPW){
-            if(!masterPW.isNull()){
-                return std::make_unique<DataEntryEditor>(DataEntryEditor(entry, masterPW->constData()));
-            }
+        if(masterPW && masterPW->size() == 32){
+            return std::make_unique<DataEntryEditor>(DataEntryEditor(entry, masterPW));
         }
     }
     return nullptr;
 }
 
 std::unique_ptr<DataEntryBuilder> PasswordManagerModel::getBuilder(const QSharedPointer<QByteArray>& masterPW){
-    if(masterPW){
-        if(!masterPW.isNull()){
-            return std::make_unique<DataEntryBuilder>(DataEntryBuilder(masterPW->constData()));
-        }
+    if(masterPW && masterPW->size() == 32){
+        return std::make_unique<DataEntryBuilder>(DataEntryBuilder(masterPW));
     }
     return nullptr;
 }
@@ -114,7 +110,7 @@ QByteArray PasswordManagerModel::searchEntry(const QString& identifier){
 
 bool PasswordManagerModel::startBroker(const QSharedPointer<QByteArray> &masterPW){
     if(masterPW){
-        return broker.fetchFileData(masterPW->constData());
+        return broker.fetchFileData(masterPW);
     }
     return false;
 }
@@ -129,7 +125,7 @@ QString PasswordManagerModel::getOneBackupNewer(const QString &currentBackup){
 
 bool PasswordManagerModel::saveBroker(const QSharedPointer<QByteArray> &masterPW){
     if(masterPW){
-        return broker.storeFileData(masterPW->constData());
+        return broker.storeFileData(masterPW);
     }
     return false;
 }
@@ -148,19 +144,19 @@ QByteArray PasswordManagerModel::getUserMasterPWHash(){
     return broker.getUserMasterPWHash();
 }
 
-bool PasswordManagerModel::validateUserMasterPW(const QString& userMasterPW){
+bool PasswordManagerModel::validateUserMasterPW(const QByteArray& userMasterPW){
     return broker.validateUserMasterPW(userMasterPW);
 }
 
-bool PasswordManagerModel::setUserMasterPW(const QString &userMasterPW){
+bool PasswordManagerModel::setUserMasterPW(const QByteArray &userMasterPW){
     return broker.setUserMasterPW(userMasterPW);
 }
 
-bool PasswordManagerModel::changeUserMasterPW(const QString &oldUserMasterPW, const QString &newUserMasterPW, const QSharedPointer<QByteArray> &oldDerivedMasterPW, const QSharedPointer<QByteArray> &newDerivedMasterPW){
+bool PasswordManagerModel::changeUserMasterPW(const QByteArray &oldUserMasterPW, const QByteArray &newUserMasterPW, const QSharedPointer<QByteArray> &oldDerivedMasterPW, const QSharedPointer<QByteArray> &newDerivedMasterPW){
     if(validateUserMasterPW(oldUserMasterPW)){
         if(setUserMasterPW(newUserMasterPW)){
             if(oldDerivedMasterPW && newDerivedMasterPW){
-                if(broker.changerMasterPW(oldDerivedMasterPW->constData(), newDerivedMasterPW->constData())){
+                if(broker.changerMasterPW(oldDerivedMasterPW, newDerivedMasterPW)){
                     return true;
                 }
             }

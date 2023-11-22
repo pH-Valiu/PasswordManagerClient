@@ -22,6 +22,9 @@ include($$PWD/PasswordManagerClient.pri)
 #DEFINES += EXECUTE_UNIT_TESTS
 
 
+
+
+
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin

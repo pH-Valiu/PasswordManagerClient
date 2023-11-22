@@ -23,9 +23,9 @@ private:
     QLabel* informationLabel;
     QByteArray storedHashedUserPW;
 private slots:
-    void authenticateUser(const QString& masterPW);
+    void authenticateUser(const QString& userMasterPW);
 signals:
-    void userAuthenticated(const QString& userMasterPW);
+    void userAuthenticated(const QByteArray& userMasterPW);
 };
 
 #endif // STARTUPDIALOG_H

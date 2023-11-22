@@ -21,7 +21,7 @@ private slots:
     void cleanupTestCase(){}
 
 public:
-    QByteArray masterPW;
+    QSharedPointer<QByteArray> masterPW;
     QSharedPointer<DataEntry> appleEntry;
 
 };
