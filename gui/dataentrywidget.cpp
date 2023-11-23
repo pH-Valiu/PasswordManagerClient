@@ -83,6 +83,24 @@ void DataEntryWidget::setupButtonPanel(QVBoxLayout* entryLayout){
     QWidget* buttonPanel = new QWidget(this);
     QHBoxLayout* topButtonLayout = new QHBoxLayout();
     topButtonLayout->setContentsMargins(10, 5, 10, 5);
+
+    QWidget* upDownWidget = new QWidget(buttonPanel);
+    QVBoxLayout* upDownLayout = new QVBoxLayout();
+    upButton = new AdvancedPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/up.ico")), upDownWidget);
+    upButton->setIconSize(QSize(16, 16));
+    upButton->setFixedSize(24, 24);
+    upButton->setToolTip("Click to move one up, Shift-Click to move to the top");
+    downButton = new AdvancedPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/down.ico")), upDownWidget);
+    downButton->setIconSize(QSize(16, 16));
+    downButton->setFixedSize(24, 24);
+    downButton->setToolTip("Click to move one down, Shift-Click to move to the bottom");
+
+    upDownLayout->setSpacing(2);
+    upDownLayout->addWidget(upButton);
+    upDownLayout->addWidget(downButton);
+    upDownWidget->setLayout(upDownLayout);
+
+
     editButton = new QPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/edit.ico")), "", buttonPanel);
     editButton->setIconSize(QSize(32, 32));
     editButton->setFixedSize(48, 48);
@@ -96,6 +114,8 @@ void DataEntryWidget::setupButtonPanel(QVBoxLayout* entryLayout){
     deleteButton->setFixedSize(48, 48);
     deleteButton->setToolTip("Delete data entry");
 
+
+    topButtonLayout->addWidget(upDownWidget, 0, Qt::AlignLeft);
     topButtonLayout->addWidget(editButton, 0, Qt::AlignLeft);
     topButtonLayout->addStretch();
     topButtonLayout->addWidget(showButton, 0, Qt::AlignHCenter);
@@ -217,6 +237,10 @@ void DataEntryWidget::connectSignalSlots(){
     connect(showButton, &QPushButton::clicked, this, [&]{emit showClicked(dataEntry->getID(), this);});
     connect(editButton, &QPushButton::clicked, this, [&]{emit editClicked(dataEntry->getID(), this);});
     connect(deleteButton, &QPushButton::clicked, this, [&]{emit deleteClicked(dataEntry->getID(), this);});
+    connect(upButton, &AdvancedPushButton::clicked, this, [&]{emit upClicked(false);});
+    connect(upButton, &AdvancedPushButton::shiftClicked, this, [&]{emit upClicked(true);});
+    connect(downButton, &AdvancedPushButton::clicked, this, [&]{emit downClicked(false);});
+    connect(downButton, &AdvancedPushButton::shiftClicked, this, [&]{emit downClicked(true);});
 }
 
 void DataEntryWidget::switchShowButtonIcon(bool eyeClosed) {
@@ -233,14 +257,17 @@ void DataEntryWidget::updateContent(){
     website->setText("<a style= color:black href=\""+dataEntry->getWebsite()+"\">"+dataEntry->getWebsite()+"</a>");
     lastChanged->setText(dataEntry->getLastChanged().toString());
 
-    QString uText = "Username:\t"+(dataEntry->getUsername().isEmpty() ? ("****") : dataEntry->getUsername());
-    username->setText(uText);
-    QString eText = "Email:\t"+(dataEntry->getEMail().isEmpty() ? ("****") : dataEntry->getEMail());
-    email->setText(eText);
-    QString pText = "Password:\t"+(dataEntry->getPassword().isEmpty() ? ("****") : dataEntry->getPassword());
-    password->setText(pText);
-    QString dText = "Details:\t"+(dataEntry->getDetails().isEmpty() ? ("****") : dataEntry->getDetails());
-    details->setText(dText);
+    if(dataEntry->isPlain()){
+        username->setText("Username:\t"+dataEntry->getUsername());
+        email->setText("Email:\t"+dataEntry->getEMail());
+        password->setText("Password:\t"+dataEntry->getPassword());
+        details->setText("Details:\t"+dataEntry->getDetails());
+    }else{
+        username->setText("Username:\t****");
+        email->setText("Email:\t****");
+        password->setText("Password:\t****");
+        details->setText("Details:\t****");
+    }
 }
 
 void DataEntryWidget::paintEvent(QPaintEvent* event){

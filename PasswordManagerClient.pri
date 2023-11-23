@@ -12,6 +12,7 @@ LIBS += \
 
 SOURCES += \
     $$PWD/backend/dataentrymodulator.cpp \
+    $$PWD/gui/advancedpushbutton.cpp \
     $$PWD/gui/dataentrymodulatordialog.cpp \
     $$PWD/gui/initialsetupdialog.cpp \
     $$PWD/gui/passwordmanagerview.cpp \
@@ -30,6 +31,7 @@ SOURCES += \
 HEADERS += \
     $$PWD/backend/dataentrymodulator.h \
     $$PWD/constants.h \
+    $$PWD/gui/advancedpushbutton.h \
     $$PWD/gui/dataentrymodulatordialog.h \
     $$PWD/gui/initialsetupdialog.h \
     $$PWD/gui/passwordmanagerview.h \

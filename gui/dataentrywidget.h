@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include "dataentry.h"
+#include "advancedpushbutton.h"
 
 class DataEntryWidget : public QWidget
 {
@@ -40,6 +41,9 @@ private:
     QPushButton* emailCopyButton;
     QPushButton* passwordCopyButton;
     QPushButton* detailsCopyButton;
+    AdvancedPushButton* upButton;
+    AdvancedPushButton* downButton;
+
 
     void setupButtonPanel(QVBoxLayout* entryLayout);
     void setupHeaderPanel(QVBoxLayout* entryLayout);
@@ -51,6 +55,8 @@ signals:
     void showClicked(const QByteArray& id, DataEntryWidget* self);
     void editClicked(const QByteArray& id, DataEntryWidget* self);
     void deleteClicked(const QByteArray& id, DataEntryWidget* self);
+    void upClicked(bool toTheTop);
+    void downClicked(bool toTheBottom);
 
 };
 
