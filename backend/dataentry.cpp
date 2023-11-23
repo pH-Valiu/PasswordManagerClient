@@ -1,5 +1,6 @@
 #include "dataentry.h"
 #include "qaesencryption.h"
+#include <QJsonParseError>
 
 DataEntry::DataEntry(){}
 
@@ -45,9 +46,9 @@ bool DataEntry::decryptContent(const QSharedPointer<QByteArray>& masterPW){
 
         QByteArray decryptedJson = crypter.removePadding(crypter.decode(this->encryptedContent, decryptedMidKey, this->ivInner));
 
-        QJsonParseError* parseError;
-        QJsonDocument contentAsJsonDoc = QJsonDocument::fromJson(decryptedJson, parseError);
-        if(parseError && parseError->error != QJsonParseError::NoError){
+        QJsonParseError parseError;
+        QJsonDocument contentAsJsonDoc = QJsonDocument::fromJson(decryptedJson, &parseError);
+        if(parseError.error != QJsonParseError::NoError){
             //ERROR while parsing
             //return false
             decryptedMidKey.clear();

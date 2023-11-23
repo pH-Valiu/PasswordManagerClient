@@ -237,10 +237,10 @@ void DataEntryWidget::connectSignalSlots(){
     connect(showButton, &QPushButton::clicked, this, [&]{emit showClicked(dataEntry->getID(), this);});
     connect(editButton, &QPushButton::clicked, this, [&]{emit editClicked(dataEntry->getID(), this);});
     connect(deleteButton, &QPushButton::clicked, this, [&]{emit deleteClicked(dataEntry->getID(), this);});
-    connect(upButton, &AdvancedPushButton::clicked, this, [&]{emit upClicked(false);});
-    connect(upButton, &AdvancedPushButton::shiftClicked, this, [&]{emit upClicked(true);});
-    connect(downButton, &AdvancedPushButton::clicked, this, [&]{emit downClicked(false);});
-    connect(downButton, &AdvancedPushButton::shiftClicked, this, [&]{emit downClicked(true);});
+    connect(upButton, &AdvancedPushButton::clicked, this, [&]{emit moveClicked(dataEntry->getID(), this, true, false);});
+    connect(upButton, &AdvancedPushButton::shiftClicked, this, [&]{emit moveClicked(dataEntry->getID(), this, true, true);});
+    connect(downButton, &AdvancedPushButton::clicked, this, [&]{emit moveClicked(dataEntry->getID(), this, false, false);});
+    connect(downButton, &AdvancedPushButton::shiftClicked, this, [&]{emit moveClicked(dataEntry->getID(), this, false, true);});
 }
 
 void DataEntryWidget::switchShowButtonIcon(bool eyeClosed) {

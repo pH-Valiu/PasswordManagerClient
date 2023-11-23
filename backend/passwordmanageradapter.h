@@ -35,6 +35,7 @@ private slots:
     void handleShow(const QByteArray& id, DataEntryWidget* widget);
     void handleEdit(const QByteArray& id, DataEntryWidget* widget);
     void handleDelete(const QByteArray& id, DataEntryWidget* widget);
+    void handleMove(const QByteArray& id, DataEntryWidget* widget, bool up, bool toTheTop);
     void handleCreate();
     void handleInsertion(QSharedPointer<DataEntry>);
     void handleSearch(const QString& identifier);

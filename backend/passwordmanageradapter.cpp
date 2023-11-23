@@ -73,6 +73,7 @@ void PasswordManagerAdapter::showMainWindow(){
         connect(dataEntryWidget, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
         connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
         connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
+        connect(dataEntryWidget, &DataEntryWidget::moveClicked, this, &PasswordManagerAdapter::handleMove);
         view->addDataEntryWidget(dataEntryWidget);
     }
 
@@ -229,6 +230,7 @@ void PasswordManagerAdapter::handleInsertion(QSharedPointer<DataEntry> dataEntry
     connect(dataEntryWidget, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
     connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
     connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
+    connect(dataEntryWidget, &DataEntryWidget::moveClicked, this, &PasswordManagerAdapter::handleMove);
     view->addDataEntryWidget(dataEntryWidget);
 }
 
@@ -287,6 +289,14 @@ void PasswordManagerAdapter::handleDelete(const QByteArray& id, DataEntryWidget*
 
     if (resBtn == QMessageBox::No){
         //do nothing
+    }
+}
+
+void PasswordManagerAdapter::handleMove(const QByteArray &id, DataEntryWidget *widget, bool up, bool toTheTop){
+    if(int toIndex = model.moveEntry(id, up, toTheTop); toIndex != -1){
+        view->moveEntry(widget, toIndex);
+    }else{
+        MessageHandler::inform("Moving data entry: "+widget->getName()+" failed");
     }
 }
 
@@ -388,6 +398,7 @@ void PasswordManagerAdapter::handleRevertToLocalBackup(const QString &backup){
         connect(dataEntryWidget, &DataEntryWidget::editClicked, this, &PasswordManagerAdapter::handleEdit);
         connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
         connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
+        connect(dataEntryWidget, &DataEntryWidget::moveClicked, this, &PasswordManagerAdapter::handleMove);
         view->addDataEntryWidget(dataEntryWidget);
     }
     MessageHandler::inform("Successfully reverted to backup:\n"+backupToRevertTo);

@@ -177,6 +177,15 @@ void PasswordManagerView::removeAllDataEntryWidgets(){
 
     //re-set parent/child relationship between scrollArea and scrollAreaWidget
     scrollArea->setWidget(scrollAreaWidget);
+    scrollArea->update();
+}
+
+void PasswordManagerView::moveEntry(DataEntryWidget *widget, int toIndex){
+    scrollAreaLayout->removeWidget(widget);
+    scrollAreaLayout->insertWidget(toIndex, widget);
+    widget->setParent(scrollAreaWidget);
+
+    scrollArea->update();
 }
 
 void PasswordManagerView::hideAllDataEntryWidgets(){

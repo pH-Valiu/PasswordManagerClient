@@ -86,6 +86,10 @@ bool PasswordManagerModel::removeEntry(const QByteArray& id){
     return broker.removeEntryById(id);
 }
 
+int PasswordManagerModel::moveEntry(const QByteArray &id, bool up, bool toTheLimit){
+    return broker.moveEntry(id, up, toTheLimit);
+}
+
 std::unique_ptr<DataEntryEditor> PasswordManagerModel::getEditor(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
     QSharedPointer<DataEntry> entry = broker.getEntryFromId(id);
     if(entry){

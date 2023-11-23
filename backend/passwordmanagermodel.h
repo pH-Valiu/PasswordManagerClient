@@ -84,6 +84,15 @@ public:
      */
     bool removeEntry(const QByteArray& id);
     void removeAllEntries()     {broker.removeAllEntries();}
+
+    /**
+     * @brief moveEntry moves the DataEntry specified by id upwards or downwards in the internal QList
+     * @param id specifying the DataEntry to be moved
+     * @param up whether the DataEntry should be moved upwards (true) or downwards (false)
+     * @param toTheLimit whether the DataEntry should be moved to edge (true) or not (false)
+     * @return the index the entry has been moved to, or -1 if entry was not findable
+     */
+    int moveEntry(const QByteArray& id, bool up, bool toTheLimit);
     const QVector<QSharedPointer<DataEntry>> getAllEntries(){return broker.getAllEntries();}
     QByteArray searchEntry(const QString& identifier);
 

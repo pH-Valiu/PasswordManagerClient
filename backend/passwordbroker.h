@@ -49,6 +49,7 @@ public:
      * @brief removeAllEntries and deleted their containing data
      */
     void removeAllEntries();
+    int moveEntry(const QByteArray& id, bool up, bool toTheLimit);
     QVector<QSharedPointer<DataEntry>> const getAllEntries(){return vector;}
     QSharedPointer<DataEntry> getEntryFromId(const QByteArray& id);
     QSharedPointer<DataEntry> getEntryFromName(const QString& name);

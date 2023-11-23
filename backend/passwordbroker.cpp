@@ -317,6 +317,30 @@ void PasswordBroker::addEntry(QSharedPointer<DataEntry>& dataEntry){
     vector.append(dataEntry);
 }
 
+int PasswordBroker::moveEntry(const QByteArray &id, bool up, bool toTheLimit){
+    for(qsizetype i=0; i<vector.size(); i++){
+        if(vector.at(i)->getID() == id){
+            int toIndex;
+            if(up){
+                if(toTheLimit){
+                    toIndex = 0;
+                }else{
+                    toIndex = ((i>0) ? (i-1) : 0);
+                }
+            }else{
+                if(toTheLimit){
+                    toIndex = (vector.size() - 1);
+                }else{
+                    toIndex = ((i<(vector.size()-1)) ? (i+1) : (vector.size()-1));
+                }
+            }
+            vector.move(i, toIndex);
+            return toIndex;
+        }
+    }
+    return -1;
+}
+
 bool PasswordBroker::removeEntryById(const QByteArray& id){
     for(qsizetype i=0; i<vector.size(); i++){
         if(vector.at(i)->getID() == id){

@@ -32,6 +32,7 @@ public:
     void removeAllDataEntryWidgets();
     void hideAllDataEntryWidgets();
     void closeEvent(QCloseEvent* event);
+    void moveEntry(DataEntryWidget* widget, int toIndex);
 private:
     QWidget* mainWidget;
     QListView* backupList;

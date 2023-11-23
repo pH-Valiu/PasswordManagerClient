@@ -55,8 +55,7 @@ signals:
     void showClicked(const QByteArray& id, DataEntryWidget* self);
     void editClicked(const QByteArray& id, DataEntryWidget* self);
     void deleteClicked(const QByteArray& id, DataEntryWidget* self);
-    void upClicked(bool toTheTop);
-    void downClicked(bool toTheBottom);
+    void moveClicked(const QByteArray& id, DataEntryWidget* self, bool up, bool toTheTop);
 
 };
 
