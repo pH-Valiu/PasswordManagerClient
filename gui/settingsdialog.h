@@ -18,7 +18,11 @@ private:
     QLineEdit* newMasterPWRepeatLineEdit;
     QPushButton* changeMasterPWButton;
 
+
+    QPushButton* integrityCheckButton;
+
     void setupChangeMasterPW();
+    void setupIntegrityCheck();
 public:
     SettingsDialog(QWidget* parent);
     ~SettingsDialog();
@@ -26,6 +30,7 @@ public:
     void reject();
 signals:
     void passwordChanged(const QByteArray& oldUserMasterPW, const QByteArray& newUserMasterPW);
+    void requestIntegrityCheck();
     void closing();
 };
 

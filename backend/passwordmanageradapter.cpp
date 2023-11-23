@@ -8,6 +8,7 @@
 #include <QPasswordDigestor>
 #include "messagehandler.h"
 #include "startupdialog.h"
+#include "integritycheck.h"
 
 
 PasswordManagerAdapter::PasswordManagerAdapter() :
@@ -103,6 +104,7 @@ void PasswordManagerAdapter::connectSignalSlots(){
     connect(view.get(), &PasswordManagerView::newLocalBackupButtonClicked, this, &PasswordManagerAdapter::handleNewLocalBackup);
     connect(view.get(), &PasswordManagerView::onClose, this, &PasswordManagerAdapter::handleMainWindowClose);
     connect(view.get(), &PasswordManagerView::changeMasterPW, this, &PasswordManagerAdapter::handleChangeMasterPW);
+    connect(view.get(), &PasswordManagerView::requestIntegrityCheck, this, &PasswordManagerAdapter::handleStartIntegrityCheck);
 }
 
 bool PasswordManagerAdapter::unprotectMasterPW(){
@@ -426,6 +428,20 @@ void PasswordManagerAdapter::handleChangeMasterPW(const QByteArray &oldUserMaste
     }else{
         MessageHandler::warn("Changing master password failed");
     }
+}
+
+void PasswordManagerAdapter::handleStartIntegrityCheck(){
+    IntegrityCheckController* integrityCheck = new IntegrityCheckController;
+    connect(integrityCheck, &IntegrityCheckController::integrityCheckFinished, this, [=](const int& returnCode){
+        if(returnCode > 0){
+            MessageHandler::critical("Background integrity check failed. Master password is probably not correct");
+        }
+        integrityCheck->deleteLater();
+    });
+
+    unprotectMasterPW();
+    integrityCheck->checkIntegrity(masterPW, model.getAllEntries());
+    protectMasterPW();
 }
 
 void PasswordManagerAdapter::handleMainWindowClose(){

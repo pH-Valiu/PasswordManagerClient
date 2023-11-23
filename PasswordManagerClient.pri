@@ -12,6 +12,7 @@ LIBS += \
 
 SOURCES += \
     $$PWD/backend/dataentrymodulator.cpp \
+    $$PWD/backend/integritycheck.cpp \
     $$PWD/gui/advancedpushbutton.cpp \
     $$PWD/gui/dataentrymodulatordialog.cpp \
     $$PWD/gui/initialsetupdialog.cpp \
@@ -30,6 +31,7 @@ SOURCES += \
 
 HEADERS += \
     $$PWD/backend/dataentrymodulator.h \
+    $$PWD/backend/integritycheck.h \
     $$PWD/constants.h \
     $$PWD/gui/advancedpushbutton.h \
     $$PWD/gui/dataentrymodulatordialog.h \

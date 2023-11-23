@@ -10,6 +10,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 
 
     setupChangeMasterPW();
+    setupIntegrityCheck();
 
     this->setWindowTitle("Settings");
     this->setLayout(mainLayout);
@@ -20,6 +21,38 @@ SettingsDialog::~SettingsDialog(){
     oldMasterPWLineEdit->clear();
     newMasterPWLineEdit->clear();
     newMasterPWRepeatLineEdit->clear();
+}
+
+void SettingsDialog::setupIntegrityCheck(){
+    QWidget* integrityCheckWidget = new QWidget(this);
+    QVBoxLayout* integrityCheckLayout = new QVBoxLayout();
+    QLabel* integrityCheckLabel = new QLabel("Request integrity check:", integrityCheckWidget);
+    QFont integrityCheckFont("Arial", 15, QFont::Normal, false);
+    integrityCheckLabel->setFont(integrityCheckFont);
+    integrityCheckLayout->addStretch();
+
+    integrityCheckButton = new QPushButton("Start", integrityCheckWidget);
+
+    integrityCheckLayout->addWidget(integrityCheckLabel);
+    integrityCheckLayout->addSpacing(5);
+    integrityCheckLayout->addWidget(integrityCheckButton);
+
+    connect(integrityCheckButton, &QPushButton::clicked, this, [&]{emit requestIntegrityCheck();});
+
+    integrityCheckWidget->setLayout(integrityCheckLayout);
+    mainLayout->addWidget(integrityCheckWidget);
+
+    //horizontal line
+    QFrame* horizontalLine = new QFrame(this);
+    horizontalLine->setLineWidth(3);
+    horizontalLine->setMidLineWidth(3);
+    horizontalLine->setFrameShape(QFrame::HLine);
+    horizontalLine->setFrameShadow(QFrame::Raised);
+    mainLayout->addWidget(horizontalLine);
+    mainLayout->addStretch();
+    mainLayout->addStretch();
+
+
 }
 
 void SettingsDialog::setupChangeMasterPW(){

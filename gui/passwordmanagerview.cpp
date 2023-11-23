@@ -282,6 +282,7 @@ void PasswordManagerView::handleSettingsClicked(){
         emit changeMasterPW(oldUMPW, newUMPW);
         this->update();
     });
+    connect(settingsDialog.get(), &SettingsDialog::requestIntegrityCheck, this, [&]{emit this->requestIntegrityCheck();});
 
     connect(settingsDialog.get(), &SettingsDialog::closing, this, [&]{
        this->setEnabled(true);

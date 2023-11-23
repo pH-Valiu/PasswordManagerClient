@@ -67,6 +67,7 @@ signals:
     void newEntry(QSharedPointer<DataEntry>);
     void saveButtonClicked();
     void changeMasterPW(const QByteArray& oldUserMasterPW, const QByteArray& newUserMasterPW);
+    void requestIntegrityCheck();
     void revertToLocalBackup(const QString& backup);
     void newLocalBackupButtonClicked();
     void onClose();

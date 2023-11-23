@@ -14,6 +14,12 @@
 
 class DataEntry {
 public:
+    struct IntegrityCheckData{
+        QByteArray ICMidKey;
+        QByteArray ICMidKeySalt;
+        QByteArray ICivMidKey;
+        QByteArray ICMidKeyHash;
+    };
     ~DataEntry();
     QJsonObject toJsonObject() const;//done
     /**
@@ -50,6 +56,9 @@ public:
     QString getUsername() const                  {return username.value_or("");}
     QString getPassword() const                  {return password.value_or("");}
     QString getDetails() const                   {return details.value_or("");}
+    const IntegrityCheckData getIntegrityData() const {
+        return {midKey, midKeySalt, ivMidKey, midKeyHash};
+    }
     void clearData(){
         name.clear();id=0;website.reset();lastChanged=QDateTime();ivInner.clear();
         ivMidKey.clear();midKey.clear();midKeyHash.clear();midKeySalt.clear();

@@ -42,6 +42,7 @@ private slots:
     void handleNewLocalBackup();
     void handleRevertToLocalBackup(const QString& backup);
     void handleChangeMasterPW(const QByteArray& oldUserMasterPW, const QByteArray& newUserMasterPW);
+    void handleStartIntegrityCheck();
     void handleMainWindowClose();
 signals:
 };
