@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
         //error -> quit
         return 2;
     }
+    a.setApplicationName("Vault Shield");
     return a.exec();
 
 #endif

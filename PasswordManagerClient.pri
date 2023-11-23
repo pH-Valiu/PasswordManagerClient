@@ -59,4 +59,5 @@ DISTFILES += \
     $$PWD/gui/ico/enter.ico \
     $$PWD/gui/ico/backup.ico \
     $$PWD/gui/ico/settings.ico \
-    $$PWD/gui/ico/remote.ico
+    $$PWD/gui/ico/remote.ico \
+    $$PWD/gui/ico/vault-shield.ico

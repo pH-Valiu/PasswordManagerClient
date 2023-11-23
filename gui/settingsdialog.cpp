@@ -51,9 +51,21 @@ void SettingsDialog::setupChangeMasterPW(){
     changeMasterPWButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     chMasterPWLayout->addWidget(changeMasterPWButton);
 
-    /*
+
     connect(changeMasterPWButton, &QPushButton::clicked, this, [&]{
-    })*/
+        if(!oldMasterPWLineEdit->text().isEmpty()){
+            if(newMasterPWLineEdit->text() == newMasterPWRepeatLineEdit->text()){
+                emit passwordChanged(oldMasterPWLineEdit->text().toUtf8(), newMasterPWLineEdit->text().toUtf8());
+                oldMasterPWLineEdit->clear();
+                newMasterPWLineEdit->clear();
+                newMasterPWRepeatLineEdit->clear();
+            }else{
+                newMasterPWLineEdit->clear();
+                newMasterPWRepeatLineEdit->clear();
+                newMasterPWLineEdit->setFocus();
+            }
+        }
+    });
 
 
     chMasterPWWidget->setLayout(chMasterPWLayout);
@@ -68,5 +80,9 @@ void SettingsDialog::setupChangeMasterPW(){
     mainLayout->addWidget(horizontalLine);
     mainLayout->addStretch();
     mainLayout->addStretch();
+}
 
+void SettingsDialog::reject(){
+    emit closing();
+    QDialog::reject();
 }

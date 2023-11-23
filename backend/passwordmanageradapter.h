@@ -40,6 +40,7 @@ private slots:
     void handleSearch(const QString& identifier);
     void handleNewLocalBackup();
     void handleRevertToLocalBackup(const QString& backup);
+    void handleChangeMasterPW(const QByteArray& oldUserMasterPW, const QByteArray& newUserMasterPW);
     void handleMainWindowClose();
 signals:
 };

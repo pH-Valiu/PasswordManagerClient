@@ -62,10 +62,11 @@ private slots:
 
 signals:
     void addEntryButtonClicked();
-    void searchEntry(QString identifier);
+    void searchEntry(const QString& identifier);
     void newEntry(QSharedPointer<DataEntry>);
     void saveButtonClicked();
-    void revertToLocalBackup(QString backup);
+    void changeMasterPW(const QByteArray& oldUserMasterPW, const QByteArray& newUserMasterPW);
+    void revertToLocalBackup(const QString& backup);
     void newLocalBackupButtonClicked();
     void onClose();
 };

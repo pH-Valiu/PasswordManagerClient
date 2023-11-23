@@ -101,6 +101,7 @@ void PasswordManagerAdapter::connectSignalSlots(){
     connect(view.get(), &PasswordManagerView::revertToLocalBackup, this, &PasswordManagerAdapter::handleRevertToLocalBackup);
     connect(view.get(), &PasswordManagerView::newLocalBackupButtonClicked, this, &PasswordManagerAdapter::handleNewLocalBackup);
     connect(view.get(), &PasswordManagerView::onClose, this, &PasswordManagerAdapter::handleMainWindowClose);
+    connect(view.get(), &PasswordManagerView::changeMasterPW, this, &PasswordManagerAdapter::handleChangeMasterPW);
 }
 
 bool PasswordManagerAdapter::unprotectMasterPW(){
@@ -388,6 +389,27 @@ void PasswordManagerAdapter::handleRevertToLocalBackup(const QString &backup){
 
     //reenable user input
     view->setEnabled(true);
+}
+
+void PasswordManagerAdapter::handleChangeMasterPW(const QByteArray &oldUserMasterPW, const QByteArray &newUserMasterPW){
+    QSharedPointer<QByteArray> oldDerivedMasterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
+                                                                                                                                 oldUserMasterPW,
+                                                                                                                                 SECURITY_CONSTANTS::MASTER_PW_PBKDF_SALT,
+                                                                                                                                 SECURITY_CONSTANTS::MASTER_PW_PBKDF_ITERATIONS,
+                                                                                                                                 32)));
+    QSharedPointer<QByteArray> newDerivedMasterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
+                                                                                                                                 newUserMasterPW,
+                                                                                                                                 SECURITY_CONSTANTS::MASTER_PW_PBKDF_SALT,
+                                                                                                                                 SECURITY_CONSTANTS::MASTER_PW_PBKDF_ITERATIONS,
+                                                                                                                                 32)));
+    if(model.changeUserMasterPW(oldUserMasterPW, newUserMasterPW, oldDerivedMasterPW, newDerivedMasterPW)){
+        unprotectMasterPW();
+        this->masterPW = newDerivedMasterPW;
+        protectMasterPW();
+        MessageHandler::inform("Changing master password was successful");
+    }else{
+        MessageHandler::warn("Changing master password failed");
+    }
 }
 
 void PasswordManagerAdapter::handleMainWindowClose(){

@@ -22,8 +22,10 @@ private:
 public:
     SettingsDialog(QWidget* parent);
     ~SettingsDialog();
+
+    void reject();
 signals:
-    void passwordChanged(const QByteArray& newMasterPWPlain);
+    void passwordChanged(const QByteArray& oldUserMasterPW, const QByteArray& newUserMasterPW);
     void closing();
 };
 

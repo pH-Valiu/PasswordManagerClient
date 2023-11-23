@@ -21,7 +21,7 @@ include($$PWD/PasswordManagerClient.pri)
 # Please save your databse folder somewhere else first
 #DEFINES += EXECUTE_UNIT_TESTS
 
-
+RC_ICONS = "/gui/ico/vault-shield.ico"
 
 
 

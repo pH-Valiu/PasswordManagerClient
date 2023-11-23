@@ -123,6 +123,8 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
     this->setContentsMargins(10, 10, 10, 10);
     this->setMinimumSize(800, 800);
 
+    this->setWindowIcon(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/vault-shield.ico")));
+
     connectSignalSlots();
 
 }
@@ -265,14 +267,17 @@ void PasswordManagerView::handleBackupClicked(const QModelIndex &backupIndex){
 }
 
 void PasswordManagerView::handleSettingsClicked(){
-    //this->setEnabled(false);
+    this->setEnabled(false);
     settingsDialog = std::unique_ptr<SettingsDialog>(new SettingsDialog(this));
-    /*connect(settingsDialog, &SettingsDialog::closing, this, [&]{
-        this->setEnabled(true);
-        //do stuff, you know what to do...
+    connect(settingsDialog.get(), &SettingsDialog::passwordChanged, this, [&](const QByteArray& oldUMPW, const QByteArray& newUMPW){
+        emit changeMasterPW(oldUMPW, newUMPW);
         this->update();
     });
-    */
+
+    connect(settingsDialog.get(), &SettingsDialog::closing, this, [&]{
+       this->setEnabled(true);
+    });
+
     settingsDialog->show();
 }
 
