@@ -1,6 +1,7 @@
 #include "settingsdialog.h"
 
 #include <QLabel>
+#include <QCoreApplication>
 
 SettingsDialog::SettingsDialog(QWidget* parent) :
     QDialog{parent}
@@ -12,6 +13,7 @@ SettingsDialog::SettingsDialog(QWidget* parent) :
 
     this->setWindowTitle("Settings");
     this->setLayout(mainLayout);
+    this->setWindowIcon(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/settings.ico")));
 }
 
 SettingsDialog::~SettingsDialog(){

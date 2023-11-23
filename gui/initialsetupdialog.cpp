@@ -57,6 +57,7 @@ InitialSetupDialog::InitialSetupDialog(QWidget* parent) :
     this->setMaximumSize(QSize(400, 450));
     this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     this->setLayout(mainLayout);
+    this->setWindowTitle("Vault Shield");
 }
 
 InitialSetupDialog::~InitialSetupDialog(){

@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QCoreApplication>
 #include <QRegularExpressionValidator>
 
 
@@ -95,6 +96,7 @@ DataEntryModulatorDialog::DataEntryModulatorDialog(QString headerName, std::uniq
     this->setAttribute(Qt::WA_DeleteOnClose);
     this->setWindowTitle(dialogName);
     this->setLayout(vbox);
+    this->setWindowIcon(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/edit.ico")));
 
     connectSignalSlots();
 }

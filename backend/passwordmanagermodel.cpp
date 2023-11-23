@@ -11,7 +11,6 @@ PasswordManagerModel& PasswordManagerModel::getInstance(){
 }
 
 int PasswordManagerModel::showHideEntry(const QByteArray& id, const QSharedPointer<QByteArray>& masterPW){
-    qDebug()<<"[PMM sHE] masterPW unprotected: "<<*masterPW;
     QSharedPointer<DataEntry> dataEntry = broker.getEntryFromId(id);
     if(dataEntry){
         if(masterPW){
@@ -159,6 +158,9 @@ bool PasswordManagerModel::changeUserMasterPW(const QByteArray &oldUserMasterPW,
             if(oldDerivedMasterPW && newDerivedMasterPW){
                 if(broker.changerMasterPW(oldDerivedMasterPW, newDerivedMasterPW)){
                     return true;
+                }else{
+                    setUserMasterPW(oldUserMasterPW);
+                    return false;
                 }
             }
         }

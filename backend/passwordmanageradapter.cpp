@@ -214,6 +214,11 @@ void PasswordManagerAdapter::handleShow(const QByteArray& id, DataEntryWidget* w
 
 void PasswordManagerAdapter::handleCreate(){
     unprotectMasterPW();
+    //hide all entries (backend and frontend)
+    model.hideAllEntries(masterPW);
+    view->hideAllDataEntryWidgets();
+
+    //start creation
     view->createDataEntry(std::move(model.getBuilder(masterPW)));
     protectMasterPW();
 }

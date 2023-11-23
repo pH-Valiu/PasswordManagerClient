@@ -48,6 +48,8 @@ StartupDialog::StartupDialog(QWidget* parent, const QByteArray& hashedUserPW) :
 
     this->setFixedSize(300, 220);
     this->setLayout(mainLayout);
+    this->setWindowTitle("Login to Vault Shield");
+
 }
 
 StartupDialog::~StartupDialog(){
