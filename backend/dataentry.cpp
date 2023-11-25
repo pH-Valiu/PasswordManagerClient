@@ -26,24 +26,17 @@ QJsonObject DataEntry::toJsonObject() const{
 
 bool DataEntry::decryptContent(const QSharedPointer<QByteArray>& masterPW){
     if(!this->encryptedContent.isNull() && !this->encryptedContent.isEmpty() && masterPW && masterPW->size() == 32 && !plain){
-        QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
-        QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, *masterPW, this->ivMidKey));
 
-        //check decryptedMidKey with midKeyHash
-        QByteArray decryptedMidKeyHash = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
-                                                                            decryptedMidKey,
-                                                                            this->midKeySalt,
-                                                                            SECURITY_CONSTANTS::DATA_ENTRY_MID_KEY_HASH_ITERATIONS,
-                                                                            64);
-        if(decryptedMidKeyHash != this->midKeyHash){
-            //hashes do not align
-            //return false
-            decryptedMidKey.clear();
-            decryptedMidKeyHash.clear();
-            return false;
+        //check integrity of masterPW and midKey if midKeyChecked-flag is false
+        if(!this->midKeyChecked){
+            if(!this->checkIntegrity(*masterPW)){
+                return false;
+            }
         }
 
 
+        QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
+        QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, *masterPW, this->ivMidKey));
         QByteArray decryptedJson = crypter.removePadding(crypter.decode(this->encryptedContent, decryptedMidKey, this->ivInner));
 
         QJsonParseError parseError;
@@ -70,7 +63,6 @@ bool DataEntry::decryptContent(const QSharedPointer<QByteArray>& masterPW){
 
         this->encryptedContent.clear();
         decryptedMidKey.clear();
-        decryptedMidKeyHash.clear();
         plain = true;
         return true;
     }else{
@@ -80,22 +72,17 @@ bool DataEntry::decryptContent(const QSharedPointer<QByteArray>& masterPW){
 
 bool DataEntry::encryptContent(const QSharedPointer<QByteArray>& masterPW){
     if((this->encryptedContent.isNull() || this->encryptedContent.isEmpty()) && masterPW && masterPW->size() == 32 && plain){
+
+        //check integrity of masterPW and midKey if midKeyChecked-flag is false
+        if(!this->midKeyChecked){
+            if(!this->checkIntegrity(*masterPW)){
+                return false;
+            }
+        }
+
+
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, *masterPW, this->ivMidKey));
-
-        //check decryptedMidKey with midKeyHash
-        QByteArray decryptedMidKeyHash = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
-                                                                            decryptedMidKey,
-                                                                            this->midKeySalt,
-                                                                            SECURITY_CONSTANTS::DATA_ENTRY_MID_KEY_HASH_ITERATIONS,
-                                                                            64);
-        if(decryptedMidKeyHash != this->midKeyHash){
-            //hashes did not align
-            //return false
-            decryptedMidKey.clear();
-            decryptedMidKeyHash.clear();
-            return false;
-        }
 
 
         QMap<QString, QVariant> map;
@@ -108,11 +95,29 @@ bool DataEntry::encryptContent(const QSharedPointer<QByteArray>& masterPW){
         this->setContent(encryptedContent);
         this->clearConfidential();
         decryptedMidKey.clear();
-        decryptedMidKeyHash.clear();
         plain = false;
         return true;
     }else{
         return false;
+    }
+}
+
+bool DataEntry::checkIntegrity(const QByteArray &masterPW){
+    QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
+    QByteArray decryptedMidKey = crypter.removePadding(crypter.decode(this->midKey, masterPW, this->ivMidKey));
+
+    QByteArray decryptedMidKeyHash = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
+                                                             decryptedMidKey,
+                                                             this->midKeySalt,
+                                                             SECURITY_CONSTANTS::DATA_ENTRY_MID_KEY_HASH_ITERATIONS,
+                                                             64);
+
+    decryptedMidKey.clear();
+    if(decryptedMidKeyHash != this->midKeyHash){
+        return false;
+    }else{
+        this->midKeyChecked = true;
+        return true;
     }
 }
 

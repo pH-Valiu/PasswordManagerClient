@@ -89,11 +89,11 @@ void DataEntryWidget::setupButtonPanel(QVBoxLayout* entryLayout){
     upButton = new AdvancedPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/up.ico")), upDownWidget);
     upButton->setIconSize(QSize(16, 16));
     upButton->setFixedSize(24, 24);
-    upButton->setToolTip("Click to move one up, Shift-Click to move to the top");
+    upButton->setToolTip("Click to move upwards one, Shift-Click to move to the top");
     downButton = new AdvancedPushButton(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/down.ico")), upDownWidget);
     downButton->setIconSize(QSize(16, 16));
     downButton->setFixedSize(24, 24);
-    downButton->setToolTip("Click to move one down, Shift-Click to move to the bottom");
+    downButton->setToolTip("Click to move downwards one, Shift-Click to move to the bottom");
 
     upDownLayout->setSpacing(2);
     upDownLayout->addWidget(upButton);

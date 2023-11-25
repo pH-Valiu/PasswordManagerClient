@@ -410,16 +410,27 @@ void PasswordManagerAdapter::handleRevertToLocalBackup(const QString &backup){
 }
 
 void PasswordManagerAdapter::handleChangeMasterPW(const QByteArray &oldUserMasterPW, const QByteArray &newUserMasterPW){
+    unprotectMasterPW();
+    //hide all entries (backend and frontend)
+    model.hideAllEntries(masterPW);
+    view->hideAllDataEntryWidgets();
+    protectMasterPW();
+
+    //compute old (current) masterPW
     QSharedPointer<QByteArray> oldDerivedMasterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
                                                                                                                                  oldUserMasterPW,
                                                                                                                                  SECURITY_CONSTANTS::MASTER_PW_PBKDF_SALT,
                                                                                                                                  SECURITY_CONSTANTS::MASTER_PW_PBKDF_ITERATIONS,
                                                                                                                                  32)));
+
+    //compute new masterPW
     QSharedPointer<QByteArray> newDerivedMasterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
                                                                                                                                  newUserMasterPW,
                                                                                                                                  SECURITY_CONSTANTS::MASTER_PW_PBKDF_SALT,
                                                                                                                                  SECURITY_CONSTANTS::MASTER_PW_PBKDF_ITERATIONS,
                                                                                                                                  32)));
+
+    //change masterPW
     if(model.changeUserMasterPW(oldUserMasterPW, newUserMasterPW, oldDerivedMasterPW, newDerivedMasterPW)){
         unprotectMasterPW();
         this->masterPW = newDerivedMasterPW;
@@ -436,6 +447,7 @@ void PasswordManagerAdapter::handleStartIntegrityCheck(){
         if(returnCode > 0){
             MessageHandler::critical("Background integrity check failed. Master password is probably not correct");
         }
+        MessageHandler::inform("Background integrity check finished successfully. Master password and data entries seem to be valid");
         integrityCheck->deleteLater();
     });
 

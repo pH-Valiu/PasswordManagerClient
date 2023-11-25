@@ -12,13 +12,14 @@ class IntegrityCheckWorker : public QObject
 {
     Q_OBJECT
 public slots:
-    void doWork(const QSharedPointer<QByteArray>& masterPW, const QVector<QSharedPointer<DataEntry>>& entries);
-private:
-    QByteArray masterPW;
     /**
-     * @brief tuples with (midKey, midKeySalt, ivMidKey, midKeyHash)
+     * @brief doWork checks integrity of all DataEntries in entries
+     * @param masterPW in unprotected form
+     * @param entries QVector containing QSharedPointer to the DataEntries
+     *
+     * Emits workFinished
      */
-    QList<struct DataEntry::IntegrityCheckData> data;
+    void doWork(const QByteArray& masterPW, const QVector<QSharedPointer<DataEntry>>& entries);
 signals:
     /**
      * @brief workFinished
@@ -40,12 +41,18 @@ public:
     IntegrityCheckController();
     ~IntegrityCheckController();
 public slots:
+    /**
+     * @brief checkIntegrity takes the masterPW and makes a deep copy of it on purpose due to thread-safetieness
+     * @param masterPW QSharedPointer to the QByteArray
+     * @param entries
+     */
     void checkIntegrity(const QSharedPointer<QByteArray>& masterPW, const QVector<QSharedPointer<DataEntry>>& entries);
 private:
     QThread integrityCheckThread;
+    QByteArray masterPW;
 signals:
     void integrityCheckFinished(int returnCode);
-    void operate(const QSharedPointer<QByteArray>& masterPW, const QVector<QSharedPointer<DataEntry>>& entries);
+    void operate(const QByteArray& masterPW, const QVector<QSharedPointer<DataEntry>>& entries);
 };
 
 #endif // INTEGRITYCHECK_H

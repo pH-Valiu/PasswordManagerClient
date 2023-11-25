@@ -19,36 +19,54 @@ DataEntryBuilder::DataEntryBuilder(const QSharedPointer<QByteArray> &masterPW){
     //deep copy of the masterPW (new heap allocation)
     this->masterPW = QSharedPointer<QByteArray>(new QByteArray(*masterPW));
 
+    //create new DataEntry on the heap and set its ID
     dataEntry = QSharedPointer<DataEntry>(new DataEntry());
     dataEntry->setID(QUuid::createUuid().toByteArray());
 
 
     srand(QTime::currentTime().minute());
     QByteArray ivInner, ivMidKey, midKeySalt;
-    int rnd = rand();
-    ivInner.append((unsigned char*) &rnd);
-    rnd = rand();
-    ivMidKey.append((unsigned char*) &rnd);
-    rnd = rand();
-    midKeySalt.append((unsigned char*) &rnd);
+    qint16 rnd;
 
-    midKeySalt.resize(16);
+    //initialize ivInner with 16 bytes of random data (each iteration, 2 bytes)
+    for(qsizetype i=0; i<8; i++){
+        rnd = rand();
+        ivInner.append((const char*) &rnd, 2);
+    }
     ivInner.resize(16);
+
+    //initialize ivMidKey with 16 bytes of random data (each iteration, 2 bytes)
+    for(qsizetype i=0; i<8; i++){
+        rnd = rand();
+        ivMidKey.append((const char*) &rnd, 2);
+    }
     ivMidKey.resize(16);
+
+    //initialize midKeySalt with 2 bytes of random data
+    rnd = rand();
+    midKeySalt.append((const char*) &rnd, 2);
+    midKeySalt.resize(2);
+
+    //set security data in DataEntry
     dataEntry->setIvInner(ivInner);
     dataEntry->setIvMidKey(ivMidKey);
     dataEntry->setMidKeySalt(midKeySalt);
 }
+
 DataEntryBuilder::~DataEntryBuilder(){
 }
 
 QSharedPointer<DataEntry> DataEntryBuilder::modulate(){
     if(this->masterPW && this->masterPW->size() == 32){
-        QByteArray plainMidKey = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
-                                                                    QByteArray::number(QRandomGenerator::global()->generate64()),
-                                                                    QString("some ineteresting salt").toUtf8(),
-                                                                    SECURITY_CONSTANTS::DATA_ENTRY_MID_KEY_PBKDF_ITERATIONS,
-                                                                    32);
+        QRandomGenerator* randomGenerator = QRandomGenerator::system();
+        QByteArray plainMidKey;
+        quint64 crypto_rnd;
+        for(qsizetype i=0; i<4; i++){
+            crypto_rnd = randomGenerator->generate64();
+            plainMidKey.append((const char*) &crypto_rnd, 8);
+        }
+        crypto_rnd=0;
+        plainMidKey.resize(32);
 
         QAESEncryption crypter(QAESEncryption::AES_256, QAESEncryption::CBC, QAESEncryption::PKCS7);
         QByteArray encryptedMidKey = crypter.encode(plainMidKey, *masterPW, dataEntry->getIvMidKey());
@@ -62,8 +80,6 @@ QSharedPointer<DataEntry> DataEntryBuilder::modulate(){
         dataEntry->setMidKeyHash(plainMidKeyHash);
 
 
-
-
         QMap<QString, QVariant> map;
         map.insert("username", dataEntry->getUsername());
         map.insert("email", dataEntry->getEMail());
@@ -73,6 +89,7 @@ QSharedPointer<DataEntry> DataEntryBuilder::modulate(){
         QByteArray encryptedContent = crypter.encode(contentAsJson, plainMidKey, dataEntry->getIvInner());
         dataEntry->setContent(encryptedContent);
         dataEntry->plain = false;
+        dataEntry->midKeyChecked = true;
 
 
         contentAsJson.clear();
@@ -109,6 +126,8 @@ QSharedPointer<DataEntry> DataEntryBuilder::fromJsonObject(const QJsonObject &js
         entry->setMidKeySalt(QByteArray::fromBase64(map.value("midKeySalt", "").toString().toUtf8()));
         entry->setContent(QByteArray::fromBase64(map.value("content", "").toString().toUtf8()));
         entry->setLastChanged(map.value("lastChanged", "").toDateTime());
+        entry->plain = false;
+        entry->midKeyChecked = false;
         if(map.value("website", "").toString().isEmpty()){
             entry->setWebsite(std::nullopt);
         }else{
