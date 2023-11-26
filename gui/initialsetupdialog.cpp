@@ -72,8 +72,8 @@ void InitialSetupDialog::handleSignIn(const QString& userMasterPW){
 
 
     /*
-    if(!QRegularExpression("^.{10,}$").match(userMasterPW).hasMatch()){
-        QString errorNum = " - At least 10 characters";
+    if(!QRegularExpression("^.{12,}$").match(userMasterPW).hasMatch()){
+        QString errorNum = " - At least 12 characters";
         errorHeader.append(startTag).append(errorNum).append(endTag).append("<br>");
         regexFine = false;
     }

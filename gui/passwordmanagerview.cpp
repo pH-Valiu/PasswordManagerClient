@@ -85,6 +85,10 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
     saveButton->setToolTip("Save to disk");
 
 
+    integrityCheckCompletedLabel = new QLabel(entriesHeaderWidget);
+    integrityCheckCompletedLabel->setPixmap(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/loading.ico")).pixmap(QSize(32, 32)));
+    integrityCheckCompletedLabel->setToolTip("Indicates whether the background integrity check is still ongoing, has finished or an error occurred");
+
     searchLineEdit = new QLineEdit(entriesHeaderWidget);
     searchLineEdit->setPlaceholderText("Search");
     searchLineEdit->setClearButtonEnabled(true);
@@ -94,8 +98,10 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
     entriesHeaderLayout->addWidget(saveButton, 0, Qt::AlignLeft);
     entriesHeaderLayout->addStretch();
     entriesHeaderLayout->addWidget(searchLineEdit, 0, Qt::AlignRight);
+    entriesHeaderLayout->addWidget(integrityCheckCompletedLabel);
     entriesHeaderLayout->setSpacing(0);
     entriesHeaderWidget->setLayout(entriesHeaderLayout);
+
 
 
 
@@ -121,7 +127,7 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
 
     this->setCentralWidget(mainWidget);
     this->setContentsMargins(10, 10, 10, 10);
-    this->setMinimumSize(800, 800);
+    this->setMinimumSize(757, 800);
 
     this->setWindowIcon(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/vault-shield.ico")));
 
@@ -243,6 +249,14 @@ void PasswordManagerView::setLocalBackups(const QList<QStandardItem* > &backupLi
 
 void PasswordManagerView::addLocalBackup(QStandardItem *backupItem){
     backupListModel->insertRow(0, backupItem);
+}
+
+void PasswordManagerView::setIntegrityCheckPixmap(int completedStatus){
+    switch(completedStatus){
+    case 0: {integrityCheckCompletedLabel->setPixmap(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/loading.ico")).pixmap(QSize(16, 16)));break;}
+    case 1: {integrityCheckCompletedLabel->setPixmap(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/green-hook.ico")).pixmap(QSize(16, 16)));break;}
+    case -1: {integrityCheckCompletedLabel->setPixmap(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/error.ico")).pixmap(QSize(16, 16)));break;}
+    }
 }
 
 void PasswordManagerView::handleBackupClicked(const QModelIndex &backupIndex){

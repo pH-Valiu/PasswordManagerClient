@@ -2,6 +2,7 @@
 #define PASSWORDBROKER_H
 #include "dataentry.h"
 #include "dataentrymodulator.h"
+#include <QPair>
 
 
 
@@ -58,9 +59,10 @@ public:
     qsizetype entryCount() {return vector.size();}
     ~PasswordBroker();
 
-    QByteArray getUserMasterPWHash();
+    QByteArray getMasterPWSalt();
+    QPair<QByteArray,QByteArray> getUserMasterPWHash();
     bool validateUserMasterPW(const QByteArray& userMasterPW);
-    bool setUserMasterPW(const QByteArray& userMasterPW);
+    bool setUserMasterPW(const QByteArray& userMasterPW, const QByteArray& masterPWSalt);
 
     friend class PasswordBrokerTest;
 #ifdef EXECUTE_UNIT_TESTS

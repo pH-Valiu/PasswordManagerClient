@@ -13,7 +13,7 @@ class StartupDialog : public QDialog
 {
     Q_OBJECT
 public:
-    StartupDialog(QWidget* parent, const QByteArray& hashedUserPW);
+    StartupDialog(QWidget* parent, const QByteArray& hashedUserPW, const QByteArray& salt);
     ~StartupDialog();
     void passwordCorrect();
     void passwordIncorrect();
@@ -22,6 +22,7 @@ private:
     QPushButton* loginButton;
     QLabel* informationLabel;
     QByteArray storedHashedUserPW;
+    QByteArray storedSalt;
 private slots:
     void authenticateUser(const QString& userMasterPW);
 signals:

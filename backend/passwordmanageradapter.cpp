@@ -36,11 +36,11 @@ PasswordManagerAdapter::~PasswordManagerAdapter(){
 }
 
 int PasswordManagerAdapter::start(){
-    QByteArray storedHashedUserPW = model.getUserMasterPWHash();
+    QPair<QByteArray, QByteArray> storedHashedUserPW = model.getUserMasterPWHash();
 
-    if(!storedHashedUserPW.isEmpty()){
+    if(!storedHashedUserPW.first.isEmpty() && !storedHashedUserPW.second.isEmpty()){
         //Show StartupDialog
-        startupDialog = std::unique_ptr<StartupDialog>(new StartupDialog(nullptr, storedHashedUserPW));
+        startupDialog = std::unique_ptr<StartupDialog>(new StartupDialog(nullptr, storedHashedUserPW.first, storedHashedUserPW.second));
         connect(startupDialog.get(), &StartupDialog::userAuthenticated, this, &PasswordManagerAdapter::handleAuthenticateCompleted);
         startupDialog->show();
         return 0;
@@ -56,9 +56,11 @@ int PasswordManagerAdapter::start(){
 void PasswordManagerAdapter::showMainWindow(){
     view = std::unique_ptr<PasswordManagerView>(new PasswordManagerView(nullptr));
 
+    //start broker
     unprotectMasterPW();
     if(!model.startBroker(masterPW)){
         protectMasterPW();
+        MessageHandler::critical("Failed to start password manager.\nPossible reasons:\n * Database files could not be accessed due to read/write permissions on your machine.\n * Your user password seems correct but the database is encrypted with a different password.\n --> In that case, manually revert to an older local backup.");
         QApplication::exit(-1);
         return;
     }
@@ -90,8 +92,11 @@ void PasswordManagerAdapter::showMainWindow(){
     }
     view->setLocalBackups(localBackupList);
 
-
     connectSignalSlots();
+
+    //start background integrity check
+    this->handleStartIntegrityCheck();
+
     view->show();
 }
 
@@ -169,23 +174,35 @@ void PasswordManagerAdapter::handleSave(){
 }
 
 void PasswordManagerAdapter::handleNewUser(const QByteArray &userMasterPW){
+
+    srand(QTime::currentTime().msec());
+    qint16 rnd;
+    QByteArray masterPWSalt;
+    for(int i=0; i<4; i++){
+        rnd = rand();
+        masterPWSalt.append((const char*) &rnd, 2);
+    }
+    masterPWSalt.resize(8);
+
     this->masterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
                                                                                                   userMasterPW,
-                                                                                                  SECURITY_CONSTANTS::MASTER_PW_PBKDF_SALT,
+                                                                                                  masterPWSalt,
                                                                                                   SECURITY_CONSTANTS::MASTER_PW_PBKDF_ITERATIONS,
                                                                                                   32)));
     this->masterPW->resize(32);
 
-    model.setUserMasterPW(userMasterPW);
+    model.setUserMasterPW(userMasterPW, masterPWSalt);
 
     protectMasterPW();
     showMainWindow();
 }
 
 void PasswordManagerAdapter::handleAuthenticateCompleted(const QByteArray& userMasterPW){
+    QByteArray masterPWSalt = model.getMasterPWSalt();
+
     this->masterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
                                                             userMasterPW,
-                                                            SECURITY_CONSTANTS::MASTER_PW_PBKDF_SALT,
+                                                            masterPWSalt,
                                                             SECURITY_CONSTANTS::MASTER_PW_PBKDF_ITERATIONS,
                                                             32)));
     this->masterPW->resize(32);
@@ -408,7 +425,6 @@ void PasswordManagerAdapter::handleRevertToLocalBackup(const QString &backup){
     //reenable user input
     view->setEnabled(true);
 }
-
 void PasswordManagerAdapter::handleChangeMasterPW(const QByteArray &oldUserMasterPW, const QByteArray &newUserMasterPW){
     unprotectMasterPW();
     //hide all entries (backend and frontend)
@@ -416,25 +432,40 @@ void PasswordManagerAdapter::handleChangeMasterPW(const QByteArray &oldUserMaste
     view->hideAllDataEntryWidgets();
     protectMasterPW();
 
+    QByteArray oldMasterPWSalt = model.getMasterPWSalt();
+
+    srand(QTime::currentTime().msec());
+    qint16 rnd;
+    QByteArray newMasterPWSalt;
+    for(int i=0; i<4; i++){
+        rnd = rand();
+        newMasterPWSalt.append((const char*) &rnd, 2);
+    }
+    newMasterPWSalt.resize(8);
+
+
+
     //compute old (current) masterPW
     QSharedPointer<QByteArray> oldDerivedMasterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
                                                                                                                                  oldUserMasterPW,
-                                                                                                                                 SECURITY_CONSTANTS::MASTER_PW_PBKDF_SALT,
+                                                                                                                                 oldMasterPWSalt,
                                                                                                                                  SECURITY_CONSTANTS::MASTER_PW_PBKDF_ITERATIONS,
                                                                                                                                  32)));
 
     //compute new masterPW
     QSharedPointer<QByteArray> newDerivedMasterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
                                                                                                                                  newUserMasterPW,
-                                                                                                                                 SECURITY_CONSTANTS::MASTER_PW_PBKDF_SALT,
+                                                                                                                                 newMasterPWSalt,
                                                                                                                                  SECURITY_CONSTANTS::MASTER_PW_PBKDF_ITERATIONS,
                                                                                                                                  32)));
 
     //change masterPW
-    if(model.changeUserMasterPW(oldUserMasterPW, newUserMasterPW, oldDerivedMasterPW, newDerivedMasterPW)){
+    if(model.changeUserMasterPW(oldUserMasterPW, newUserMasterPW, oldMasterPWSalt, newMasterPWSalt, oldDerivedMasterPW, newDerivedMasterPW)){
+
         unprotectMasterPW();
         this->masterPW = newDerivedMasterPW;
         protectMasterPW();
+
         MessageHandler::inform("Changing master password was successful");
     }else{
         MessageHandler::warn("Changing master password failed");
@@ -445,13 +476,15 @@ void PasswordManagerAdapter::handleStartIntegrityCheck(){
     IntegrityCheckController* integrityCheck = new IntegrityCheckController;
     connect(integrityCheck, &IntegrityCheckController::integrityCheckFinished, this, [=](const int& returnCode){
         if(returnCode > 0){
+            view->setIntegrityCheckPixmap(-1);
             MessageHandler::critical("Background integrity check failed. Master password is probably not correct");
         }
-        MessageHandler::inform("Background integrity check finished successfully. Master password and data entries seem to be valid");
+        view->setIntegrityCheckPixmap(1);
         integrityCheck->deleteLater();
     });
 
     unprotectMasterPW();
+    view->setIntegrityCheckPixmap(0);
     integrityCheck->checkIntegrity(masterPW, model.getAllEntries());
     protectMasterPW();
 }

@@ -126,10 +126,11 @@ public:
     QList<QString> getlAllLocalBackups();
     QString getOneBackupNewer(const QString& currentBackup);
 
+    QByteArray getMasterPWSalt();
     bool validateUserMasterPW(const QByteArray& userMasterPW);
-    QByteArray getUserMasterPWHash();
-    bool setUserMasterPW(const QByteArray& userMasterPW);
-    bool changeUserMasterPW(const QByteArray& oldUserMasterPW, const QByteArray& newUserMasterPW, const QSharedPointer<QByteArray>& oldDerivedMasterPW, const QSharedPointer<QByteArray>& newDerivedMasterPW);
+    QPair<QByteArray, QByteArray> getUserMasterPWHash();
+    bool setUserMasterPW(const QByteArray& userMasterPW, const QByteArray& masterPWSalt);
+    bool changeUserMasterPW(const QByteArray& oldUserMasterPW, const QByteArray& newUserMasterPW, const QByteArray& oldMasterPWSalt, const QByteArray& newMasterPWSalt, const QSharedPointer<QByteArray>& oldDerivedMasterPW, const QSharedPointer<QByteArray>& newDerivedMasterPW);
 private:
     PasswordManagerModel();
     PasswordBroker& broker;

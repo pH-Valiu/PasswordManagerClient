@@ -23,6 +23,7 @@ public:
     void createDataEntry(std::unique_ptr<DataEntryBuilder>);
     void scrollTo(const QByteArray& entryID);
     void setLocalBackups(const QList<QStandardItem* >& backupList);
+    void setIntegrityCheckPixmap(int completedStatus);
     void addLocalBackup(QStandardItem* backupItem);
     void addDataEntryWidget(DataEntryWidget*);
     /**
@@ -50,6 +51,7 @@ private:
     QPushButton* addEntryButton;
     QPushButton* saveButton;
     QLineEdit* searchLineEdit;
+    QLabel* integrityCheckCompletedLabel;
 
     std::unique_ptr<SettingsDialog> settingsDialog;
 

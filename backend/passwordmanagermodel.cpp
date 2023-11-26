@@ -144,7 +144,11 @@ bool PasswordManagerModel::revertToOlderLocalBackup(const QString& folderName){
 
 
 
-QByteArray PasswordManagerModel::getUserMasterPWHash(){
+QByteArray PasswordManagerModel::getMasterPWSalt(){
+    return broker.getMasterPWSalt();
+}
+
+QPair<QByteArray, QByteArray> PasswordManagerModel::getUserMasterPWHash(){
     return broker.getUserMasterPWHash();
 }
 
@@ -152,18 +156,23 @@ bool PasswordManagerModel::validateUserMasterPW(const QByteArray& userMasterPW){
     return broker.validateUserMasterPW(userMasterPW);
 }
 
-bool PasswordManagerModel::setUserMasterPW(const QByteArray &userMasterPW){
-    return broker.setUserMasterPW(userMasterPW);
+bool PasswordManagerModel::setUserMasterPW(const QByteArray &userMasterPW, const QByteArray& masterPWSalt){
+    return broker.setUserMasterPW(userMasterPW, masterPWSalt);
 }
 
-bool PasswordManagerModel::changeUserMasterPW(const QByteArray &oldUserMasterPW, const QByteArray &newUserMasterPW, const QSharedPointer<QByteArray> &oldDerivedMasterPW, const QSharedPointer<QByteArray> &newDerivedMasterPW){
+bool PasswordManagerModel::changeUserMasterPW(const QByteArray &oldUserMasterPW,
+                                              const QByteArray &newUserMasterPW,
+                                              const QByteArray &oldMasterPWSalt,
+                                              const QByteArray &newMasterPWSalt,
+                                              const QSharedPointer<QByteArray> &oldDerivedMasterPW,
+                                              const QSharedPointer<QByteArray> &newDerivedMasterPW){
     if(validateUserMasterPW(oldUserMasterPW)){
-        if(setUserMasterPW(newUserMasterPW)){
+        if(setUserMasterPW(newUserMasterPW, newMasterPWSalt)){
             if(oldDerivedMasterPW && newDerivedMasterPW){
                 if(broker.changerMasterPW(oldDerivedMasterPW, newDerivedMasterPW)){
                     return true;
                 }else{
-                    setUserMasterPW(oldUserMasterPW);
+                    setUserMasterPW(oldUserMasterPW, oldMasterPWSalt);
                     return false;
                 }
             }

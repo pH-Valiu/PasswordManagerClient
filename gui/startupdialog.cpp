@@ -6,9 +6,10 @@
 #include <QPasswordDigestor>
 #include <QCoreApplication>
 
-StartupDialog::StartupDialog(QWidget* parent, const QByteArray& hashedUserPW) :
+StartupDialog::StartupDialog(QWidget* parent, const QByteArray& hashedUserPW, const QByteArray& salt) :
     QDialog{parent},
-    storedHashedUserPW{hashedUserPW}
+    storedHashedUserPW{hashedUserPW},
+    storedSalt{salt}
 {
     QVBoxLayout* mainLayout = new QVBoxLayout();
 
@@ -59,7 +60,7 @@ StartupDialog::~StartupDialog(){
 void StartupDialog::authenticateUser(const QString &userMasterPW){
     QByteArray hashedPW = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Blake2b_512,
                                                              userMasterPW.toUtf8(),
-                                                             SECURITY_CONSTANTS::USER_MASTER_PW_HASH_SALT,
+                                                             storedSalt,
                                                              SECURITY_CONSTANTS::USER_MASTER_PW_HASH_ITERATIONS,
                                                              64);
 
