@@ -4,6 +4,7 @@
 #include <QBoxLayout>
 #include <QDialog>
 #include <QObject>
+#include <QLabel>
 #include <QWidget>
 #include <QLineEdit>
 #include <QPushButton>
@@ -13,6 +14,7 @@ class SettingsDialog : public QDialog
     Q_OBJECT
 private:
     QVBoxLayout* mainLayout;
+    QLabel* changePasswordInformationLabel;
     QLineEdit* oldMasterPWLineEdit;
     QLineEdit* newMasterPWLineEdit;
     QLineEdit* newMasterPWRepeatLineEdit;
