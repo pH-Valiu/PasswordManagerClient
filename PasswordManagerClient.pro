@@ -1,12 +1,10 @@
-QT += core gui network testlib widgets
+QT += core gui network widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++17 gui
+CONFIG += c++17 gui windows
 CONFIG += depend_includepath
 CONFIG -= debug_and_release
-
-TEMPLATE = app
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -14,14 +12,19 @@ TEMPLATE = app
 
 include($$PWD/PasswordManagerClient.pri)
 
+TARGET = VaultShield
+VERSION = 1.0.0.0
+QMAKE_TARGET_COPYRIGHT = GNU GPL 3.0
+RC_ICONS = "/gui/ico/vault-shield.ico"
+
 
 # Un-Comment this line when you want to test your code
 # Comment this line when you want to deploy your code
 # ATTENTION: Executing unit test will delete all your DataEntries, therefore all your passwords aswell
 # Please save your databse folder somewhere else first
+# Add 'testlib' to QT += if you want to run the tests
 #DEFINES += EXECUTE_UNIT_TESTS
 
-RC_ICONS = "/gui/ico/vault-shield.ico"
 
 
 

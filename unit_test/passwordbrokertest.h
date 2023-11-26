@@ -1,6 +1,8 @@
 #ifndef PASSWORDBROKERTEST_H
 #define PASSWORDBROKERTEST_H
 
+
+#ifdef EXECUTE_UNIT_TESTS
 #include <QObject>
 #include <QTest>
 #include "dataentry.h"
@@ -28,5 +30,7 @@ private:
 
 
 };
+
+#endif
 
 #endif // PASSWORDBROKERTEST_H

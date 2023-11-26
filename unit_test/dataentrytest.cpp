@@ -1,5 +1,6 @@
 #include "dataentrytest.h"
 
+#ifdef EXECUTE_UNIT_TESTS
 
 void DataEntryTest::initTestCase(){
     masterPW = QSharedPointer<QByteArray>(new QByteArray(QCryptographicHash::hash(QString("masterPassword").toUtf8(), QCryptographicHash::Sha256)));
@@ -161,6 +162,8 @@ void DataEntryTest::testModulatorChangeMasterPW(){
     appleMod2.changeMasterPassword(masterPW);
     appleMod2.modulate();
 }
+
+#endif
 
 
 

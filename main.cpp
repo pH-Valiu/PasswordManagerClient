@@ -1,7 +1,6 @@
 #include "passwordmanageradapter.h"
 
 #include <QFile>
-#include <QTextStream>
 #include <QApplication>
 
 #ifdef EXECUTE_UNIT_TESTS
@@ -30,7 +29,7 @@ int main(int argc, char *argv[])
     int retCode = adapter.start();
     switch(retCode){
     case 0:
-        //all fine
+        //all fine nice
         break;
     case 1:
         //new user -> all fine

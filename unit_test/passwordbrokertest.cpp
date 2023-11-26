@@ -1,5 +1,7 @@
 #include "passwordbrokertest.h"
 
+#ifdef EXECUTE_UNIT_TESTS
+
 void PasswordBrokerTest::initTestCase(){
     masterPW = QSharedPointer<QByteArray>(new QByteArray(QCryptographicHash::hash(QString("masterPassword").toUtf8(), QCryptographicHash::Sha256)));
     QDir dirDatabase(QCoreApplication::applicationDirPath() + "/database");
@@ -218,3 +220,5 @@ void PasswordBrokerTest::testWrongMasterPW(){
 #endif
 
 }
+
+#endif

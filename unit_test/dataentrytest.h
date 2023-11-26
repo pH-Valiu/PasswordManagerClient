@@ -1,6 +1,7 @@
 #ifndef DATAENTRYTEST_H
 #define DATAENTRYTEST_H
 
+#ifdef EXECUTE_UNIT_TESTS
 #include <QObject>
 #include <QTest>
 #include "dataentry.h"
@@ -25,5 +26,6 @@ public:
     QSharedPointer<DataEntry> appleEntry;
 
 };
+#endif
 
 #endif // DATAENTRYTEST_H

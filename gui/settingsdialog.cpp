@@ -144,7 +144,6 @@ void SettingsDialog::setupChangeMasterPW(){
                     newMasterPWLineEdit->clear();
                     newMasterPWRepeatLineEdit->clear();
                     newMasterPWLineEdit->setFocus();
-                    //error displayed in informationLabel
                 }
             }else{
                 newMasterPWLineEdit->clear();
