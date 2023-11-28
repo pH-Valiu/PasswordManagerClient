@@ -131,6 +131,7 @@ PasswordManagerView::PasswordManagerView(QWidget *parent)
 
     this->setWindowIcon(QIcon(QCoreApplication::applicationDirPath().append("/gui/ico/vault-shield.ico")));
 
+    searchLineEdit->setFocus();
     connectSignalSlots();
 
 }
@@ -161,12 +162,14 @@ void PasswordManagerView::addDataEntryWidget(DataEntryWidget* dataEntryWidget){
     dataEntryWidget->setParent(scrollAreaWidget);
     dataEntryWidget->setObjectName("dataEntryWidget");
     scrollArea->update();
+    searchLineEdit->setFocus();
 }
 
 void PasswordManagerView::removeDataEntryWidget(DataEntryWidget* dataEntryWidget){
     scrollAreaLayout->removeWidget(dataEntryWidget);
     delete dataEntryWidget;
     scrollArea->update();
+    searchLineEdit->setFocus();
 }
 
 void PasswordManagerView::removeAllDataEntryWidgets(){
@@ -192,6 +195,7 @@ void PasswordManagerView::moveEntry(DataEntryWidget *widget, int toIndex){
     widget->setParent(scrollAreaWidget);
 
     scrollArea->update();
+    searchLineEdit->setFocus();
 }
 
 void PasswordManagerView::hideAllDataEntryWidgets(){
@@ -209,6 +213,7 @@ void PasswordManagerView::createDataEntry(std::unique_ptr<DataEntryBuilder> buil
         DataEntryModulatorDialog* dialog = new DataEntryModulatorDialog("Create Entry: ", std::move(builder), this);
         connect(dialog, &DataEntryModulatorDialog::closing, this, [=]{
             this->setEnabled(true);
+            searchLineEdit->setFocus();
         });
         connect(dialog, &DataEntryModulatorDialog::modulated,this, [&](QSharedPointer<DataEntry> dataEntry){emit newEntry(dataEntry);});
         dialog->show();
@@ -222,6 +227,7 @@ void PasswordManagerView::editDataEntry(std::unique_ptr<DataEntryEditor> editor,
         connect(dialog, &DataEntryModulatorDialog::closing, this, [=]{
             this->setEnabled(true);
             widget->updateContent();
+            searchLineEdit->setFocus();
         });
         dialog->show();
     }
@@ -239,6 +245,7 @@ void PasswordManagerView::scrollTo(const QByteArray& entryID){
             }
         }
     }
+    searchLineEdit->setFocus();
 }
 
 void PasswordManagerView::setLocalBackups(const QList<QStandardItem* > &backupList){
@@ -249,6 +256,7 @@ void PasswordManagerView::setLocalBackups(const QList<QStandardItem* > &backupLi
 
 void PasswordManagerView::addLocalBackup(QStandardItem *backupItem){
     backupListModel->insertRow(0, backupItem);
+    searchLineEdit->setFocus();
 }
 
 void PasswordManagerView::setIntegrityCheckPixmap(int completedStatus){

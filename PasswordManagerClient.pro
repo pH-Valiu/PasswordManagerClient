@@ -13,7 +13,7 @@ CONFIG -= debug_and_release
 include($$PWD/PasswordManagerClient.pri)
 
 TARGET = VaultShield
-VERSION = 1.0.0.0
+VERSION = 1.0.0.1
 QMAKE_TARGET_COPYRIGHT = GNU GPL 3.0
 RC_ICONS = "/gui/ico/vault-shield.ico"
 
