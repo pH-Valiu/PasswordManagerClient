@@ -107,6 +107,10 @@ std::unique_ptr<DataEntryBuilder> PasswordManagerModel::getBuilder(const QShared
     return nullptr;
 }
 
+QSharedPointer<DataEntry> PasswordManagerModel::getEntry(const QByteArray &id){
+    return broker.getEntryFromId(id);
+}
+
 QByteArray PasswordManagerModel::searchEntry(const QString& identifier){
     return broker.searchEntry(identifier);
 }

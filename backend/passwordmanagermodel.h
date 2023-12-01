@@ -72,6 +72,13 @@ public:
      */
     int hideAllEntries(const QSharedPointer<QByteArray>& masterPW);
 
+    /**
+     * @brief getEntry
+     * @param id of the entry to get
+     * @return pointer to the entry, or nullptr if id was not found
+     */
+    QSharedPointer<DataEntry> getEntry(const QByteArray& id);
+
     void addEntry(QSharedPointer<DataEntry>& entry);
     /**
      * @brief removeEntry removes the data entry with id as its identifier
@@ -94,6 +101,11 @@ public:
      */
     int moveEntry(const QByteArray& id, bool up, bool toTheLimit);
     const QVector<QSharedPointer<DataEntry>> getAllEntries(){return broker.getAllEntries();}
+    /**
+     * @brief searchEntry
+     * @param identifier
+     * @return The id of the entry if it was found, otherwise an empty QByteArray
+     */
     QByteArray searchEntry(const QString& identifier);
 
     /**
