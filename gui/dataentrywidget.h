@@ -52,6 +52,7 @@ private:
 protected:
     virtual void paintEvent(QPaintEvent*);
 signals:
+    void copyButtonClicked(const QByteArray& id, DataEntry::SecureDataType type);
     void showClicked(const QByteArray& id, DataEntryWidget* self);
     void editClicked(const QByteArray& id, DataEntryWidget* self);
     void deleteClicked(const QByteArray& id, DataEntryWidget* self);

@@ -32,6 +32,7 @@ private slots:
     void handleSave();
     void handleNewUser(const QByteArray& userMasterPW);
     void handleAuthenticateCompleted(const QByteArray& userMasterPW);
+    void handleCopyButtonClicked(const QByteArray& id, const DataEntry::SecureDataType& type);
     void handleShow(const QByteArray& id, DataEntryWidget* widget);
     void handleEdit(const QByteArray& id, DataEntryWidget* widget);
     void handleDelete(const QByteArray& id, DataEntryWidget* widget);

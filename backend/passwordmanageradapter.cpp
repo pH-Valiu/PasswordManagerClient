@@ -5,6 +5,7 @@
 #include <wincrypt.h>
 #include <QMessageBox>
 #include <QApplication>
+#include <QClipboard>
 #include <QPasswordDigestor>
 #include "messagehandler.h"
 #include "startupdialog.h"
@@ -77,6 +78,7 @@ void PasswordManagerAdapter::showMainWindow(){
         connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
         connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
         connect(dataEntryWidget, &DataEntryWidget::moveClicked, this, &PasswordManagerAdapter::handleMove);
+        connect(dataEntryWidget, &DataEntryWidget::copyButtonClicked, this, &PasswordManagerAdapter::handleCopyButtonClicked);
         view->addDataEntryWidget(dataEntryWidget);
     }
 
@@ -232,6 +234,38 @@ void PasswordManagerAdapter::handleShow(const QByteArray& id, DataEntryWidget* w
     widget->updateContent();
 }
 
+void PasswordManagerAdapter::handleCopyButtonClicked(const QByteArray &id, const DataEntry::SecureDataType& type){
+    unprotectMasterPW();
+    int retCode = model.showEntry(id, masterPW);
+    protectMasterPW();
+
+
+    if(const QSharedPointer<DataEntry>& entry = model.getEntry(id); entry){
+        switch(type){
+        case DataEntry::PASSWORD:
+            QGuiApplication::clipboard()->setText(entry->getPassword());
+            break;
+        case DataEntry::USERNAME:
+            QGuiApplication::clipboard()->setText(entry->getUsername());
+            break;
+        case DataEntry::EMAIL:
+            QGuiApplication::clipboard()->setText(entry->getEMail());
+            break;
+        case DataEntry::DETAILS:
+            QGuiApplication::clipboard()->setText(entry->getDetails());
+            break;
+        }
+    }
+
+    if(retCode == 1){
+        unprotectMasterPW();
+        model.hideEntry(id, masterPW);
+        protectMasterPW();
+    }
+
+
+}
+
 void PasswordManagerAdapter::handleCreate(){
     unprotectMasterPW();
     //hide all entries (backend and frontend)
@@ -250,6 +284,7 @@ void PasswordManagerAdapter::handleInsertion(QSharedPointer<DataEntry> dataEntry
     connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
     connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
     connect(dataEntryWidget, &DataEntryWidget::moveClicked, this, &PasswordManagerAdapter::handleMove);
+    connect(dataEntryWidget, &DataEntryWidget::copyButtonClicked, this, &PasswordManagerAdapter::handleCopyButtonClicked);
     view->addDataEntryWidget(dataEntryWidget);
 }
 
@@ -418,6 +453,7 @@ void PasswordManagerAdapter::handleRevertToLocalBackup(const QString &backup){
         connect(dataEntryWidget, &DataEntryWidget::deleteClicked, this, &PasswordManagerAdapter::handleDelete);
         connect(dataEntryWidget, &DataEntryWidget::showClicked, this, &PasswordManagerAdapter::handleShow);
         connect(dataEntryWidget, &DataEntryWidget::moveClicked, this, &PasswordManagerAdapter::handleMove);
+        connect(dataEntryWidget, &DataEntryWidget::copyButtonClicked, this, &PasswordManagerAdapter::handleCopyButtonClicked);
         view->addDataEntryWidget(dataEntryWidget);
     }
     MessageHandler::inform("Successfully reverted to backup:\n"+backupToRevertTo);
@@ -425,6 +461,7 @@ void PasswordManagerAdapter::handleRevertToLocalBackup(const QString &backup){
     //reenable user input
     view->setEnabled(true);
 }
+
 void PasswordManagerAdapter::handleChangeMasterPW(const QByteArray &oldUserMasterPW, const QByteArray &newUserMasterPW){
     unprotectMasterPW();
     //hide all entries (backend and frontend)

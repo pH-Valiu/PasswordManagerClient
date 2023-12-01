@@ -230,10 +230,10 @@ void DataEntryWidget::setupContentPanel(QVBoxLayout *entryLayout){
 }
 
 void DataEntryWidget::connectSignalSlots(){
-    connect(usernameCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getUsername());});
-    connect(emailCopyButton , &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getEMail());});
-    connect(passwordCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getPassword());});
-    connect(detailsCopyButton, &QPushButton::clicked, this, [&]{QGuiApplication::clipboard()->setText(dataEntry->getDetails());});
+    connect(usernameCopyButton, &QPushButton::clicked, this, [&]{emit copyButtonClicked(dataEntry->getID(), DataEntry::USERNAME);});
+    connect(emailCopyButton , &QPushButton::clicked, this, [&]{emit copyButtonClicked(dataEntry->getID(), DataEntry::EMAIL);});
+    connect(passwordCopyButton, &QPushButton::clicked, this, [&]{emit copyButtonClicked(dataEntry->getID(), DataEntry::PASSWORD);});
+    connect(detailsCopyButton, &QPushButton::clicked, this, [&]{emit copyButtonClicked(dataEntry->getID(), DataEntry::DETAILS);});
     connect(showButton, &QPushButton::clicked, this, [&]{emit showClicked(dataEntry->getID(), this);});
     connect(editButton, &QPushButton::clicked, this, [&]{emit editClicked(dataEntry->getID(), this);});
     connect(deleteButton, &QPushButton::clicked, this, [&]{emit deleteClicked(dataEntry->getID(), this);});

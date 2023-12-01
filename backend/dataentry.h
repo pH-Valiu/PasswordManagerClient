@@ -14,6 +14,13 @@
 
 class DataEntry {
 public:
+    enum SecureDataType{
+        PASSWORD,
+        USERNAME,
+        EMAIL,
+        DETAILS
+    };
+
     ~DataEntry();
     QJsonObject toJsonObject() const;//done
     /**
