@@ -257,6 +257,7 @@ void PasswordManagerAdapter::handleCopyButtonClicked(const QByteArray &id, const
         }
     }
 
+    //hidden comment 2
     if(retCode == 1){
         unprotectMasterPW();
         model.hideEntry(id, masterPW);
