@@ -32,6 +32,10 @@ PasswordManagerAdapter::~PasswordManagerAdapter(){
     if(view){
         view.reset();
     }
+    if(logoutTimer){
+        logoutTimer->stop();
+        logoutTimer.reset();
+    }
 
     model.removeAllEntries();
 }
@@ -68,6 +72,16 @@ void PasswordManagerAdapter::showMainWindow(){
     protectMasterPW();
 
 
+    if(this->initialSetupDialg){
+        this->initialSetupDialg->deleteLater();
+        this->initialSetupDialg.release();
+    }
+
+    if(this->startupDialog){
+        this->startupDialog->deleteLater();
+        this->startupDialog.release();
+    }
+
 
     //add each DataEntry intp PasswordManagerView after creation of DataEntryWidget
     const QVector<QSharedPointer<DataEntry>> list = model.getAllEntries();
@@ -99,6 +113,15 @@ void PasswordManagerAdapter::showMainWindow(){
     //start background integrity check
     this->handleStartIntegrityCheck();
 
+
+    //start logout timer
+    logoutTimer = std::unique_ptr<QTimer>(new QTimer(this));
+    logoutTimer->setSingleShot(true);
+    connect(logoutTimer.get(), &QTimer::timeout, this, &PasswordManagerAdapter::logout);
+    logoutTimer->start(8000); //5 min timer (5*60*1000 = 300.000
+
+
+    //show view
     view->show();
 }
 
@@ -200,6 +223,7 @@ void PasswordManagerAdapter::handleNewUser(const QByteArray &userMasterPW){
 }
 
 void PasswordManagerAdapter::handleAuthenticateCompleted(const QByteArray& userMasterPW){
+
     QByteArray masterPWSalt = model.getMasterPWSalt();
 
     this->masterPW = QSharedPointer<QByteArray>(new QByteArray(QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
@@ -257,7 +281,6 @@ void PasswordManagerAdapter::handleCopyButtonClicked(const QByteArray &id, const
         }
     }
 
-    //hidden comment 2
     if(retCode == 1){
         unprotectMasterPW();
         model.hideEntry(id, masterPW);
@@ -535,4 +558,26 @@ void PasswordManagerAdapter::handleMainWindowClose(){
     if(!flag){
         MessageHandler::warn("Saving of PasswordManagerModel failed!");
     }
+}
+
+void PasswordManagerAdapter::logout(){
+    //integrityCheckThread is finishing after logout has been called and view has been deleted, but it is trying to access a child of PasswordManagerView!!!
+
+
+    //unlock masterPW
+    unprotectMasterPW();
+
+    //save current broker state
+    model.saveBroker(masterPW);
+
+    //"delete" (reset / clear) masterPW
+    masterPW.clear();
+
+    //delete PasswordManagerView
+    if(view){
+        view.reset();
+    }
+
+    //show InitialSetupDialog or StartupDialog
+    this->start();
 }

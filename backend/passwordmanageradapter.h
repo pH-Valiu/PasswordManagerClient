@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QPointer>
+#include <QTimer>
 #include "passwordmanagermodel.h"
 #include "passwordmanagerview.h"
 #include "dataentrywidget.h"
@@ -23,6 +24,7 @@ private:
     std::unique_ptr<StartupDialog> startupDialog;
     std::unique_ptr<InitialSetupDialog> initialSetupDialg;
     QSharedPointer<QByteArray> masterPW;
+    std::unique_ptr<QTimer> logoutTimer;
 
     void showMainWindow();
     void connectSignalSlots();
@@ -45,6 +47,7 @@ private slots:
     void handleChangeMasterPW(const QByteArray& oldUserMasterPW, const QByteArray& newUserMasterPW);
     void handleStartIntegrityCheck();
     void handleMainWindowClose();
+    void logout();
 signals:
 };
 
