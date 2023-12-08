@@ -3,6 +3,8 @@
 #include <QFile>
 #include <QApplication>
 
+#include "masterpasswordmonitor.h"
+
 #ifdef EXECUTE_UNIT_TESTS
 #include "unit_test/dataentrytest.h"
 #include "unit_test/passwordbrokertest.h"
@@ -39,6 +41,11 @@ int main(int argc, char *argv[])
         return 2;
     }
     a.setApplicationName("Vault Shield");
+
+    QSharedPointer<QByteArray> ptr = QSharedPointer<QByteArray>(new QByteArray(QString("12345678901234567890123456789012").toUtf8()));
+    MasterPasswordMonitor m(ptr);
+    m.example();
+
     return a.exec();
 
 #endif
